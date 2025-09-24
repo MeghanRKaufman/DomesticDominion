@@ -85,6 +85,7 @@ class Chore(BaseModel):
     timer_minutes: Optional[int] = None
     points: int = 10
     is_default: bool = True
+    couple_id: Optional[str] = None
 
 class TalentTreeNode(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
