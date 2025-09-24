@@ -370,11 +370,20 @@ async def websocket_endpoint(websocket: WebSocket, couple_id: str):
 # Helper functions
 async def generate_daily_assignments(couple_id: str, date: str):
     """Generate daily chore assignments using talent tree"""
-    users = await db.users.find({"couple_id": couple_id}).to_list(2)
+    users_cursor = db.users.find({"couple_id": couple_id})
+    users = []
+    async for user in users_cursor:
+        user.pop('_id', None)
+        users.append(user)
+    
     if len(users) != 2:
         raise HTTPException(status_code=400, detail="Couple not complete")
     
-    chores = await db.chores.find({"is_default": True}).to_list(1000)
+    chores_cursor = db.chores.find({"is_default": True})
+    chores = []
+    async for chore in chores_cursor:
+        chore.pop('_id', None)
+        chores.append(chore)
     
     assignments = {}
     percentages = {}
@@ -383,13 +392,17 @@ async def generate_daily_assignments(couple_id: str, date: str):
         # Get talent tree modifiers for this chore
         modifiers = {}
         for user in users:
-            nodes = await db.talent_tree_nodes.find({
+            nodes_cursor = db.talent_tree_nodes.find({
                 "user_id": user["id"],
                 "$or": [
                     {"room": chore["room"], "chore_id": chore["id"]},
                     {"room": chore["room"], "chore_id": None}
                 ]
-            }).to_list(10)
+            })
+            nodes = []
+            async for node in nodes_cursor:
+                node.pop('_id', None)
+                nodes.append(node)
             
             modifier = sum(node["modifier_percentage"] for node in nodes)
             modifiers[user["id"]] = min(max(modifier, -5), 5)  # Cap at ±5%
