@@ -187,15 +187,22 @@ function AuthModal({ isOpen, onClose, onSuccess }) {
     setLoading(true);
     
     try {
+      console.log('Attempting to create user with name:', name);
       const response = await axios.post(`${API}/users`, {
         name,
         couple_code: isLogin ? coupleCode : undefined
       });
       
+      console.log('User creation successful:', response.data);
       localStorage.setItem('currentUser', JSON.stringify(response.data));
+      
+      // Call onSuccess and onClose immediately
       onSuccess(response.data);
       onClose();
+      
+      console.log('Authentication modal should now close');
     } catch (error) {
+      console.error('Authentication error:', error);
       alert('Error: ' + (error.response?.data?.detail || 'Something went wrong'));
     } finally {
       setLoading(false);
