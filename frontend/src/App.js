@@ -350,6 +350,7 @@ function GameApp() {
   // Load chores and assignments when user is set
   useEffect(() => {
     if (currentUser) {
+      // Don't await these - let them load in background
       loadChores();
       loadTodaysAssignments();
     }
