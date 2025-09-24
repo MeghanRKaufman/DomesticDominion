@@ -369,7 +369,7 @@ async def generate_daily_assignments(couple_id: str, date: str):
     if len(users) != 2:
         raise HTTPException(status_code=400, detail="Couple not complete")
     
-    chores = await db.chores.find({"$or": [{"is_default": True}, {"couple_id": couple_id}]}).to_list(1000)
+    chores = await db.chores.find({"is_default": True}).to_list(1000)
     
     assignments = {}
     percentages = {}
