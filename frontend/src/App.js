@@ -403,6 +403,14 @@ function GameApp() {
       setChores(response.data);
     } catch (error) {
       console.error('Error loading chores:', error);
+      // Set empty chores on error to prevent blocking
+      setChores({
+        kitchen: [],
+        bathroom: [],
+        living_room: [],
+        bedroom: [],
+        us: []
+      });
     }
   };
 
@@ -414,6 +422,13 @@ function GameApp() {
       setCompletedChores(response.data.completed_chores || []);
     } catch (error) {
       console.error('Error loading assignments:', error);
+      // Set default assignments on error to prevent blocking
+      setAssignments({
+        assignments: {},
+        percentages: {},
+        completed_chores: []
+      });
+      setCompletedChores([]);
     }
   };
 
