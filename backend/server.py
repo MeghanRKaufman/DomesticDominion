@@ -225,7 +225,7 @@ async def get_user(user_id: str):
 @api_router.get("/couples/{couple_id}/chores")
 async def get_chores(couple_id: str):
     """Get all chores organized by room"""
-    chores = await db.chores.find({"$or": [{"is_default": True}, {"couple_id": couple_id}]}).to_list(1000)
+    chores = await db.chores.find({"is_default": True}).to_list(1000)
     
     organized_chores = {}
     for room in RoomType:
