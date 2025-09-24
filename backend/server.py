@@ -284,8 +284,42 @@ async def get_daily_assignment(couple_id: str, date: str):
     """Get daily chore assignments for a specific date"""
     assignment = await db.daily_assignments.find_one({"couple_id": couple_id, "date": date})
     if not assignment:
-        # Generate new assignment if doesn't exist
+        # Check if couple is complete before generating assignments
+        users_cursor = db.users.find({"couple_id": couple_id})
+        users = []
+        async for user in users_cursor:
+            user.pop('_id', None)
+            users.append(user)
+        
+        if len(users) < 2:
+            # Return a default assignment for single user
+            chores_cursor = db.chores.find({"is_default": True})
+            chores = []
+            async for chore in chores_cursor:
+                chore.pop('_id', None)
+                chores.append(chore)
+            
+            # Assign all chores to the single user with 100% probability
+            assignments = {}
+            percentages = {}
+            for chore in chores:
+                assignments[chore["id"]] = users[0]["id"] if users else "unknown"
+                percentages[chore["id"]] = {users[0]["id"]: 100.0} if users else {}
+            
+            return {
+                "couple_id": couple_id,
+                "date": date,
+                "assignments": assignments,
+                "percentages": percentages,
+                "completed_chores": [],
+                "user_points": {}
+            }
+        
+        # Generate new assignment if couple is complete
         assignment = await generate_daily_assignments(couple_id, date)
+    else:
+        assignment.pop('_id', None)
+    
     return assignment
 
 @api_router.post("/couples/{couple_id}/settings")
