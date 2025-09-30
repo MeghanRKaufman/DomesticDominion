@@ -585,6 +585,7 @@ function GameApp() {
   };
 
   const refreshUserData = async (userId) => {
+    if (!userId) return;
     try {
       const response = await axios.get(`${API}/users/${userId}`);
       setCurrentUser(response.data);
