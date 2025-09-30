@@ -512,7 +512,7 @@ function GameApp() {
 
   // Load data when user is set
   useEffect(() => {
-    if (currentUser) {
+    if (currentUser && currentUser.userId) {
       loadTasks();
       loadDailyOdds();
     }
