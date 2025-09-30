@@ -509,10 +509,23 @@ function GameApp() {
   // Load user from localStorage
   useEffect(() => {
     const savedUser = localStorage.getItem('currentUser');
+    console.log('Checking for saved user:', savedUser);
     if (savedUser) {
-      const user = JSON.parse(savedUser);
-      setCurrentUser(user);
-      refreshUserData(user.userId);
+      try {
+        const user = JSON.parse(savedUser);
+        console.log('Parsed user:', user);
+        if (user.userId) {
+          setCurrentUser(user);
+          setShowAuth(false);
+          // Optionally refresh user data
+          refreshUserData(user.userId);
+        } else {
+          setShowAuth(true);
+        }
+      } catch (error) {
+        console.error('Error parsing saved user:', error);
+        setShowAuth(true);
+      }
     } else {
       setShowAuth(true);
     }
