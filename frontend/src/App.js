@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import useWebSocket from 'react-use-websocket';
 import axios from 'axios';
@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { Checkbox } from './components/ui/checkbox';
 import { Badge } from './components/ui/badge';
 import { Progress } from './components/ui/progress';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './components/ui/dialog';
 import { Input } from './components/ui/input';
 import { Label } from './components/ui/label';
 
@@ -19,63 +19,73 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 const WS_URL = BACKEND_URL.replace('https://', 'wss://').replace('http://', 'ws://');
 
-// Room configurations with new styling
+// Room configurations
 const ROOMS = {
-  kitchen: { 
+  Kitchen: { 
     name: 'Kitchen', 
     emoji: '🍳', 
-    color: 'bg-orange-100 border-orange-200 text-orange-800',
-    hoverColor: 'hover:bg-orange-200'
+    color: 'bg-orange-100 border-orange-200 text-orange-800'
   },
-  bathroom: { 
+  Bathroom: { 
     name: 'Bathroom', 
     emoji: '🛁', 
-    color: 'bg-blue-100 border-blue-200 text-blue-800',
-    hoverColor: 'hover:bg-blue-200'
+    color: 'bg-blue-100 border-blue-200 text-blue-800'
   },
-  living_room: { 
+  'Living Room': { 
     name: 'Living Room', 
     emoji: '🛋️', 
-    color: 'bg-green-100 border-green-200 text-green-800',
-    hoverColor: 'hover:bg-green-200'
+    color: 'bg-green-100 border-green-200 text-green-800'
   },
-  bedroom: { 
+  Bedroom: { 
     name: 'Bedroom', 
     emoji: '🛏️', 
-    color: 'bg-purple-100 border-purple-200 text-purple-800',
-    hoverColor: 'hover:bg-purple-200'
+    color: 'bg-purple-100 border-purple-200 text-purple-800'
   },
-  us: { 
+  US: { 
     name: 'US ❤️', 
     emoji: '💕', 
-    color: 'bg-pink-100 border-pink-200 text-pink-800',
-    hoverColor: 'hover:bg-pink-200'
+    color: 'bg-pink-100 border-pink-200 text-pink-800'
+  },
+  Growth: {
+    name: 'Growth 💪',
+    emoji: '💪',
+    color: 'bg-emerald-100 border-emerald-200 text-emerald-800'
   }
 };
 
-// Chore size points
-const CHORE_POINTS = {
-  small: 5,
-  medium: 10,
-  big: 20
-};
-
-// Talent tree branch colors
+// Talent branch colors
 const TALENT_BRANCHES = {
-  efficiency: { name: 'Efficiency', color: 'bg-blue-500', lightColor: 'bg-blue-100' },
-  couple: { name: 'Couple', color: 'bg-pink-500', lightColor: 'bg-pink-100' },
-  growth: { name: 'Growth', color: 'bg-green-500', lightColor: 'bg-green-100' }
+  Efficiency: { 
+    name: 'Efficiency', 
+    color: 'from-blue-400 to-blue-600',
+    bgColor: 'bg-blue-500',
+    lightColor: 'bg-blue-100 border-blue-200'
+  },
+  Couple: { 
+    name: 'Couple', 
+    color: 'from-pink-400 to-pink-600',
+    bgColor: 'bg-pink-500',
+    lightColor: 'bg-pink-100 border-pink-200'
+  },
+  Growth: { 
+    name: 'Growth', 
+    color: 'from-green-400 to-green-600',
+    bgColor: 'bg-green-500',
+    lightColor: 'bg-green-100 border-green-200'
+  }
 };
 
-// Timer Component
-function Timer({ minutes, onComplete, isActive }) {
+// Timer Component for US tasks
+function Timer({ minutes, onComplete, isActive = true }) {
   const [timeLeft, setTimeLeft] = useState(minutes * 60);
   const [isRunning, setIsRunning] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
 
   useEffect(() => {
     if (isActive) {
       setTimeLeft(minutes * 60);
       setIsRunning(false);
+      setIsCompleted(false);
     }
   }, [minutes, isActive]);
 
@@ -86,6 +96,7 @@ function Timer({ minutes, onComplete, isActive }) {
         setTimeLeft(time => {
           if (time <= 1) {
             setIsRunning(false);
+            setIsCompleted(true);
             onComplete && onComplete();
             return 0;
           }
@@ -108,187 +119,186 @@ function Timer({ minutes, onComplete, isActive }) {
     <div className="flex items-center space-x-2 text-sm">
       <Button 
         size="sm" 
-        variant={isRunning ? "destructive" : "default"}
-        onClick={() => setIsRunning(!isRunning)}
-        disabled={timeLeft === 0}
-        data-testid="timer-button"
+        variant={isRunning ? "destructive" : isCompleted ? "default" : "outline"}
+        onClick={() => !isCompleted && setIsRunning(!isRunning)}
+        disabled={isCompleted}
+        className={isCompleted ? 'bg-green-500 text-white' : ''}
       >
-        {isRunning ? 'Pause' : timeLeft === 0 ? 'Done!' : 'Start'}
+        {isCompleted ? '✓ Done' : isRunning ? 'Pause' : 'Start'}
       </Button>
       <div className="flex flex-col">
-        <span className="font-mono">{formatTime(timeLeft)}</span>
-        <Progress value={progress} className="w-20 h-1" />
+        <span className="font-mono font-semibold">{formatTime(timeLeft)}</span>
+        <Progress value={progress} className="w-20 h-2" />
       </div>
+      {isCompleted && (
+        <Badge variant="secondary" className="bg-green-100 text-green-800">
+          Timer Complete! 🎉
+        </Badge>
+      )}
     </div>
   );
 }
 
-// Chore Item Component
-function ChoreItem({ chore, onComplete, isCompleted = false }) {
-  const [isChecked, setIsChecked] = useState(isCompleted);
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+// Task Item Component
+function TaskItem({ task, odds, onComplete, currentUser }) {
+  const [isCompleting, setIsCompleting] = useState(false);
+  const [timerCompleted, setTimerCompleted] = useState(false);
   
-  const points = CHORE_POINTS[chore.size] || 10;
-
-  const handleComplete = async () => {
-    setIsChecked(true);
-    try {
-      const response = await axios.post(`${API}/chores/${chore.id}/complete`, {
-        user_id: currentUser.id
-      });
-      
-      if (onComplete) {
-        onComplete(response.data);
-      }
-    } catch (error) {
-      console.error('Error completing chore:', error);
-      setIsChecked(false);
+  const userOdds = odds ? Math.round((odds[currentUser?.userId] || 0.5) * 100) : 50;
+  
+  const getDifficultyColor = (difficulty) => {
+    switch (difficulty) {
+      case 'EASY': return 'bg-green-100 text-green-800 border-green-200';
+      case 'MEDIUM': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'HARD': return 'bg-red-100 text-red-800 border-red-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  return (
-    <div className={`p-4 rounded-lg border transition-all ${isCompleted ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'}`}>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <Checkbox 
-            checked={isChecked} 
-            onCheckedChange={handleComplete}
-            disabled={isCompleted}
-            data-testid={`chore-checkbox-${chore.id}`}
-          />
-          <div>
-            <p className={`font-medium ${isCompleted ? 'line-through text-gray-500' : ''}`}>
-              {chore.name}
-            </p>
-            {chore.description && (
-              <p className="text-sm text-gray-600">{chore.description}</p>
-            )}
-          </div>
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          {chore.timer_minutes && (
-            <Timer 
-              minutes={chore.timer_minutes} 
-              isActive={!isCompleted}
-              onComplete={() => console.log('Timer completed!')}
-            />
-          )}
-          <Badge variant="outline" className={`${chore.size === 'big' ? 'bg-red-100' : chore.size === 'medium' ? 'bg-yellow-100' : 'bg-green-100'}`}>
-            +{points}pts
-          </Badge>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Health Activity Component
-function HealthActivityItem({ activity, onComplete }) {
-  const [value, setValue] = useState(activity.target_value || 1);
-  const [isCompleting, setIsCompleting] = useState(false);
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-
   const handleComplete = async () => {
+    if (task.timerMinutes && !timerCompleted) {
+      alert('Please complete the timer first! ⏰');
+      return;
+    }
+
     setIsCompleting(true);
     try {
-      const response = await axios.post(`${API}/health-activities/${activity.id}/complete`, {
-        user_id: currentUser.id,
-        value: value
+      const response = await axios.post(`${API}/tasks/${task.taskId}/complete`, {
+        userId: currentUser.userId
       });
       
+      alert(`🎉 Task completed! +${response.data.totalPoints} points (${response.data.basePoints} base + ${response.data.bonusPoints} bonus)`);
+      
       if (onComplete) {
-        onComplete(response.data);
+        onComplete();
       }
     } catch (error) {
-      console.error('Error completing health activity:', error);
-      alert(error.response?.data?.detail || 'Failed to complete activity');
+      console.error('Error completing task:', error);
+      alert('Failed to complete task. Please try again.');
     } finally {
       setIsCompleting(false);
     }
   };
 
   return (
-    <div className="p-4 rounded-lg border bg-white border-gray-200 transition-all">
-      <div className="flex items-center justify-between">
-        <div>
-          <h4 className="font-medium">{activity.name}</h4>
-          <p className="text-sm text-gray-600">{activity.description}</p>
-          {activity.target_value && (
-            <p className="text-xs text-gray-500">Target: {activity.target_value} {activity.unit}</p>
-          )}
+    <Card className="mb-3 hover:shadow-md transition-shadow">
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <div className="flex items-center space-x-2 mb-2">
+              <h4 className="font-semibold">{task.title}</h4>
+              <Badge className={getDifficultyColor(task.difficulty)}>
+                {task.difficulty} - {task.basePoints}pts
+              </Badge>
+              <Badge variant="outline">
+                {userOdds}% chance
+              </Badge>
+            </div>
+            
+            {task.description && (
+              <p className="text-sm text-gray-600 mb-2">{task.description}</p>
+            )}
+            
+            {task.timerMinutes && (
+              <div className="mb-3">
+                <Timer 
+                  minutes={task.timerMinutes} 
+                  onComplete={() => setTimerCompleted(true)}
+                />
+              </div>
+            )}
+          </div>
+          
+          <div className="ml-4">
+            <Button 
+              onClick={handleComplete} 
+              disabled={isCompleting || (task.timerMinutes && !timerCompleted)}
+              className="min-w-[100px]"
+            >
+              {isCompleting ? 'Completing...' : 'Complete ✓'}
+            </Button>
+          </div>
         </div>
-        
-        <div className="flex items-center space-x-2">
-          {activity.target_value && (
-            <Input
-              type="number"
-              value={value}
-              onChange={(e) => setValue(parseInt(e.target.value) || 0)}
-              className="w-20 h-8 text-sm"
-              min="1"
-            />
-          )}
-          <Button 
-            size="sm" 
-            onClick={handleComplete}
-            disabled={isCompleting}
-          >
-            {isCompleting ? 'Completing...' : 'Complete'}
-          </Button>
-          <Badge variant="outline" className="bg-green-100">
-            +{activity.points}pts
-          </Badge>
-        </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
-// Talent Tree Node Component
-function TalentNode({ node, isUnlocked, canUnlock, onUnlock }) {
+// Talent Node Component
+function TalentNode({ node, isUnlocked, canUnlock, onUnlock, userTalentPoints }) {
   const branch = TALENT_BRANCHES[node.branch];
   
+  const getNodeState = () => {
+    if (isUnlocked) return 'unlocked';
+    if (canUnlock && userTalentPoints >= node.costTalentPoints) return 'available';
+    return 'locked';
+  };
+
+  const nodeState = getNodeState();
+  
+  const getNodeStyle = () => {
+    switch (nodeState) {
+      case 'unlocked':
+        return `${branch.bgColor} text-white border-2 border-gray-300 shadow-lg`;
+      case 'available':
+        return `${branch.lightColor} hover:shadow-md cursor-pointer border-2 border-gray-400`;
+      case 'locked':
+        return 'bg-gray-100 text-gray-400 border-2 border-gray-200';
+    }
+  };
+
   return (
-    <div className="flex flex-col items-center mb-4">
+    <div className="flex flex-col items-center mb-6">
       <div 
-        className={`w-20 h-20 rounded-full flex flex-col items-center justify-center text-xs p-2 border-2 cursor-pointer transition-all ${
-          isUnlocked 
-            ? `${branch.color} text-white border-gray-300` 
-            : canUnlock 
-            ? `${branch.lightColor} border-gray-400 hover:border-gray-600` 
-            : 'bg-gray-100 border-gray-200 text-gray-400'
-        }`}
-        onClick={canUnlock ? onUnlock : undefined}
+        className={`w-24 h-24 rounded-full flex flex-col items-center justify-center text-xs p-3 transition-all ${getNodeStyle()}`}
+        onClick={nodeState === 'available' ? onUnlock : undefined}
       >
-        <div className="font-semibold text-center leading-tight">
-          {node.name}
+        <div className="font-bold text-center leading-tight mb-1">
+          {node.title}
+        </div>
+        <div className="text-xs opacity-75">
+          Tier {node.tier}
         </div>
       </div>
-      {canUnlock && !isUnlocked && (
-        <Button size="sm" className="mt-2" onClick={onUnlock}>
-          Unlock
-        </Button>
-      )}
+      
+      <div className="text-center mt-2 max-w-32">
+        <div className="text-xs text-gray-600 mb-1">
+          Cost: {node.costTalentPoints} TP
+        </div>
+        <div className="text-xs text-gray-500 leading-tight">
+          {node.description}
+        </div>
+        
+        {nodeState === 'available' && (
+          <Button 
+            size="sm" 
+            className="mt-2" 
+            onClick={onUnlock}
+            disabled={userTalentPoints < node.costTalentPoints}
+          >
+            Unlock
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
 
 // Talent Tree Component
 function TalentTree({ currentUser, onUpdate }) {
-  const [talentTree, setTalentTree] = useState(null);
+  const [talentNodes, setTalentNodes] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadTalentTree();
-  }, [currentUser]);
+    loadTalentNodes();
+  }, []);
 
-  const loadTalentTree = async () => {
+  const loadTalentNodes = async () => {
     try {
-      const response = await axios.get(`${API}/users/${currentUser.id}/talent-tree`);
-      setTalentTree(response.data);
+      const response = await axios.get(`${API}/talent-nodes`);
+      setTalentNodes(response.data.nodes);
     } catch (error) {
-      console.error('Error loading talent tree:', error);
+      console.error('Error loading talent nodes:', error);
     } finally {
       setLoading(false);
     }
@@ -296,27 +306,36 @@ function TalentTree({ currentUser, onUpdate }) {
 
   const unlockNode = async (nodeId) => {
     try {
-      await axios.post(`${API}/users/${currentUser.id}/talent-tree/unlock`, {
-        user_id: currentUser.id,
-        node_id: nodeId
+      // Add node to user's build
+      const currentBuild = currentUser.talentBuild || { nodeIds: [] };
+      const newBuild = {
+        ...currentBuild,
+        nodeIds: [...(currentBuild.nodeIds || []), nodeId]
+      };
+
+      await axios.post(`${API}/builds/submit`, {
+        userId: currentUser.userId,
+        talentBuild: newBuild
       });
+
+      alert(`🌟 Talent "${talentNodes[nodeId].title}" unlocked!`);
       
-      // Refresh talent tree and user data
-      loadTalentTree();
-      onUpdate && onUpdate();
+      if (onUpdate) {
+        onUpdate();
+      }
     } catch (error) {
-      console.error('Error unlocking node:', error);
+      console.error('Error unlocking talent:', error);
       alert(error.response?.data?.detail || 'Failed to unlock talent');
     }
   };
 
-  if (loading || !talentTree) {
+  if (loading) {
     return <div className="text-center p-8">Loading talent tree...</div>;
   }
 
   // Group nodes by branch and tier
   const groupedNodes = {};
-  talentTree.available_nodes.forEach(node => {
+  Object.values(talentNodes).forEach(node => {
     if (!groupedNodes[node.branch]) {
       groupedNodes[node.branch] = {};
     }
@@ -326,38 +345,55 @@ function TalentTree({ currentUser, onUpdate }) {
     groupedNodes[node.branch][node.tier].push(node);
   });
 
+  const unlockedNodes = currentUser.talentBuild?.nodeIds || [];
+
   return (
-    <div className="space-y-6">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold mb-2">Talent Tree 🌳</h2>
-        <p className="text-gray-600">Available Talent Points: {currentUser.available_talent_points}</p>
+    <div className="space-y-8">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold mb-4">Talent Tree 🌳</h2>
+        <div className="flex justify-center space-x-6">
+          <Badge variant="secondary" className="text-lg px-4 py-2">
+            Available: {currentUser.talentPoints} TP
+          </Badge>
+          <Badge variant="outline" className="text-lg px-4 py-2">
+            Level: {currentUser.level}
+          </Badge>
+        </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         {Object.entries(TALENT_BRANCHES).map(([branchKey, branch]) => (
           <div key={branchKey} className="text-center">
-            <h3 className={`text-lg font-semibold mb-4 p-2 rounded ${branch.lightColor}`}>
-              {branch.name}
-            </h3>
+            <div className={`p-4 rounded-lg ${branch.lightColor} mb-6`}>
+              <h3 className="text-xl font-bold mb-2">{branch.name}</h3>
+              <div className="text-sm text-gray-600">
+                Unlocked: {unlockedNodes.filter(id => talentNodes[id]?.branch === branchKey).length}
+              </div>
+            </div>
             
-            <div className="space-y-4">
-              {[1, 2, 3, 4, 5, 6, 7].map(tier => (
-                groupedNodes[branchKey]?.[tier]?.map(node => {
-                  const isUnlocked = talentTree.unlocked_nodes.includes(node.id);
-                  const canUnlock = !isUnlocked && 
-                    currentUser.available_talent_points >= node.cost &&
-                    node.prerequisites.every(prereq => talentTree.unlocked_nodes.includes(prereq));
-                  
-                  return (
-                    <TalentNode
-                      key={node.id}
-                      node={node}
-                      isUnlocked={isUnlocked}
-                      canUnlock={canUnlock}
-                      onUnlock={() => unlockNode(node.id)}
-                    />
-                  );
-                })
+            <div className="space-y-6">
+              {[1, 2, 3, 4].map(tier => (
+                <div key={tier} className="flex justify-center">
+                  <div className="flex flex-wrap justify-center gap-4">
+                    {groupedNodes[branchKey]?.[tier]?.map(node => {
+                      const isUnlocked = unlockedNodes.includes(node.nodeId);
+                      
+                      // Check if prerequisites are met
+                      const canUnlock = !isUnlocked;
+                      
+                      return (
+                        <TalentNode
+                          key={node.nodeId}
+                          node={node}
+                          isUnlocked={isUnlocked}
+                          canUnlock={canUnlock}
+                          userTalentPoints={currentUser.talentPoints}
+                          onUnlock={() => unlockNode(node.nodeId)}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
               ))}
             </div>
           </div>
@@ -367,9 +403,9 @@ function TalentTree({ currentUser, onUpdate }) {
   );
 }
 
-// Login/Signup Component  
+// Auth Modal Component
 function AuthModal({ isOpen, onClose, onSuccess }) {
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(false);
   const [name, setName] = useState('');
   const [coupleCode, setCoupleCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -380,8 +416,8 @@ function AuthModal({ isOpen, onClose, onSuccess }) {
     
     try {
       const response = await axios.post(`${API}/users`, {
-        name,
-        couple_code: isLogin ? coupleCode : undefined
+        displayName: name,
+        coupleCode: isLogin ? coupleCode : undefined
       });
       
       localStorage.setItem('currentUser', JSON.stringify(response.data));
@@ -396,10 +432,10 @@ function AuthModal({ isOpen, onClose, onSuccess }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent data-testid="auth-modal">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>
-            {isLogin ? 'Join Your Partner' : 'Start Your Lifestyle Journey'} 💪
+          <DialogTitle className="text-center">
+            {isLogin ? '🤝 Join Your Partner' : '🚀 Start Your Journey'}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -411,7 +447,6 @@ function AuthModal({ isOpen, onClose, onSuccess }) {
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter your name"
               required
-              data-testid="name-input"
             />
           </div>
           
@@ -424,13 +459,12 @@ function AuthModal({ isOpen, onClose, onSuccess }) {
                 onChange={(e) => setCoupleCode(e.target.value)}
                 placeholder="Enter your partner's couple code"
                 required
-                data-testid="couple-code-input"
               />
             </div>
           )}
           
-          <Button type="submit" className="w-full" disabled={loading} data-testid="auth-submit-btn">
-            {loading ? 'Loading...' : isLogin ? 'Join Partner' : 'Start Journey'}
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? 'Loading...' : isLogin ? '🤝 Join Partner' : '🚀 Start Journey'}
           </Button>
           
           <Button 
@@ -438,9 +472,8 @@ function AuthModal({ isOpen, onClose, onSuccess }) {
             variant="ghost" 
             className="w-full"
             onClick={() => setIsLogin(!isLogin)}
-            data-testid="auth-toggle-btn"
           >
-            {isLogin ? "Don't have a code? Start new journey" : 'Already have a couple code? Join here'}
+            {isLogin ? "Don't have a code? Start new journey" : 'Have a couple code? Join here'}
           </Button>
         </form>
       </DialogContent>
@@ -449,29 +482,29 @@ function AuthModal({ isOpen, onClose, onSuccess }) {
 }
 
 // Main App Component
-function LifestyleApp() {
+function GameApp() {
   const [currentUser, setCurrentUser] = useState(null);
-  const [chores, setChores] = useState({});
-  const [healthActivities, setHealthActivities] = useState([]);
+  const [tasks, setTasks] = useState({});
+  const [dailyOdds, setDailyOdds] = useState({});
   const [showAuth, setShowAuth] = useState(false);
-  const [activeTab, setActiveTab] = useState('chores');
-  const [activeRoom, setActiveRoom] = useState('kitchen');
+  const [activeTab, setActiveTab] = useState('tasks');
+  const [activeRoom, setActiveRoom] = useState('Kitchen');
 
   // WebSocket connection
   const { lastMessage } = useWebSocket(
-    currentUser ? `${WS_URL}/ws/${currentUser.couple_id}` : null,
+    currentUser ? `${WS_URL}/ws/${currentUser.coupleId}` : null,
     {
       shouldReconnect: () => true,
     }
   );
 
-  // Load user from localStorage on mount
+  // Load user from localStorage
   useEffect(() => {
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
       const user = JSON.parse(savedUser);
       setCurrentUser(user);
-      refreshUserData(user.id);
+      refreshUserData(user.userId);
     } else {
       setShowAuth(true);
     }
@@ -480,8 +513,8 @@ function LifestyleApp() {
   // Load data when user is set
   useEffect(() => {
     if (currentUser) {
-      loadChores();
-      loadHealthActivities();
+      loadTasks();
+      loadDailyOdds();
     }
   }, [currentUser]);
 
@@ -490,11 +523,21 @@ function LifestyleApp() {
     if (lastMessage) {
       try {
         const message = JSON.parse(lastMessage.data);
-        if (message.type === 'chore_completed') {
+        if (message.type === 'task_completed') {
           playNotificationSound();
-          alert(`🎉 ${message.user_name} completed ${message.chore_name}! (+${message.points} points)`);
+          
+          // Show notification
+          const notification = document.createElement('div');
+          notification.className = 'fixed top-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50';
+          notification.innerHTML = `🎉 ${message.userName} completed "${message.taskTitle}"! (+${message.points} points)`;
+          document.body.appendChild(notification);
+          
+          setTimeout(() => {
+            document.body.removeChild(notification);
+          }, 4000);
+          
           if (currentUser) {
-            refreshUserData(currentUser.id);
+            refreshUserData(currentUser.userId);
           }
         }
       } catch (error) {
@@ -505,21 +548,37 @@ function LifestyleApp() {
 
   const playNotificationSound = () => {
     try {
+      // Create the "whah-ping" sound effect
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
       
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
+      // First tone (whah)
+      const oscillator1 = audioContext.createOscillator();
+      const gainNode1 = audioContext.createGain();
+      oscillator1.connect(gainNode1);
+      gainNode1.connect(audioContext.destination);
       
-      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
+      oscillator1.frequency.setValueAtTime(440, audioContext.currentTime);
+      oscillator1.frequency.exponentialRampToValueAtTime(330, audioContext.currentTime + 0.2);
+      gainNode1.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
       
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+      oscillator1.start();
+      oscillator1.stop(audioContext.currentTime + 0.3);
       
-      oscillator.start();
-      oscillator.stop(audioContext.currentTime + 0.5);
+      // Second tone (ping)
+      setTimeout(() => {
+        const oscillator2 = audioContext.createOscillator();
+        const gainNode2 = audioContext.createGain();
+        oscillator2.connect(gainNode2);
+        gainNode2.connect(audioContext.destination);
+        
+        oscillator2.frequency.setValueAtTime(660, audioContext.currentTime);
+        gainNode2.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+        
+        oscillator2.start();
+        oscillator2.stop(audioContext.currentTime + 0.2);
+      }, 300);
     } catch (error) {
       console.log('Could not play sound:', error);
     }
@@ -535,32 +594,23 @@ function LifestyleApp() {
     }
   };
 
-  const loadChores = async () => {
+  const loadTasks = async () => {
     try {
-      const response = await axios.get(`${API}/couples/${currentUser.couple_id}/chores`);
-      setChores(response.data);
+      const response = await axios.get(`${API}/couples/${currentUser.coupleId}/tasks`);
+      setTasks(response.data);
     } catch (error) {
-      console.error('Error loading chores:', error);
+      console.error('Error loading tasks:', error);
     }
   };
 
-  const loadHealthActivities = async () => {
+  const loadDailyOdds = async () => {
     try {
-      const response = await axios.get(`${API}/health-activities`);
-      setHealthActivities(response.data);
+      const today = new Date().toISOString().split('T')[0];
+      const response = await axios.get(`${API}/couples/${currentUser.coupleId}/odds/${today}`);
+      setDailyOdds(response.data.taskOdds);
     } catch (error) {
-      console.error('Error loading health activities:', error);
+      console.error('Error loading daily odds:', error);
     }
-  };
-
-  const handleChoreComplete = (result) => {
-    alert(`🎉 Chore completed! +${result.total_points} points (${result.points_earned} base + ${result.bonus_points} bonus)`);
-    refreshUserData(currentUser.id);
-  };
-
-  const handleHealthComplete = (result) => {
-    alert(`💪 Health goal achieved! +${result.total_points} points (${result.points_earned} base + ${result.bonus_points} bonus)`);
-    refreshUserData(currentUser.id);
   };
 
   const handleAuthSuccess = (user) => {
@@ -568,14 +618,24 @@ function LifestyleApp() {
     setShowAuth(false);
   };
 
+  const handleTaskComplete = () => {
+    if (currentUser) {
+      refreshUserData(currentUser.userId);
+    }
+  };
+
   if (!currentUser) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold mb-4">Lifestyle Champions 🏆</h1>
-          <p className="text-lg text-gray-600 mb-6">Gamify your life, one habit at a time!</p>
-          <Button onClick={() => setShowAuth(true)} size="lg" data-testid="get-started-btn">
-            Get Started 🚀
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8">
+          <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Chore Champions
+          </h1>
+          <p className="text-xl text-gray-600 mb-8">
+            Level up your relationship through gamified chores, talent trees, and teamwork! 🏆
+          </p>
+          <Button onClick={() => setShowAuth(true)} size="lg" className="text-lg px-8 py-3">
+            Start Playing 🚀
           </Button>
         </div>
         <AuthModal isOpen={showAuth} onClose={() => setShowAuth(false)} onSuccess={handleAuthSuccess} />
@@ -583,32 +643,34 @@ function LifestyleApp() {
     );
   }
 
-  const levelProgress = (currentUser.level_progress / currentUser.level_progress_needed) * 100;
+  const levelProgress = currentUser.points % 100; // Progress within current level
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
-        <div className="max-w-6xl mx-auto px-4 py-4">
+        <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Lifestyle Champions 🏆</h1>
-              <p className="text-sm text-gray-600">Welcome back, {currentUser.name}!</p>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Chore Champions 🏆
+              </h1>
+              <p className="text-gray-600">Welcome back, {currentUser.displayName}!</p>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-6">
               <div className="text-center">
-                <div className="text-2xl font-bold">Level {currentUser.current_level}</div>
-                <Progress value={levelProgress} className="w-24 h-2" />
-                <div className="text-xs text-gray-500">{currentUser.level_progress}/{currentUser.level_progress_needed}</div>
+                <div className="text-2xl font-bold text-blue-600">Level {currentUser.level}</div>
+                <Progress value={levelProgress} className="w-32 h-3" />
+                <div className="text-sm text-gray-500">{levelProgress}/100</div>
               </div>
-              <Badge variant="secondary" className="text-lg px-3 py-1" data-testid="points-badge">
-                {currentUser.total_points} pts 💎
+              <Badge variant="secondary" className="text-lg px-4 py-2 bg-blue-100 text-blue-800">
+                💎 {currentUser.points} pts
               </Badge>
-              <Badge variant="outline" data-testid="talent-points-badge">
-                {currentUser.available_talent_points} talent pts ⭐
+              <Badge variant="secondary" className="text-lg px-4 py-2 bg-purple-100 text-purple-800">
+                ⭐ {currentUser.talentPoints} TP
               </Badge>
-              <Badge variant="outline" data-testid="couple-code-badge">
-                Code: {currentUser.couple_id}
+              <Badge variant="outline" className="px-3 py-1">
+                Code: {currentUser.coupleId}
               </Badge>
             </div>
           </div>
@@ -616,33 +678,29 @@ function LifestyleApp() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 py-6">
+      <div className="max-w-7xl mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          {/* Main Tabs */}
-          <TabsList className="grid grid-cols-3 w-full max-w-md mx-auto">
-            <TabsTrigger value="chores" data-testid="chores-tab">
-              🏠 Chores
+          {/* Main Navigation */}
+          <TabsList className="grid grid-cols-2 w-full max-w-md mx-auto">
+            <TabsTrigger value="tasks" className="text-lg">
+              🏠 Tasks & Chores
             </TabsTrigger>
-            <TabsTrigger value="health" data-testid="health-tab">
-              💪 Health
-            </TabsTrigger>
-            <TabsTrigger value="talents" data-testid="talents-tab">
-              🌳 Talents
+            <TabsTrigger value="talents" className="text-lg">
+              🌳 Talent Tree
             </TabsTrigger>
           </TabsList>
 
-          {/* Chores Content */}
-          <TabsContent value="chores" className="space-y-4">
+          {/* Tasks Content */}
+          <TabsContent value="tasks" className="space-y-6">
             <Tabs value={activeRoom} onValueChange={setActiveRoom}>
-              <TabsList className="grid grid-cols-5 w-full">
-                {Object.entries(ROOMS).map(([key, room]) => (
+              <TabsList className="grid grid-cols-6 w-full">
+                {Object.entries(ROOMS).map(([roomKey, room]) => (
                   <TabsTrigger 
-                    key={key} 
-                    value={key} 
-                    className={`${room.color} ${room.hoverColor}`}
-                    data-testid={`room-tab-${key}`}
+                    key={roomKey} 
+                    value={roomKey} 
+                    className={`${room.color} font-medium`}
                   >
-                    <span className="mr-1">{room.emoji}</span>
+                    <span className="mr-2">{room.emoji}</span>
                     {room.name}
                   </TabsTrigger>
                 ))}
@@ -650,16 +708,23 @@ function LifestyleApp() {
 
               {Object.entries(ROOMS).map(([roomKey, roomData]) => (
                 <TabsContent key={roomKey} value={roomKey} className="space-y-4">
-                  <h2 className="text-xl font-semibold">
-                    {roomData.emoji} {roomData.name} Chores
-                  </h2>
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-2xl font-bold">
+                      {roomData.emoji} {roomData.name}
+                    </h2>
+                    <Badge variant="outline" className="text-base px-3 py-1">
+                      {tasks[roomKey]?.length || 0} tasks
+                    </Badge>
+                  </div>
 
-                  <div className="space-y-3" data-testid={`room-content-${roomKey}`}>
-                    {chores[roomKey]?.map((chore) => (
-                      <ChoreItem
-                        key={chore.id}
-                        chore={chore}
-                        onComplete={handleChoreComplete}
+                  <div className="grid gap-4">
+                    {tasks[roomKey]?.map((task) => (
+                      <TaskItem
+                        key={task.taskId}
+                        task={task}
+                        odds={dailyOdds[task.taskId]}
+                        currentUser={currentUser}
+                        onComplete={handleTaskComplete}
                       />
                     ))}
                   </div>
@@ -668,25 +733,11 @@ function LifestyleApp() {
             </Tabs>
           </TabsContent>
 
-          {/* Health Content */}
-          <TabsContent value="health" className="space-y-4">
-            <h2 className="text-xl font-semibold">💪 Personal Health & Wellness</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {healthActivities.map((activity) => (
-                <HealthActivityItem
-                  key={activity.id}
-                  activity={activity}
-                  onComplete={handleHealthComplete}
-                />
-              ))}
-            </div>
-          </TabsContent>
-
           {/* Talent Tree Content */}
           <TabsContent value="talents">
             <TalentTree 
               currentUser={currentUser} 
-              onUpdate={() => refreshUserData(currentUser.id)} 
+              onUpdate={() => refreshUserData(currentUser.userId)} 
             />
           </TabsContent>
         </Tabs>
@@ -700,7 +751,7 @@ function App() {
     <div className="App">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<LifestyleApp />} />
+          <Route path="/" element={<GameApp />} />
         </Routes>
       </BrowserRouter>
     </div>
