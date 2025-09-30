@@ -415,15 +415,23 @@ function AuthModal({ isOpen, onClose, onSuccess }) {
     setLoading(true);
     
     try {
-      const response = await axios.post(`${API}/users`, {
+      console.log('Submitting user creation request...');
+      const requestData = {
         displayName: name,
         coupleCode: isLogin ? coupleCode : undefined
-      });
+      };
+      console.log('Request data:', requestData);
+      
+      const response = await axios.post(`${API}/users`, requestData);
+      console.log('User creation response:', response.data);
       
       localStorage.setItem('currentUser', JSON.stringify(response.data));
+      
+      // Immediately call success handlers
       onSuccess(response.data);
       onClose();
     } catch (error) {
+      console.error('Error creating user:', error);
       alert('Error: ' + (error.response?.data?.detail || 'Something went wrong'));
     } finally {
       setLoading(false);
