@@ -512,7 +512,7 @@ async def get_user(user_id: str):
     user.pop('_id', None)
     
     # Calculate current level and available talent points
-    level, talent_points_earned = calculate_level(user["points"])
+    level, talent_points_earned = calculate_level(user.get("points", 0))
     talent_points_used = len(user.get("talentBuild", {}).get("nodeIds", []))
     available_talent_points = talent_points_earned - talent_points_used
     
