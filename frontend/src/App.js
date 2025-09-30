@@ -627,8 +627,16 @@ function GameApp() {
   };
 
   const handleAuthSuccess = (user) => {
+    console.log('Auth success handler called with user:', user);
     setCurrentUser(user);
     setShowAuth(false);
+    
+    // Force a refresh of user data to ensure consistency
+    setTimeout(() => {
+      if (user.userId) {
+        refreshUserData(user.userId);
+      }
+    }, 1000);
   };
 
   const handleTaskComplete = () => {
