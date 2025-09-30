@@ -595,21 +595,25 @@ function GameApp() {
   };
 
   const loadTasks = async () => {
+    if (!currentUser?.coupleId) return;
     try {
       const response = await axios.get(`${API}/couples/${currentUser.coupleId}/tasks`);
       setTasks(response.data);
     } catch (error) {
       console.error('Error loading tasks:', error);
+      setTasks({});
     }
   };
 
   const loadDailyOdds = async () => {
+    if (!currentUser?.coupleId) return;
     try {
       const today = new Date().toISOString().split('T')[0];
       const response = await axios.get(`${API}/couples/${currentUser.coupleId}/odds/${today}`);
-      setDailyOdds(response.data.taskOdds);
+      setDailyOdds(response.data.taskOdds || {});
     } catch (error) {
       console.error('Error loading daily odds:', error);
+      setDailyOdds({});
     }
   };
 
