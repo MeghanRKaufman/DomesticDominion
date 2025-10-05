@@ -704,158 +704,257 @@ function CoupleTrivia({ onComplete, onClose, partnerName }) {
   );
 }
 
-// Visual Talent Tree Component
+// Enhanced Visual Talent Tree Component with Comprehensive Nodes
 function VisualTalentTree({ currentUser, onNodeUnlock }) {
-  const [selectedBranch, setSelectedBranch] = useState('efficiency');
-  
-  const branches = {
-    efficiency: {
-      name: 'Efficiency',
-      color: 'from-blue-400 to-blue-600',
-      icon: '⚡',
-      nodes: [
-        { id: 'eff1', name: 'Quick Wipe', tier: 1, cost: 1, x: 50, y: 80, prereq: null },
-        { id: 'eff2', name: 'Speed Demon', tier: 2, cost: 2, x: 30, y: 60, prereq: 'eff1' },
-        { id: 'eff3', name: 'Multitasker', tier: 2, cost: 2, x: 70, y: 60, prereq: 'eff1' },
-        { id: 'eff4', name: 'Efficiency Master', tier: 3, cost: 3, x: 50, y: 40, prereq: ['eff2', 'eff3'] },
-        { id: 'eff5', name: 'Time Lord', tier: 4, cost: 4, x: 50, y: 20, prereq: 'eff4' }
-      ]
-    },
-    couple: {
-      name: 'Couple',
-      color: 'from-pink-400 to-pink-600',
-      icon: '💕',
-      nodes: [
-        { id: 'cou1', name: 'Team Player', tier: 1, cost: 1, x: 50, y: 80, prereq: null },
-        { id: 'cou2', name: 'Love Boost', tier: 2, cost: 2, x: 30, y: 60, prereq: 'cou1' },
-        { id: 'cou3', name: 'Date Night', tier: 2, cost: 2, x: 70, y: 60, prereq: 'cou1' },
-        { id: 'cou4', name: 'Soulmate Sync', tier: 3, cost: 3, x: 50, y: 40, prereq: ['cou2', 'cou3'] },
-        { id: 'cou5', name: 'Perfect Harmony', tier: 4, cost: 4, x: 50, y: 20, prereq: 'cou4' }
-      ]
-    },
-    growth: {
-      name: 'Growth',
-      color: 'from-green-400 to-green-600',
-      icon: '🌱',
-      nodes: [
-        { id: 'gro1', name: 'Self Care', tier: 1, cost: 1, x: 50, y: 80, prereq: null },
-        { id: 'gro2', name: 'Mindfulness', tier: 2, cost: 2, x: 30, y: 60, prereq: 'gro1' },
-        { id: 'gro3', name: 'Wellness Warrior', tier: 2, cost: 2, x: 70, y: 60, prereq: 'gro1' },
-        { id: 'gro4', name: 'Zen Master', tier: 3, cost: 3, x: 50, y: 40, prereq: ['gro2', 'gro3'] },
-        { id: 'gro5', name: 'Life Guru', tier: 4, cost: 4, x: 50, y: 20, prereq: 'gro4' }
-      ]
-    }
-  };
+  const [selectedBranch, setSelectedBranch] = useState('Efficiency');
+  const [selectedNode, setSelectedNode] = useState(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  const branch = branches[selectedBranch];
+  const branches = ['Efficiency', 'Couple', 'Growth'];
+  
   const unlockedNodes = currentUser.talentBuild?.nodeIds || [];
+  const availableTalentPoints = currentUser.talentPoints || 0;
+
+  const getBranchNodes = (branch) => {
+    return Object.values(TALENT_TREE_NODES).filter(node => node.branch === branch);
+  };
 
   const isNodeUnlocked = (nodeId) => unlockedNodes.includes(nodeId);
   
-  const canUnlockNode = (node) => {
-    if (isNodeUnlocked(node.id)) return false;
-    if (currentUser.talentPoints < node.cost) return false;
-    if (!node.prereq) return true;
+  const arePrereqsMet = (node) => {
+    if (node.prereqs.length === 0) return true;
     
-    if (Array.isArray(node.prereq)) {
-      return node.prereq.every(prereq => isNodeUnlocked(prereq));
-    } else {
-      return isNodeUnlocked(node.prereq);
+    // For capstones, need ANY two tier 3 nodes in same branch
+    if (node.tier === 4) {
+      const tier3NodesInBranch = Object.values(TALENT_TREE_NODES)
+        .filter(n => n.branch === node.branch && n.tier === 3);
+      const unlockedTier3 = tier3NodesInBranch.filter(n => isNodeUnlocked(n.id));
+      return unlockedTier3.length >= 2;
     }
+    
+    // Regular prereqs - need ALL prereqs unlocked
+    return node.prereqs.every(prereqId => isNodeUnlocked(prereqId));
+  };
+  
+  const canUnlockNode = (node) => {
+    return availableTalentPoints >= node.cost && 
+           !isNodeUnlocked(node.id) && 
+           arePrereqsMet(node);
   };
 
   const handleNodeClick = (node) => {
+    setSelectedNode(node);
     if (canUnlockNode(node)) {
-      onNodeUnlock(node.id);
+      setShowConfirmModal(true);
     }
   };
 
+  const confirmUnlock = () => {
+    if (selectedNode) {
+      onNodeUnlock(selectedNode.id);
+      setShowConfirmModal(false);
+      setSelectedNode(null);
+    }
+  };
+
+  const getNodeColor = (node) => {
+    const unlocked = isNodeUnlocked(node.id);
+    const canUnlock = canUnlockNode(node);
+    const prereqsMet = arePrereqsMet(node);
+    
+    if (unlocked) {
+      return 'bg-gradient-to-r from-green-600 to-emerald-600 border-green-400 shadow-green-500/50 shadow-lg';
+    }
+    if (canUnlock) {
+      return 'bg-gradient-to-r from-blue-600 to-purple-600 border-blue-400 hover:scale-105 shadow-blue-500/50 shadow-lg';
+    }
+    if (!prereqsMet) {
+      return 'bg-gray-800 border-gray-600 opacity-30';
+    }
+    return 'bg-gray-600 border-gray-500 opacity-60';
+  };
+
+  const getTierIcon = (tier) => {
+    const icons = { 1: '🥉', 2: '🥈', 3: '🥇', 4: '👑' };
+    return icons[tier] || '⭐';
+  };
+
+  const getTypeIcon = (type) => {
+    const icons = {
+      'point_bonus': '💎',
+      'multiplier': '⚡',
+      'chore_shift': '🎯',
+      'consumable': '🔮',
+      'chance_convert': '🎲'
+    };
+    return icons[type] || '✨';
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold mb-4">🌳 Talent Tree</h2>
-        <div className="flex justify-center space-x-6">
-          <Badge variant="secondary" className="text-lg px-4 py-2 bg-purple-100 text-purple-800">
-            ⭐ {currentUser.talentPoints} Talent Points
-          </Badge>
+    <div className="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 rounded-2xl p-8 text-white shadow-2xl">
+      <div className="grid grid-cols-4 gap-8 h-96">
+        {/* Branch Selector */}
+        <div className="space-y-4">
+          <h3 className="text-2xl font-bold text-center mb-6">🌳 Talent Branches</h3>
+          {branches.map((branch) => (
+            <button
+              key={branch}
+              onClick={() => setSelectedBranch(branch)}
+              className={`w-full p-4 rounded-lg font-semibold transition-all duration-300 ${
+                selectedBranch === branch
+                  ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-black shadow-lg scale-105'
+                  : 'bg-white/10 hover:bg-white/20'
+              }`}
+            >
+              {branch === 'Efficiency' && '⚡'} 
+              {branch === 'Couple' && '💕'} 
+              {branch === 'Growth' && '🌱'} 
+              {branch}
+            </button>
+          ))}
+          
+          <div className="mt-8 p-4 bg-black/30 rounded-lg">
+            <h4 className="font-bold text-lg mb-2">💎 Talent Points</h4>
+            <div className="text-3xl font-bold text-yellow-400">{availableTalentPoints}</div>
+            <p className="text-sm opacity-75">Available to spend</p>
+          </div>
+          
+          <div className="mt-4 p-3 bg-black/20 rounded-lg text-xs">
+            <h5 className="font-bold mb-2">🎯 Legend</h5>
+            <div className="space-y-1">
+              <div>🥉🥈🥇👑 Tiers 1-4</div>
+              <div>💎 Point Bonus</div>
+              <div>⚡ Multiplier</div>
+              <div>🎯 Chore Shift</div>
+              <div>🔮 Consumable</div>
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* Branch Selector */}
-      <div className="flex justify-center space-x-4">
-        {Object.entries(branches).map(([key, branchData]) => (
-          <Button
-            key={key}
-            variant={selectedBranch === key ? "default" : "outline"}
-            onClick={() => setSelectedBranch(key)}
-            className="flex items-center space-x-2"
-          >
-            <span>{branchData.icon}</span>
-            <span>{branchData.name}</span>
-          </Button>
-        ))}
-      </div>
-
-      {/* Talent Tree Visualization */}
-      <Card className="p-6">
-        <div className="relative h-96 bg-gradient-to-b from-gray-50 to-gray-100 rounded-lg overflow-hidden">
-          {/* Connection Lines */}
-          <svg className="absolute inset-0 w-full h-full">
-            {branch.nodes.map(node => {
-              if (!node.prereq) return null;
-              const prereqs = Array.isArray(node.prereq) ? node.prereq : [node.prereq];
-              return prereqs.map(prereqId => {
-                const prereqNode = branch.nodes.find(n => n.id === prereqId);
-                if (!prereqNode) return null;
+        {/* Talent Nodes */}
+        <div className="col-span-3 overflow-y-auto max-h-96">
+          <h3 className="text-2xl font-bold mb-6 text-center sticky top-0 bg-gradient-to-r from-purple-900 to-blue-900 py-2 rounded-lg">
+            {selectedBranch === 'Efficiency' && '⚡ Efficiency Mastery'} 
+            {selectedBranch === 'Couple' && '💕 Relationship Bonding'} 
+            {selectedBranch === 'Growth' && '🌱 Personal Evolution'} 
+          </h3>
+          
+          <div className="space-y-4">
+            {getBranchNodes(selectedBranch)
+              .sort((a, b) => a.tier - b.tier || a.name.localeCompare(b.name))
+              .map((node) => {
+                const unlocked = isNodeUnlocked(node.id);
+                const canUnlock = canUnlockNode(node);
+                const prereqsMet = arePrereqsMet(node);
                 
                 return (
-                  <line
-                    key={`${node.id}-${prereqId}`}
-                    x1={`${prereqNode.x}%`}
-                    y1={`${prereqNode.y}%`}
-                    x2={`${node.x}%`}
-                    y2={`${node.y}%`}
-                    stroke={isNodeUnlocked(prereqId) ? "#10b981" : "#d1d5db"}
-                    strokeWidth="2"
-                  />
+                  <div
+                    key={node.id}
+                    onClick={() => handleNodeClick(node)}
+                    className={`relative p-4 rounded-xl border-2 transition-all duration-300 cursor-pointer ${getNodeColor(node)}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span className="text-2xl">{getTierIcon(node.tier)}</span>
+                          <h4 className="text-lg font-bold">
+                            {unlocked && '✅ '}{node.name}
+                          </h4>
+                          <span className="text-lg">{getTypeIcon(node.type)}</span>
+                        </div>
+                        
+                        <p className="text-sm opacity-90 mb-2">{node.description}</p>
+                        
+                        <div className="flex items-center space-x-3">
+                          <span className="bg-black/30 px-2 py-1 rounded text-xs">
+                            Tier {node.tier}
+                          </span>
+                          <span className="bg-yellow-500/20 px-2 py-1 rounded text-xs">
+                            💎 {node.cost} TP
+                          </span>
+                          {node.prereqs.length > 0 && (
+                            <span className={`px-2 py-1 rounded text-xs ${
+                              prereqsMet ? 'bg-green-500/20 text-green-200' : 'bg-red-500/20 text-red-200'
+                            }`}>
+                              Prereqs: {prereqsMet ? '✅' : '❌'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="text-3xl">
+                        {unlocked ? '🌟' : canUnlock ? '✨' : prereqsMet ? '🔒' : '⛔'}
+                      </div>
+                    </div>
+                  </div>
                 );
-              });
-            })}
-          </svg>
+              })}
+          </div>
+        </div>
+      </div>
 
-          {/* Talent Nodes */}
-          {branch.nodes.map(node => {
-            const unlocked = isNodeUnlocked(node.id);
-            const canUnlock = canUnlockNode(node);
+      {/* Node Details Modal */}
+      {selectedNode && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white text-black p-6 rounded-2xl max-w-lg mx-4 shadow-2xl">
+            <h3 className="text-2xl font-bold mb-4 flex items-center space-x-2">
+              <span>{getTierIcon(selectedNode.tier)}</span>
+              <span>{selectedNode.name}</span>
+              <span>{getTypeIcon(selectedNode.type)}</span>
+            </h3>
             
-            return (
-              <div
-                key={node.id}
-                className={`absolute w-16 h-16 rounded-full flex items-center justify-center cursor-pointer transition-all transform -translate-x-8 -translate-y-8 ${
-                  unlocked 
-                    ? `bg-gradient-to-r ${branch.color} text-white shadow-lg scale-110` 
-                    : canUnlock 
-                    ? 'bg-white border-2 border-gray-400 hover:border-gray-600 hover:scale-105 shadow-md' 
-                    : 'bg-gray-200 border-2 border-gray-300 text-gray-500'
-                }`}
-                style={{ left: `${node.x}%`, top: `${node.y}%` }}
-                onClick={() => handleNodeClick(node)}
-                title={`${node.name} - ${node.cost} TP`}
-              >
-                <div className="text-center">
-                  <div className="text-xs font-bold leading-none">T{node.tier}</div>
-                  <div className="text-xs leading-none">{node.cost}TP</div>
+            <div className="space-y-4">
+              <div className="p-4 bg-gray-100 rounded-lg">
+                <p className="font-medium">{selectedNode.description}</p>
+                <div className="mt-2 text-sm text-gray-600">
+                  <strong>Effect:</strong> {selectedNode.scope} • Value: {selectedNode.value}
                 </div>
               </div>
-            );
-          })}
+              
+              {selectedNode.prereqs.length > 0 && (
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <h5 className="font-bold text-sm mb-1">Prerequisites:</h5>
+                  <div className="text-sm">
+                    {selectedNode.prereqs.map(prereqId => {
+                      const prereqNode = TALENT_TREE_NODES[prereqId];
+                      const isUnlocked = isNodeUnlocked(prereqId);
+                      return (
+                        <div key={prereqId} className={`flex items-center space-x-1 ${isUnlocked ? 'text-green-600' : 'text-red-600'}`}>
+                          <span>{isUnlocked ? '✅' : '❌'}</span>
+                          <span>{prereqNode?.name || prereqId}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              
+              <div className="flex justify-between items-center p-4 bg-gray-100 rounded-lg">
+                <span>Cost:</span>
+                <span className="font-bold text-lg">💎 {selectedNode.cost} Talent Points</span>
+              </div>
+              
+              <div className="flex space-x-3">
+                {canUnlockNode(selectedNode) && (
+                  <Button 
+                    onClick={confirmUnlock}
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                  >
+                    🌟 Unlock Now!
+                  </Button>
+                )}
+                <Button 
+                  onClick={() => setSelectedNode(null)}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
-        
-        {/* Legend */}
-        <div className="mt-4 text-center text-sm text-gray-600">
-          <p><span className="font-semibold">Click</span> available nodes to unlock • <span className="font-semibold">T#</span> = Tier • <span className="font-semibold">TP</span> = Talent Points</p>
-        </div>
-      </Card>
+      )}
     </div>
   );
 }
