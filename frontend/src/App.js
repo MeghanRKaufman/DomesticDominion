@@ -2015,15 +2015,126 @@ function ChoreChampionsApp() {
     localStorage.setItem('hasSeenOnboarding', 'true');
   };
 
-  const handleQuestComplete = async (points) => {
-    setCelebrationMessage(`🎉 Quest Complete! +${points} XP gained!`);
-    setTimeout(() => setCelebrationMessage(''), 3000);
+  const calculateTaskPoints = (task, bonusPoints = 0) => {
+    // Step 1: Base points from task difficulty
+    let totalPoints = DIFFICULTY_POINTS[task.difficulty] || 5;
     
-    // Refresh user data
-    if (currentUser) {
-      const response = await axios.get(`${API}/users/${currentUser.userId}`);
-      setCurrentUser(response.data);
-      localStorage.setItem('currentUser', JSON.stringify(response.data));
+    // Step 2: Apply point_bonus nodes (direct point additions)
+    const unlockedNodes = currentUser.talentBuild?.nodeIds || [];
+    let pointBonuses = 0;
+    
+    unlockedNodes.forEach(nodeId => {
+      const node = TALENT_TREE_NODES[nodeId];
+      if (!node || node.type !== 'point_bonus') return;
+      
+      // Check if this node applies to current task
+      if (node.scope.startsWith('room:') && node.scope.split(':')[1] === task.room) {
+        // Room-specific bonus (e.g., "room:Kitchen")
+        if (node.id === 'eff_qw1' && task.difficulty === 'EASY') {
+          // Quick Wipe: +1 point on EASY kitchen tasks
+          pointBonuses += node.value;
+        } else {
+          pointBonuses += node.value;
+        }
+      } else if (node.scope.startsWith('taskTag:')) {
+        // Task tag bonus (e.g., "taskTag:laundry")
+        const tag = node.scope.split(':')[1];
+        if (task.tags && task.tags.includes(tag)) {
+          pointBonuses += node.value;
+        }
+      } else if (node.scope.startsWith('taskId:') && node.scope.split(':')[1] === task.taskId) {
+        // Specific task bonus (e.g., "taskId:us_hug")
+        pointBonuses += node.value;
+      } else if (node.scope.startsWith('time:before10am')) {
+        // Early Bird bonus: +5 points if completed before 10AM
+        const now = new Date();
+        if (now.getHours() < 10) {
+          pointBonuses += node.value;
+        }
+      }
+    });
+    
+    // Step 3: Add point bonuses and external bonus points
+    totalPoints += pointBonuses + bonusPoints;
+    
+    // Step 4: Apply multipliers
+    let multiplier = 1.0;
+    
+    unlockedNodes.forEach(nodeId => {
+      const node = TALENT_TREE_NODES[nodeId];
+      if (!node || node.type !== 'multiplier') return;
+      
+      if (node.scope === 'global') {
+        // Global multipliers (like Housekeeper's Edge capstone)
+        multiplier *= (1 + node.value);
+      } else if (node.scope.startsWith('taskTag:') && task.tags) {
+        // Tag-specific multipliers
+        const tag = node.scope.split(':')[1];
+        if (task.tags.includes(tag)) {
+          multiplier *= (1 + node.value);
+        }
+      }
+    });
+    
+    // Step 5: Apply multipliers and round
+    totalPoints = Math.round(totalPoints * multiplier);
+    
+    // Step 6: Apply Housekeeper's Edge final +10% if active (done in step 4)
+    // This is already included in the global multiplier logic above
+    
+    return {
+      basePoints: DIFFICULTY_POINTS[task.difficulty] || 5,
+      bonusPoints: pointBonuses + bonusPoints,
+      multiplier: multiplier,
+      totalPoints: totalPoints,
+      breakdown: {
+        base: DIFFICULTY_POINTS[task.difficulty] || 5,
+        talentBonuses: pointBonuses,
+        externalBonuses: bonusPoints,
+        multiplierApplied: multiplier !== 1.0 ? `×${multiplier.toFixed(2)}` : null
+      }
+    };
+  };
+
+  const handleQuestComplete = async (task, bonusPoints = 0) => {
+    try {
+      // Calculate points with talent tree effects
+      const pointsCalc = calculateTaskPoints(task, bonusPoints);
+      
+      const response = await axios.post(`${API}/tasks/${task.taskId}/complete`, {
+        userId: currentUser.userId,
+        bonusPoints: pointsCalc.totalPoints - pointsCalc.basePoints,
+        verificationData: { 
+          method: 'manual', 
+          timestamp: new Date().toISOString(),
+          pointsBreakdown: pointsCalc.breakdown
+        }
+      });
+
+      // Update user data
+      if (currentUser) {
+        const userResponse = await axios.get(`${API}/users/${currentUser.userId}`);
+        setCurrentUser(userResponse.data);
+        localStorage.setItem('currentUser', JSON.stringify(userResponse.data));
+      }
+      
+      // Show detailed celebration with breakdown
+      const breakdown = pointsCalc.breakdown;
+      let message = `🎉 +${pointsCalc.totalPoints} XP!`;
+      
+      if (breakdown.talentBonuses > 0) {
+        message += ` (${breakdown.base} base + ${breakdown.talentBonuses} talent bonuses`;
+        if (breakdown.externalBonuses > 0) message += ` + ${breakdown.externalBonuses} verification`;
+        if (breakdown.multiplierApplied) message += ` ${breakdown.multiplierApplied}`;
+        message += ')';
+      }
+      
+      setCelebrationMessage(message);
+      setTimeout(() => setCelebrationMessage(''), 4000);
+
+    } catch (error) {
+      console.error('Error completing quest:', error);
+      alert('Error completing quest. Please try again!');
     }
   };
 
