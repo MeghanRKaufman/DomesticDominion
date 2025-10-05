@@ -1177,8 +1177,10 @@ function ChoreChampionsApp() {
   const [tasks, setTasks] = useState({});
   const [showAuth, setShowAuth] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [activeTab, setActiveTab] = useState('quests');
+  const [activeTab, setActiveTab] = useState('today');
   const [celebrationMessage, setCelebrationMessage] = useState('');
+  const [selectedRoom, setSelectedRoom] = useState('all');
+  const [showAddChore, setShowAddChore] = useState(false);
 
   // WebSocket connection for real-time updates
   const { lastMessage } = useWebSocket(
