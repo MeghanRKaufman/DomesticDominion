@@ -190,6 +190,13 @@ class CreateUserRequest(BaseModel):
     displayName: str
     coupleCode: Optional[str] = None
 
+class CreateCoupleRequest(BaseModel):
+    creatorName: str
+
+class JoinCoupleRequest(BaseModel):
+    partnerName: str
+    inviteCode: str
+
 class CompleteTaskRequest(BaseModel):
     userId: str
     notes: Optional[str] = None
