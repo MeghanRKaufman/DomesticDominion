@@ -1342,7 +1342,7 @@ function ChoreQuest({ task, currentUser, partner, onComplete }) {
       });
 
       // Celebration effect
-      onComplete(totalPoints);
+      onComplete(task, verificationData.bonusPoints || 0);
       setShowVerification(false);
       setVerificationStep(null);
       
