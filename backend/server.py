@@ -500,20 +500,177 @@ def sum_talent_effects(talent_build: Dict, task: Dict, effect_type: str) -> floa
     
     return total
 
-def compute_daily_odds(couple_id: str, date: str) -> Dict[str, Dict[str, float]]:
-    """Compute daily task assignment odds using talent tree algorithm"""
-    # This is a simplified version - in production, fetch from database
+def compute_daily_odds(couple_id: str, date: str, user1_talents: Dict = None, user2_talents: Dict = None) -> Dict[str, Dict[str, float]]:
+    """Advanced 50/50 task assignment algorithm with talent tree modifications"""
     tasks = DEFAULT_TASKS
     task_odds = {}
     
-    # For now, return 50/50 odds - full implementation would use talent builds
-    for task in tasks:
-        task_odds[task["taskId"]] = {
-            "user1": 0.5,
-            "user2": 0.5
-        }
+    # Initialize base 50/50 odds
+    base_odds = {task["taskId"]: {"user1": 0.5, "user2": 0.5} for task in tasks}
+    
+    # Apply talent tree modifications
+    if user1_talents or user2_talents:
+        task_odds = apply_talent_modifications(base_odds, tasks, user1_talents or {}, user2_talents or {})
+    else:
+        task_odds = base_odds
+    
+    # Apply room balancing (ensure both partners get tasks from each room)
+    task_odds = apply_room_balancing(task_odds, tasks)
+    
+    # Apply random bonus chances (1-3% modifications)
+    task_odds = apply_random_bonuses(task_odds, date)
     
     return task_odds
+
+def apply_talent_modifications(odds: Dict, tasks: List, user1_talents: Dict, user2_talents: Dict) -> Dict:
+    """Apply talent tree effects to task assignment odds"""
+    modified_odds = odds.copy()
+    
+    for task in tasks:
+        task_id = task["taskId"]
+        room = task["room"]
+        difficulty = task["difficulty"]
+        title = task["title"].lower()
+        
+        # User 1 talent effects
+        user1_modifier = 0
+        
+        # Kitchen specialization - "Wet hands don't scare me"
+        if user1_talents.get("kitchen_specialist") and room == "Kitchen":
+            user1_modifier += 0.15  # 15% more likely to get kitchen tasks
+            
+        # Difficulty preferences
+        if user1_talents.get("easy_task_avoider") and difficulty == "EASY":
+            user1_modifier -= 0.10
+        elif user1_talents.get("hard_task_seeker") and difficulty == "HARD":
+            user1_modifier += 0.10
+            
+        # Specific task preferences
+        if user1_talents.get("trash_master") and "trash" in title:
+            user1_modifier -= 0.20  # Less likely to get trash tasks
+        elif user1_talents.get("laundry_hand") and "laundry" in title:
+            user1_modifier += 0.15
+            
+        # User 2 talent effects (mirror logic)
+        user2_modifier = 0
+        
+        if user2_talents.get("kitchen_specialist") and room == "Kitchen":
+            user2_modifier += 0.15
+            
+        if user2_talents.get("easy_task_avoider") and difficulty == "EASY":
+            user2_modifier -= 0.10
+        elif user2_talents.get("hard_task_seeker") and difficulty == "HARD":
+            user2_modifier += 0.10
+            
+        if user2_talents.get("trash_master") and "trash" in title:
+            user2_modifier -= 0.20
+        elif user2_talents.get("laundry_hand") and "laundry" in title:
+            user2_modifier += 0.15
+        
+        # Apply modifications while maintaining balance
+        user1_odds = max(0.1, min(0.9, 0.5 + user1_modifier))
+        user2_odds = 1.0 - user1_odds
+        
+        modified_odds[task_id] = {
+            "user1": user1_odds,
+            "user2": user2_odds
+        }
+    
+    return modified_odds
+
+def apply_room_balancing(odds: Dict, tasks: List) -> Dict:
+    """Ensure both partners get tasks from each room (room redistribution rule)"""
+    # Group tasks by room
+    rooms = {}
+    for task in tasks:
+        room = task["room"]
+        if room not in rooms:
+            rooms[room] = []
+        rooms[room].append(task["taskId"])
+    
+    # For each room, ensure neither partner gets more than 70% of tasks
+    balanced_odds = odds.copy()
+    
+    for room, task_ids in rooms.items():
+        if len(task_ids) < 2:  # Skip rooms with only 1 task
+            continue
+            
+        # Calculate current distribution
+        user1_total = sum(odds[task_id]["user1"] for task_id in task_ids)
+        user2_total = sum(odds[task_id]["user2"] for task_id in task_ids)
+        
+        # If distribution is too skewed, rebalance
+        max_allowed = len(task_ids) * 0.7
+        
+        if user1_total > max_allowed:
+            # Reduce user1's odds in this room
+            excess = user1_total - max_allowed
+            for task_id in task_ids:
+                reduction = (excess / len(task_ids))
+                balanced_odds[task_id]["user1"] = max(0.1, odds[task_id]["user1"] - reduction)
+                balanced_odds[task_id]["user2"] = 1.0 - balanced_odds[task_id]["user1"]
+                
+        elif user2_total > max_allowed:
+            # Reduce user2's odds in this room
+            excess = user2_total - max_allowed
+            for task_id in task_ids:
+                reduction = (excess / len(task_ids))
+                balanced_odds[task_id]["user2"] = max(0.1, odds[task_id]["user2"] - reduction)
+                balanced_odds[task_id]["user1"] = 1.0 - balanced_odds[task_id]["user2"]
+    
+    return balanced_odds
+
+def apply_random_bonuses(odds: Dict, date: str) -> Dict:
+    """Apply 1-3% random bonus chances based on date seed"""
+    # Use date as seed for consistent daily randomness
+    random.seed(date)
+    
+    modified_odds = odds.copy()
+    
+    for task_id in odds.keys():
+        # 20% chance of getting a random bonus
+        if random.random() < 0.2:
+            # Random bonus between 1-3%
+            bonus = random.uniform(0.01, 0.03)
+            
+            # Randomly apply to user1 or user2
+            if random.random() < 0.5:
+                # Boost user1
+                new_user1_odds = min(0.9, modified_odds[task_id]["user1"] + bonus)
+                modified_odds[task_id]["user1"] = new_user1_odds
+                modified_odds[task_id]["user2"] = 1.0 - new_user1_odds
+            else:
+                # Boost user2
+                new_user2_odds = min(0.9, modified_odds[task_id]["user2"] + bonus)
+                modified_odds[task_id]["user2"] = new_user2_odds
+                modified_odds[task_id]["user1"] = 1.0 - new_user2_odds
+    
+    return modified_odds
+
+def generate_daily_assignments(couple_id: str, date: str = None) -> Dict[str, str]:
+    """Generate actual task assignments for the day using computed odds"""
+    if not date:
+        date = datetime.utcnow().strftime('%Y-%m-%d')
+    
+    # Get couple users to fetch their talent builds
+    # For now, use empty talent builds - will be enhanced when talent system is complete
+    user1_talents = {}
+    user2_talents = {}
+    
+    # Compute odds
+    odds = compute_daily_odds(couple_id, date, user1_talents, user2_talents)
+    
+    # Generate assignments using weighted random selection
+    assignments = {}
+    random.seed(f"{couple_id}_{date}")  # Consistent seed for same day
+    
+    for task_id, task_odds in odds.items():
+        if random.random() < task_odds["user1"]:
+            assignments[task_id] = "user1"
+        else:
+            assignments[task_id] = "user2"
+    
+    return assignments
 
 # API Routes
 
