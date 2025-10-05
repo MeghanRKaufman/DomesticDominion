@@ -572,9 +572,109 @@ function VisualTalentTree({ currentUser, onNodeUnlock }) {
   );
 }
 
-// Simple Checkbox Chore List Component
+// Enhanced Checkbox Chore List with Verification UX
 function CheckboxChoreList({ tasks, currentUser, partner, onComplete, isToday = false, showEdit = false }) {
+  const [completingTask, setCompletingTask] = useState(null);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [verificationRequests, setVerificationRequests] = useState([]);
+  
   const todaysTasks = isToday ? tasks.filter(task => task.assignedTo === currentUser.userId) : tasks;
+  
+  const handleTaskComplete = (task) => {
+    setSelectedTask(task);
+    setCompletingTask(task.taskId);
+    
+    // Immediate point award (unless verification required)
+    if (!task.requirePartnerVerification) {
+      const basePoints = getBasePoints(task.difficulty);
+      onComplete(task, basePoints);
+      
+      // Send partner notification for verification
+      if (partner) {
+        sendVerificationNotification(task);
+      }
+      
+      // Random verification check (10% chance)
+      if (Math.random() < 0.10) {
+        triggerRandomVerificationCheck(task);
+      }
+    } else {
+      // Requires partner verification before points
+      setShowVerificationModal(true);
+    }
+    
+    setCompletingTask(null);
+  };
+  
+  const getBasePoints = (difficulty) => {
+    const POINTS = { EASY: 5, MEDIUM: 10, HARD: 20 };
+    return POINTS[difficulty] || 5;
+  };
+  
+  const sendVerificationNotification = (task) => {
+    // Create verification request
+    const request = {
+      id: `verify_${Date.now()}`,
+      taskId: task.taskId,
+      taskTitle: task.title,
+      completedBy: currentUser.displayName,
+      completedAt: new Date(),
+      status: 'pending',
+      expiresAt: new Date(Date.now() + 30 * 60 * 1000) // 30 minutes
+    };
+    
+    setVerificationRequests(prev => [...prev, request]);
+    
+    // In real app, this would send push notification to partner
+    console.log(`📱 Notification to ${partner?.displayName}: "${currentUser.displayName} completed: ${task.title}. Verify?"`);
+  };
+  
+  const triggerRandomVerificationCheck = (task) => {
+    console.log(`🎲 Random verification check triggered for: ${task.title}`);
+    // Auto-request proof from both users
+    setShowVerificationModal(true);
+  };
+  
+  const handleVerificationResponse = (request, action) => {
+    setVerificationRequests(prev => 
+      prev.map(req => 
+        req.id === request.id 
+          ? { ...req, status: action, respondedAt: new Date() }
+          : req
+      )
+    );
+    
+    switch (action) {
+      case 'verify':
+        // Award any verification bonuses
+        console.log(`✅ ${partner?.displayName} verified: ${request.taskTitle}`);
+        break;
+      case 'request_proof':
+        // Prompt original completer for photo/GPS proof
+        console.log(`📸 ${partner?.displayName} requested proof for: ${request.taskTitle}`);
+        break;
+      case 'decline':
+        // Points remain but marked unverified
+        console.log(`❌ ${partner?.displayName} declined: ${request.taskTitle} (points kept, unverified)`);
+        break;
+    }
+  };
+  
+  const getTaskStatus = (task) => {
+    // Check if task has pending/completed verification
+    const request = verificationRequests.find(req => req.taskId === task.taskId);
+    if (!request) return 'available';
+    
+    if (request.status === 'pending' && new Date() < new Date(request.expiresAt)) {
+      return 'pending_verification';
+    }
+    if (request.status === 'verify') return 'verified';
+    if (request.status === 'decline') return 'unverified';
+    if (request.status === 'request_proof') return 'proof_requested';
+    
+    return 'verified_by_timeout'; // Auto-verified after 30 mins
+  };
   
   if (!todaysTasks || todaysTasks.length === 0) {
     return (
@@ -586,35 +686,144 @@ function CheckboxChoreList({ tasks, currentUser, partner, onComplete, isToday = 
   }
 
   return (
-    <div className="space-y-3">
-      {todaysTasks.map((task, index) => (
-        <div key={task.taskId || index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-          <div className="flex items-center space-x-3">
-            <input
-              type="checkbox"
-              className="w-5 h-5 text-blue-600 rounded"
-              onChange={() => onComplete(task)}
-            />
-            <div>
-              <h4 className="font-medium">{task.title}</h4>
-              {task.description && <p className="text-sm text-gray-600">{task.description}</p>}
-              <div className="flex items-center space-x-2 mt-1">
-                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">{task.room}</span>
-                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">{task.difficulty}</span>
-                {isToday && task.assignedTo === currentUser.userId && (
-                  <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">Assigned to you</span>
-                )}
+    <div className="space-y-4">
+      {/* Pending Verification Requests (Partner View) */}
+      {verificationRequests.filter(req => req.status === 'pending' && new Date() < new Date(req.expiresAt)).length > 0 && (
+        <Card className="bg-yellow-50 border-yellow-200">
+          <CardHeader>
+            <CardTitle className="text-lg">🔔 Verification Requests</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {verificationRequests
+              .filter(req => req.status === 'pending' && new Date() < new Date(req.expiresAt))
+              .map(request => (
+                <div key={request.id} className="flex items-center justify-between p-3 bg-white rounded border">
+                  <div>
+                    <p className="font-medium">{request.completedBy} completed: "{request.taskTitle}"</p>
+                    <p className="text-sm text-gray-600">
+                      Expires in {Math.ceil((new Date(request.expiresAt) - new Date()) / 60000)} minutes
+                    </p>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button 
+                      size="sm" 
+                      onClick={() => handleVerificationResponse(request, 'verify')}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      ✅ Verify
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleVerificationResponse(request, 'request_proof')}
+                    >
+                      📸 Request Proof
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleVerificationResponse(request, 'decline')}
+                    >
+                      ❌ Decline
+                    </Button>
+                  </div>
+                </div>
+              ))}
+          </CardContent>
+        </Card>
+      )}
+      
+      {/* Task List */}
+      <div className="space-y-3">
+        {todaysTasks.map((task, index) => {
+          const status = getTaskStatus(task);
+          const isCompleted = ['verified', 'unverified', 'verified_by_timeout'].includes(status);
+          const isPending = status === 'pending_verification';
+          
+          return (
+            <div 
+              key={task.taskId || index} 
+              className={`flex items-center justify-between p-4 rounded-lg transition-colors ${
+                isCompleted ? 'bg-green-50 border border-green-200' :
+                isPending ? 'bg-yellow-50 border border-yellow-200' :
+                'bg-gray-50 hover:bg-gray-100'
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  checked={isCompleted}
+                  disabled={isCompleted || completingTask === task.taskId}
+                  className="w-5 h-5 text-blue-600 rounded"
+                  onChange={() => handleTaskComplete(task)}
+                />
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <h4 className={`font-medium ${isCompleted ? 'line-through text-gray-500' : ''}`}>
+                      {task.title}
+                    </h4>
+                    {/* Status indicators */}
+                    {status === 'verified' && <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">✅ Verified</span>}
+                    {status === 'unverified' && <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">⚠️ Unverified</span>}
+                    {status === 'pending_verification' && <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">⏳ Pending</span>}
+                    {status === 'proof_requested' && <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">📸 Proof Requested</span>}
+                  </div>
+                  
+                  {task.description && <p className="text-sm text-gray-600">{task.description}</p>}
+                  
+                  <div className="flex items-center space-x-2 mt-1">
+                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">{task.room}</span>
+                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                      {task.difficulty} • {getBasePoints(task.difficulty)} pts
+                    </span>
+                    {task.requirePartnerVerification && (
+                      <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">👫 Partner Required</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              {showEdit && (
+                <div className="flex space-x-2">
+                  <Button size="sm" variant="outline">Edit</Button>
+                  <Button size="sm" variant="outline">Delete</Button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      
+      {/* Verification Modal */}
+      {showVerificationModal && selectedTask && (
+        <Dialog open={showVerificationModal} onOpenChange={setShowVerificationModal}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Verification Required</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p>"{selectedTask.title}" requires partner verification before points are awarded.</p>
+              <div className="flex space-x-3">
+                <Button 
+                  onClick={() => {
+                    sendVerificationNotification(selectedTask);
+                    setShowVerificationModal(false);
+                  }}
+                  className="flex-1"
+                >
+                  📤 Notify Partner
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowVerificationModal(false)}
+                >
+                  Cancel
+                </Button>
               </div>
             </div>
-          </div>
-          {showEdit && (
-            <div className="flex space-x-2">
-              <Button size="sm" variant="outline">Edit</Button>
-              <Button size="sm" variant="outline">Delete</Button>
-            </div>
-          )}
-        </div>
-      ))}
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
