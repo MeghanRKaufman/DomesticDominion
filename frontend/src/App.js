@@ -76,23 +76,33 @@ function OnboardingModal({ isOpen, onComplete }) {
       image: "🎮"
     },
     {
+      title: "Daily Quest System ⏰",
+      content: "Every day at midnight, tasks are split 50/50 between you and your partner. Complete your assigned quests before the daily reset to maintain your streak!",
+      image: "📅"
+    },
+    {
+      title: "Smart Assignment Algorithm 🧠",
+      content: "Tasks are assigned based on your talent tree investments and random bonuses. Specialize in certain rooms or difficulties to influence your daily quests!",
+      image: "⚖️"
+    },
+    {
       title: "Complete Quests Together 🤝",
-      content: "Pick chores, verify completion with your partner, and earn XP points. Some tasks need both of you to approve!",
+      content: "Tasks can be completed instantly, but partners can contest completion and request photo verification. Fibbers get penalized!",
       image: "✅"
     },
     {
       title: "Level Up & Unlock Powers 🌟",
-      content: "Spend Talent Points on a skill tree! Get chore multipliers, relationship bonuses, and unlock real-world rewards.",
+      content: "Spend Talent Points on skill trees! Get chore odds changes, bonus points, room specializations, and relationship perks.",
       image: "🌳"
     },
     {
-      title: "Play Mini-Games 🎲",
-      content: "Complete challenges with bonus games like spin wheels, tap challenges, and couple trivia for extra rewards!",
+      title: "Built-In Games 🎲",
+      content: "Play Battleship, Chess, Backgammon, and Gin Rummy directly in the app! These count as relationship tasks and give bonus XP.",
       image: "🎯"
     },
     {
       title: "Grow Together 💕",
-      content: "Combo bonuses when you work as a team, relationship challenges, and rewards that make your bond stronger!",
+      content: "Combo bonuses when you work as a team, daily game requirements for your relationship, and rewards that strengthen your bond!",
       image: "💑"
     }
   ];
