@@ -4,6 +4,430 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 
+// EPIC BATTLESHIP GAME 🚢
+function BattleshipGame({ onGameComplete, onClose }) {
+  const [gamePhase, setGamePhase] = useState('setup'); // setup, battle, victory
+  const [playerBoard, setPlayerBoard] = useState(createEmptyBoard());
+  const [enemyBoard, setEnemyBoard] = useState(createEmptyBoard());
+  const [enemyShips, setEnemyShips] = useState([]);
+  const [playerShips, setPlayerShips] = useState([]);
+  const [currentShip, setCurrentShip] = useState(0);
+  const [isHorizontal, setIsHorizontal] = useState(true);
+  const [playerTurn, setPlayerTurn] = useState(true);
+  const [gameLog, setGameLog] = useState(['⚓ Admiral, prepare for naval warfare!']);
+  const [playerScore, setPlayerScore] = useState(0);
+  const [enemyScore, setEnemyScore] = useState(0);
+  const [explosionEffect, setExplosionEffect] = useState(null);
+  
+  const ships = [
+    { name: 'Carrier', size: 5, icon: '🛳️' },
+    { name: 'Battleship', size: 4, icon: '⛴️' },
+    { name: 'Cruiser', size: 3, icon: '🚢' },
+    { name: 'Submarine', size: 3, icon: '🚇' },
+    { name: 'Destroyer', size: 2, icon: '🛥️' }
+  ];
+
+  function createEmptyBoard() {
+    return Array(10).fill(null).map(() => 
+      Array(10).fill(null).map(() => ({ 
+        ship: null, 
+        hit: false, 
+        miss: false,
+        shipId: null 
+      }))
+    );
+  }
+
+  function placeRandomShips() {
+    const board = createEmptyBoard();
+    const placedShips = [];
+    
+    ships.forEach((ship, shipIndex) => {
+      let placed = false;
+      let attempts = 0;
+      
+      while (!placed && attempts < 100) {
+        const isHoriz = Math.random() < 0.5;
+        const row = Math.floor(Math.random() * 10);
+        const col = Math.floor(Math.random() * 10);
+        
+        if (canPlaceShip(board, row, col, ship.size, isHoriz)) {
+          placeShip(board, row, col, ship.size, isHoriz, shipIndex);
+          placedShips.push({ ...ship, id: shipIndex, positions: getShipPositions(row, col, ship.size, isHoriz) });
+          placed = true;
+        }
+        attempts++;
+      }
+    });
+    
+    return { board, ships: placedShips };
+  }
+
+  function canPlaceShip(board, row, col, size, horizontal) {
+    if (horizontal) {
+      if (col + size > 10) return false;
+      for (let i = 0; i < size; i++) {
+        if (board[row][col + i].ship) return false;
+      }
+    } else {
+      if (row + size > 10) return false;
+      for (let i = 0; i < size; i++) {
+        if (board[row + i][col].ship) return false;
+      }
+    }
+    return true;
+  }
+
+  function placeShip(board, row, col, size, horizontal, shipId) {
+    for (let i = 0; i < size; i++) {
+      if (horizontal) {
+        board[row][col + i] = { ...board[row][col + i], ship: true, shipId };
+      } else {
+        board[row + i][col] = { ...board[row + i][col], ship: true, shipId };
+      }
+    }
+  }
+
+  function getShipPositions(row, col, size, horizontal) {
+    const positions = [];
+    for (let i = 0; i < size; i++) {
+      if (horizontal) {
+        positions.push(`${row}-${col + i}`);
+      } else {
+        positions.push(`${row + i}-${col}`);
+      }
+    }
+    return positions;
+  }
+
+  useEffect(() => {
+    if (gamePhase === 'setup') {
+      const enemy = placeRandomShips();
+      setEnemyShips(enemy.ships);
+      const newEnemyBoard = createEmptyBoard();
+      enemy.ships.forEach(ship => {
+        ship.positions.forEach(pos => {
+          const [r, c] = pos.split('-').map(Number);
+          newEnemyBoard[r][c].ship = true;
+          newEnemyBoard[r][c].shipId = ship.id;
+        });
+      });
+      setEnemyBoard(newEnemyBoard);
+    }
+  }, [gamePhase]);
+
+  const handlePlayerShipPlacement = (row, col) => {
+    if (gamePhase !== 'setup' || currentShip >= ships.length) return;
+    
+    const ship = ships[currentShip];
+    if (canPlaceShip(playerBoard, row, col, ship.size, isHorizontal)) {
+      const newBoard = [...playerBoard];
+      placeShip(newBoard, row, col, ship.size, isHorizontal, currentShip);
+      
+      const newShips = [...playerShips];
+      newShips.push({
+        ...ship,
+        id: currentShip,
+        positions: getShipPositions(row, col, ship.size, isHorizontal)
+      });
+      
+      setPlayerBoard(newBoard);
+      setPlayerShips(newShips);
+      setCurrentShip(currentShip + 1);
+      
+      if (currentShip + 1 >= ships.length) {
+        setGamePhase('battle');
+        addToLog('🔥 All ships deployed! Commence battle!');
+      }
+    }
+  };
+
+  const handleAttack = (row, col) => {
+    if (!playerTurn || gamePhase !== 'battle') return;
+    
+    const newEnemyBoard = [...enemyBoard];
+    const cell = newEnemyBoard[row][col];
+    
+    if (cell.hit || cell.miss) return; // Already attacked
+    
+    if (cell.ship) {
+      // HIT!
+      cell.hit = true;
+      setExplosionEffect(`${row}-${col}`);
+      setTimeout(() => setExplosionEffect(null), 1000);
+      
+      const shipHit = enemyShips.find(ship => ship.id === cell.shipId);
+      const allHit = shipHit.positions.every(pos => {
+        const [r, c] = pos.split('-').map(Number);
+        return newEnemyBoard[r][c].hit;
+      });
+      
+      if (allHit) {
+        addToLog(`💥 SUNK! Enemy ${shipHit.name} destroyed!`);
+        setPlayerScore(prev => prev + shipHit.size * 10);
+        
+        // Check if all ships sunk
+        const allSunk = enemyShips.every(ship => 
+          ship.positions.every(pos => {
+            const [r, c] = pos.split('-').map(Number);
+            return newEnemyBoard[r][c].hit;
+          })
+        );
+        
+        if (allSunk) {
+          setGamePhase('victory');
+          addToLog('🏆 VICTORY! All enemy ships destroyed!');
+          setTimeout(() => onGameComplete('battleship', 100), 2000);
+          return;
+        }
+      } else {
+        addToLog(`💥 Direct hit on enemy ${shipHit.name}!`);
+        setPlayerScore(prev => prev + 10);
+      }
+    } else {
+      // MISS
+      cell.miss = true;
+      addToLog(`🌊 Miss at ${String.fromCharCode(65 + col)}${row + 1}`);
+    }
+    
+    setEnemyBoard(newEnemyBoard);
+    setPlayerTurn(false);
+    
+    // Enemy turn after delay
+    setTimeout(enemyTurn, 1500);
+  };
+
+  const enemyTurn = () => {
+    let attempts = 0;
+    let validAttack = false;
+    
+    while (!validAttack && attempts < 100) {
+      const row = Math.floor(Math.random() * 10);
+      const col = Math.floor(Math.random() * 10);
+      const cell = playerBoard[row][col];
+      
+      if (!cell.hit && !cell.miss) {
+        const newPlayerBoard = [...playerBoard];
+        
+        if (cell.ship) {
+          // Enemy hit
+          newPlayerBoard[row][col].hit = true;
+          setExplosionEffect(`player-${row}-${col}`);
+          setTimeout(() => setExplosionEffect(null), 1000);
+          
+          const shipHit = playerShips.find(ship => ship.id === cell.shipId);
+          const allHit = shipHit.positions.every(pos => {
+            const [r, c] = pos.split('-').map(Number);
+            return newPlayerBoard[r][c].hit;
+          });
+          
+          if (allHit) {
+            addToLog(`💀 Enemy sunk your ${shipHit.name}!`);
+            setEnemyScore(prev => prev + shipHit.size * 10);
+            
+            // Check if all player ships sunk
+            const allSunk = playerShips.every(ship => 
+              ship.positions.every(pos => {
+                const [r, c] = pos.split('-').map(Number);
+                return newPlayerBoard[r][c].hit;
+              })
+            );
+            
+            if (allSunk) {
+              setGamePhase('defeat');
+              addToLog('💀 DEFEAT! All your ships destroyed!');
+              setTimeout(() => onGameComplete('battleship', 20), 2000);
+              return;
+            }
+          } else {
+            addToLog(`🔥 Enemy hit your ${shipHit.name}!`);
+            setEnemyScore(prev => prev + 10);
+          }
+        } else {
+          // Enemy miss
+          newPlayerBoard[row][col].miss = true;
+          addToLog(`🌊 Enemy missed at ${String.fromCharCode(65 + col)}${row + 1}`);
+        }
+        
+        setPlayerBoard(newPlayerBoard);
+        validAttack = true;
+      }
+      attempts++;
+    }
+    
+    setPlayerTurn(true);
+  };
+
+  const addToLog = (message) => {
+    setGameLog(prev => [...prev.slice(-4), message]);
+  };
+
+  const getCellClass = (cell, isEnemy, row, col) => {
+    const baseClass = "w-8 h-8 border border-blue-300 cursor-pointer transition-all duration-200 flex items-center justify-center text-xs font-bold ";
+    
+    if (explosionEffect === `${row}-${col}` || explosionEffect === `player-${row}-${col}`) {
+      return baseClass + "bg-red-500 animate-pulse scale-125 ";
+    }
+    
+    if (cell.hit) {
+      return baseClass + "bg-red-600 text-white hover:bg-red-700 ";
+    }
+    
+    if (cell.miss) {
+      return baseClass + "bg-blue-600 text-white ";
+    }
+    
+    if (cell.ship && !isEnemy) {
+      return baseClass + "bg-gray-600 text-white hover:bg-gray-700 ";
+    }
+    
+    return baseClass + "bg-blue-100 hover:bg-blue-200 ";
+  };
+
+  const getCellContent = (cell, isEnemy, row, col) => {
+    if (explosionEffect === `${row}-${col}` || explosionEffect === `player-${row}-${col}`) {
+      return '💥';
+    }
+    
+    if (cell.hit) {
+      return cell.ship ? '🔥' : '💥';
+    }
+    
+    if (cell.miss) {
+      return '🌊';
+    }
+    
+    if (cell.ship && !isEnemy) {
+      const ship = playerShips.find(s => s.id === cell.shipId);
+      return ship ? ship.icon : '⚓';
+    }
+    
+    return '';
+  };
+
+  if (gamePhase === 'setup') {
+    return (
+      <Dialog open={true} onOpenChange={onClose}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">🚢 Deploy Your Fleet, Admiral!</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-bold">
+                  Placing: {ships[currentShip]?.icon} {ships[currentShip]?.name} 
+                  <span className="text-sm ml-2">({ships[currentShip]?.size} squares)</span>
+                </h3>
+                <Button 
+                  onClick={() => setIsHorizontal(!isHorizontal)}
+                  variant="outline"
+                  className="mt-2"
+                >
+                  {isHorizontal ? '↔️ Horizontal' : '↕️ Vertical'}
+                </Button>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-gray-600">Click on the board to place ships</p>
+                <p className="text-sm font-bold">{currentShip + 1} / {ships.length} ships placed</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-10 gap-1 max-w-md mx-auto bg-blue-50 p-4 rounded-lg">
+              {playerBoard.map((row, rowIndex) =>
+                row.map((cell, colIndex) => (
+                  <div
+                    key={`${rowIndex}-${colIndex}`}
+                    className={getCellClass(cell, false, rowIndex, colIndex)}
+                    onClick={() => handlePlayerShipPlacement(rowIndex, colIndex)}
+                  >
+                    {getCellContent(cell, false, rowIndex, colIndex)}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  return (
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="max-w-6xl">
+        <DialogHeader>
+          <DialogTitle className="text-2xl">⚓ Naval Battle Command Center</DialogTitle>
+        </DialogHeader>
+        
+        <div className="grid grid-cols-2 gap-8">
+          {/* Enemy Board */}
+          <div className="space-y-4">
+            <div className="text-center">
+              <h3 className="text-lg font-bold text-red-600">🎯 Enemy Waters</h3>
+              <p className="text-sm">Score: {playerScore} • {playerTurn ? 'Your Turn' : 'Enemy Turn'}</p>
+            </div>
+            
+            <div className="grid grid-cols-10 gap-1 bg-red-50 p-4 rounded-lg">
+              {enemyBoard.map((row, rowIndex) =>
+                row.map((cell, colIndex) => (
+                  <div
+                    key={`enemy-${rowIndex}-${colIndex}`}
+                    className={getCellClass(cell, true, rowIndex, colIndex)}
+                    onClick={() => handleAttack(rowIndex, colIndex)}
+                  >
+                    {getCellContent(cell, true, rowIndex, colIndex)}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+          
+          {/* Player Board */}
+          <div className="space-y-4">
+            <div className="text-center">
+              <h3 className="text-lg font-bold text-blue-600">🛡️ Your Fleet</h3>
+              <p className="text-sm">Enemy Score: {enemyScore}</p>
+            </div>
+            
+            <div className="grid grid-cols-10 gap-1 bg-blue-50 p-4 rounded-lg">
+              {playerBoard.map((row, rowIndex) =>
+                row.map((cell, colIndex) => (
+                  <div
+                    key={`player-${rowIndex}-${colIndex}`}
+                    className={getCellClass(cell, false, rowIndex, colIndex)}
+                  >
+                    {getCellContent(cell, false, rowIndex, colIndex)}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+        
+        {/* Battle Log */}
+        <div className="mt-4 bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm max-h-32 overflow-y-auto">
+          {gameLog.map((log, i) => (
+            <div key={i}>{log}</div>
+          ))}
+        </div>
+        
+        {gamePhase === 'victory' && (
+          <div className="text-center text-green-600 font-bold text-xl animate-bounce">
+            🏆 VICTORY! You are the Admiral of the Seas! 🏆
+          </div>
+        )}
+        
+        {gamePhase === 'defeat' && (
+          <div className="text-center text-red-600 font-bold text-xl">
+            💀 Your fleet has been destroyed... Try again, Admiral! 💀
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // Chess Game Component
 function ChessGame({ onGameComplete, onClose }) {
   const [board, setBoard] = useState(initializeChessBoard());
