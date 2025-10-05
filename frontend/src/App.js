@@ -523,56 +523,73 @@ function VisualTalentTree({ currentUser, onNodeUnlock }) {
   );
 }
 
-// Enhanced Chore Quest Component
+// Enhanced Quest Component with Games and Verification
 function ChoreQuest({ task, currentUser, partner, onComplete }) {
-  const [verificationStep, setVerificationStep] = useState(null);
+  const [showVerification, setShowVerification] = useState(false);
+  const [showBoardGame, setShowBoardGame] = useState(false);
   const [showMiniGame, setShowMiniGame] = useState(null);
-  const [photoUrl, setPhotoUrl] = useState('');
   
-  const needsDualVerification = task.room === 'US' || task.difficulty === 'HARD';
   const points = DIFFICULTY_POINTS[task.difficulty];
 
   const handleStartQuest = () => {
-    setVerificationStep('method');
-  };
-
-  const handleVerificationMethod = (method) => {
-    if (method === 'photo') {
-      setVerificationStep('photo');
-    } else if (method === 'partner') {
-      setVerificationStep('partner');
-    } else if (method === 'emoji') {
-      setVerificationStep('emoji');
+    // Check if this is a game quest
+    if (task.room === 'Games') {
+      setShowBoardGame(true);
+      return;
     }
+    
+    // For regular quests, show verification system
+    setShowVerification(true);
   };
 
-  const handleCompleteQuest = async (bonusPoints = 0) => {
+  const handleVerificationComplete = async (verificationData) => {
     try {
-      // Trigger random mini-game chance (30%)
-      if (Math.random() < 0.3 && !showMiniGame) {
+      // Trigger random mini-game chance (20%) for non-game quests
+      if (Math.random() < 0.2 && !showMiniGame && task.room !== 'Games') {
         const games = ['spin', 'tap', 'trivia'];
         const randomGame = games[Math.floor(Math.random() * games.length)];
         setShowMiniGame(randomGame);
         return;
       }
 
-      const totalPoints = points + bonusPoints;
+      const totalPoints = points + verificationData.bonusPoints;
       
       // API call to complete task
       await axios.post(`${API}/tasks/${task.taskId}/complete`, {
         userId: currentUser.userId,
-        bonusPoints: bonusPoints,
-        verificationMethod: verificationStep,
-        photoUrl: photoUrl
+        bonusPoints: verificationData.bonusPoints,
+        verificationData: verificationData
       });
 
       // Celebration effect
       onComplete(totalPoints);
-      setVerificationStep(null);
+      setShowVerification(false);
       
     } catch (error) {
       console.error('Error completing quest:', error);
       alert('Failed to complete quest. Please try again.');
+    }
+  };
+
+  const handleGameComplete = async (gameType, gamePoints) => {
+    try {
+      const totalPoints = points + gamePoints;
+      
+      // API call to complete game task
+      await axios.post(`${API}/tasks/${task.taskId}/complete`, {
+        userId: currentUser.userId,
+        bonusPoints: gamePoints,
+        gameType: gameType,
+        gameCompleted: true
+      });
+
+      // Celebration effect
+      onComplete(totalPoints);
+      setShowBoardGame(false);
+      
+    } catch (error) {
+      console.error('Error completing game quest:', error);
+      alert('Failed to complete game quest. Please try again.');
     }
   };
 
