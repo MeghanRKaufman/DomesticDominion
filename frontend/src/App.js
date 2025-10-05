@@ -583,7 +583,7 @@ function ChoreQuest({ task, currentUser, partner, onComplete }) {
     }
     
     // For regular quests, show verification system
-    setShowVerification(true);
+    setVerificationStep('method');
   };
 
   const handleVerificationComplete = async (verificationData) => {
