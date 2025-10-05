@@ -927,6 +927,9 @@ async def get_my_daily_tasks(couple_id: str, user_id: str, date: str = None):
     
     # Get all tasks
     tasks = await db.tasks.find().to_list(1000)
+    # Remove ObjectId fields for JSON serialization
+    for task in tasks:
+        task.pop('_id', None)
     tasks_by_id = {task["taskId"]: task for task in tasks}
     
     # Get couple users to determine which user is "user1" or "user2"
