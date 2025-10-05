@@ -456,95 +456,254 @@ function ChessGame({ onGameComplete, onClose }) {
     board[6] = ['P','P','P','P','P','P','P','P'];
     board[7] = ['R','N','B','Q','K','B','N','R'];
     
-    return board.map(row => row.map(piece => piece ? pieces[piece] : null));
+    return board;
   }
 
-  const handleSquareClick = (row, col) => {
-    if (selectedSquare) {
-      // Make move
-      const newBoard = [...board];
-      const [fromRow, fromCol] = selectedSquare;
-      
-      newBoard[row][col] = newBoard[fromRow][fromCol];
-      newBoard[fromRow][fromCol] = null;
-      
-      setBoard(newBoard);
-      setSelectedSquare(null);
-      setCurrentPlayer(currentPlayer === 'white' ? 'black' : 'white');
-      setMoveHistory([...moveHistory, `${String.fromCharCode(97 + fromCol)}${8 - fromRow} to ${String.fromCharCode(97 + col)}${8 - row}`]);
-      
-      // Simple game end after 10 moves for demo
-      if (moveHistory.length >= 10) {
-        setGameStatus('finished');
-      }
-    } else {
-      // Select piece
-      if (board[row][col]) {
-        setSelectedSquare([row, col]);
-      }
+  // Timer effect
+  useEffect(() => {
+    if (!isTimerActive || gameStatus !== 'playing') return;
+    
+    const timer = setInterval(() => {
+      setGameTime(prev => {
+        const newTime = { ...prev };
+        newTime[currentPlayer]--;
+        
+        if (newTime[currentPlayer] <= 0) {
+          setGameStatus('timeout');
+          onGameComplete('chess', currentPlayer === 'white' ? 0 : 150);
+        }
+        
+        return newTime;
+      });
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [currentPlayer, isTimerActive, gameStatus]);
+
+  const isValidMove = (fromRow, fromCol, toRow, toCol) => {
+    const piece = board[fromRow][fromCol];
+    const targetPiece = board[toRow][toCol];
+    const isWhite = piece === piece.toUpperCase();
+    
+    // Can't capture own piece
+    if (targetPiece && getPieceColor(piece) === getPieceColor(targetPiece)) {
+      return false;
+    }
+    
+    // Basic move validation for each piece type
+    const pieceType = piece.toLowerCase();
+    const rowDiff = Math.abs(toRow - fromRow);
+    const colDiff = Math.abs(toCol - fromCol);
+    
+    switch (pieceType) {
+      case 'p': // Pawn
+        const direction = isWhite ? -1 : 1;
+        const startRow = isWhite ? 6 : 1;
+        
+        if (colDiff === 0) { // Forward move
+          if (targetPiece) return false; // Can't capture forward
+          if (toRow === fromRow + direction) return true; // One square
+          if (fromRow === startRow && toRow === fromRow + 2 * direction) return true; // Two squares from start
+        } else if (colDiff === 1 && toRow === fromRow + direction && targetPiece) {
+          return true; // Diagonal capture
+        }
+        return false;
+        
+      case 'r': // Rook
+        return (rowDiff === 0 || colDiff === 0) && isPathClear(fromRow, fromCol, toRow, toCol);
+        
+      case 'n': // Knight
+        return (rowDiff === 2 && colDiff === 1) || (rowDiff === 1 && colDiff === 2);
+        
+      case 'b': // Bishop
+        return rowDiff === colDiff && isPathClear(fromRow, fromCol, toRow, toCol);
+        
+      case 'q': // Queen
+        return ((rowDiff === 0 || colDiff === 0) || (rowDiff === colDiff)) && isPathClear(fromRow, fromCol, toRow, toCol);
+        
+      case 'k': // King
+        return rowDiff <= 1 && colDiff <= 1;
+        
+      default:
+        return false;
     }
   };
 
-  const forfeitGame = () => {
-    setGameStatus('finished');
+  const isPathClear = (fromRow, fromCol, toRow, toCol) => {
+    const rowStep = toRow > fromRow ? 1 : toRow < fromRow ? -1 : 0;
+    const colStep = toCol > fromCol ? 1 : toCol < fromCol ? -1 : 0;
+    
+    let currentRow = fromRow + rowStep;
+    let currentCol = fromCol + colStep;
+    
+    while (currentRow !== toRow || currentCol !== toCol) {
+      if (board[currentRow][currentCol]) return false;
+      currentRow += rowStep;
+      currentCol += colStep;
+    }
+    
+    return true;
+  };
+
+  const handleSquareClick = (row, col) => {
+    const piece = board[row][col];
+    
+    if (selectedSquare) {
+      const [fromRow, fromCol] = selectedSquare;
+      const fromPiece = board[fromRow][fromCol];
+      
+      // Check if it's the correct player's turn
+      if (getPieceColor(fromPiece) !== currentPlayer) {
+        setSelectedSquare(null);
+        return;
+      }
+      
+      if (isValidMove(fromRow, fromCol, row, col)) {
+        // Valid move
+        const newBoard = [...board];
+        const capturedPiece = newBoard[row][col];
+        
+        // Handle captures
+        if (capturedPiece) {
+          setCapturedPieces(prev => ({
+            ...prev,
+            [currentPlayer]: [...prev[currentPlayer], capturedPiece]
+          }));
+          
+          // Check for king capture (game over)
+          if (capturedPiece.toLowerCase() === 'k') {
+            setGameStatus('won');
+            onGameComplete('chess', currentPlayer === 'white' ? 150 : 75);
+            return;
+          }
+        }
+        
+        newBoard[row][col] = newBoard[fromRow][fromCol];
+        newBoard[fromRow][fromCol] = null;
+        
+        setBoard(newBoard);
+        setMoveHistory(prev => [...prev, { from: [fromRow, fromCol], to: [row, col], piece: fromPiece, captured: capturedPiece }]);
+        setCurrentPlayer(currentPlayer === 'white' ? 'black' : 'white');
+        setSelectedSquare(null);
+      } else {
+        // Invalid move, deselect or select new piece
+        if (piece && getPieceColor(piece) === currentPlayer) {
+          setSelectedSquare([row, col]);
+        } else {
+          setSelectedSquare(null);
+        }
+      }
+    } else if (piece && getPieceColor(piece) === currentPlayer) {
+      // Select piece
+      setSelectedSquare([row, col]);
+    }
+  };
+
+  const getPieceColor = (piece) => {
+    return piece === piece.toUpperCase() ? 'white' : 'black';
+  };
+
+  const getSquareColor = (row, col) => {
+    const isLight = (row + col) % 2 === 0;
+    const isSelected = selectedSquare && selectedSquare[0] === row && selectedSquare[1] === col;
+    
+    if (isSelected) return 'bg-yellow-400 ring-2 ring-yellow-600';
+    return isLight ? 'bg-amber-100' : 'bg-amber-600';
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="max-w-4xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl text-center">♔ Chess Battle ♛</DialogTitle>
+          <DialogTitle className="text-3xl text-center">♔ Royal Chess Battle ♚</DialogTitle>
         </DialogHeader>
         
-        <div className="flex flex-col items-center space-y-4">
-          {gameStatus === 'playing' ? (
-            <>
-              <Badge className="text-lg px-4 py-2">
-                {currentPlayer === 'white' ? '♔ White' : '♛ Black'}'s Turn
-              </Badge>
-              
-              <div className="grid grid-cols-8 gap-1 p-4 bg-amber-100 rounded-lg">
-                {board.map((row, rowIndex) =>
-                  row.map((piece, colIndex) => (
-                    <div
-                      key={`${rowIndex}-${colIndex}`}
-                      className={`w-12 h-12 flex items-center justify-center text-2xl cursor-pointer
-                        ${(rowIndex + colIndex) % 2 === 0 ? 'bg-amber-200' : 'bg-amber-700'}
-                        ${selectedSquare && selectedSquare[0] === rowIndex && selectedSquare[1] === colIndex ? 'ring-4 ring-blue-400' : ''}
-                        hover:opacity-80`}
-                      onClick={() => handleSquareClick(rowIndex, colIndex)}
-                    >
-                      {piece}
-                    </div>
-                  ))
-                )}
-              </div>
-              
-              <div className="flex space-x-4">
-                <Button onClick={forfeitGame} variant="outline">
-                  Forfeit Game
-                </Button>
-                <Button onClick={() => setGameStatus('finished')}>
-                  Declare Draw
-                </Button>
-              </div>
-            </>
-          ) : (
-            <div className="text-center space-y-4">
-              <div className="text-6xl">🏆</div>
-              <h3 className="text-2xl font-bold">Game Complete!</h3>
-              <p>Great chess battle! Both players earn points for playing.</p>
-              <Button onClick={() => onGameComplete('chess', 20)}>
-                Collect 20 XP! ✨
-              </Button>
+        <div className="grid grid-cols-3 gap-6">
+          {/* Captured White Pieces */}
+          <div className="space-y-2">
+            <h3 className="font-bold text-center">♔ White Captured</h3>
+            <div className="flex flex-wrap gap-1 justify-center bg-gray-100 p-2 rounded min-h-[60px]">
+              {capturedPieces.black.map((piece, i) => (
+                <span key={i} className="text-xl">{pieces[piece]}</span>
+              ))}
             </div>
-          )}
+            
+            <div className={`text-center p-2 rounded ${currentPlayer === 'white' ? 'bg-blue-200 ring-2 ring-blue-500' : 'bg-gray-100'}`}>
+              <div className="font-bold">White</div>
+              <div className={`text-xl ${gameTime.white < 60 ? 'text-red-600 animate-pulse' : ''}`}>
+                ⏱️ {formatTime(gameTime.white)}
+              </div>
+            </div>
+          </div>
           
-          {moveHistory.length > 0 && (
-            <div className="text-sm text-gray-600 max-h-20 overflow-y-auto">
-              Moves: {moveHistory.join(', ')}
+          {/* Chess Board */}
+          <div className="flex flex-col items-center space-y-4">
+            <div className="grid grid-cols-8 gap-0 border-4 border-amber-800 bg-amber-900 shadow-2xl">
+              {board.map((row, rowIndex) =>
+                row.map((piece, colIndex) => (
+                  <div
+                    key={`${rowIndex}-${colIndex}`}
+                    className={`w-12 h-12 ${getSquareColor(rowIndex, colIndex)} flex items-center justify-center text-3xl cursor-pointer hover:opacity-80 transition-all duration-200 relative`}
+                    onClick={() => handleSquareClick(rowIndex, colIndex)}
+                  >
+                    {piece ? pieces[piece] : ''}
+                    
+                    {/* Coordinate labels */}
+                    {colIndex === 0 && (
+                      <div className="absolute left-1 top-1 text-xs font-bold text-amber-800">
+                        {8 - rowIndex}
+                      </div>
+                    )}
+                    {rowIndex === 7 && (
+                      <div className="absolute right-1 bottom-1 text-xs font-bold text-amber-800">
+                        {String.fromCharCode(97 + colIndex)}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
             </div>
-          )}
+            
+            {gameStatus === 'won' && (
+              <div className="text-center text-green-600 font-bold text-xl animate-bounce">
+                🏆 Checkmate! {currentPlayer === 'black' ? 'White' : 'Black'} Wins! 🏆
+              </div>
+            )}
+            
+            {gameStatus === 'timeout' && (
+              <div className="text-center text-red-600 font-bold text-xl">
+                ⏰ Time's Up! {currentPlayer === 'white' ? 'Black' : 'White'} Wins! ⏰
+              </div>
+            )}
+            
+            <div className="text-sm text-gray-600 text-center">
+              Click a piece to select • Click destination to move<br/>
+              Current Turn: <span className="font-bold">{currentPlayer === 'white' ? '♔ White' : '♚ Black'}</span>
+            </div>
+          </div>
+          
+          {/* Captured Black Pieces */}
+          <div className="space-y-2">
+            <h3 className="font-bold text-center">♚ Black Captured</h3>
+            <div className="flex flex-wrap gap-1 justify-center bg-gray-800 p-2 rounded min-h-[60px]">
+              {capturedPieces.white.map((piece, i) => (
+                <span key={i} className="text-xl">{pieces[piece]}</span>
+              ))}
+            </div>
+            
+            <div className={`text-center p-2 rounded ${currentPlayer === 'black' ? 'bg-red-200 ring-2 ring-red-500' : 'bg-gray-100'}`}>
+              <div className="font-bold">Black</div>
+              <div className={`text-xl ${gameTime.black < 60 ? 'text-red-600 animate-pulse' : ''}`}>
+                ⏱️ {formatTime(gameTime.black)}
+              </div>
+            </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
