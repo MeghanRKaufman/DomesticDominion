@@ -569,6 +569,10 @@ function ChoreQuest({ task, currentUser, partner, onComplete }) {
   const [showMiniGame, setShowMiniGame] = useState(null);
   
   const points = DIFFICULTY_POINTS[task.difficulty];
+  
+  // Check if this task needs dual verification (partner approval)
+  // US room tasks always need partner verification, others are optional but can be contested
+  const needsDualVerification = task.room === 'US' || task.requiresVerification;
 
   const handleStartQuest = () => {
     // Check if this is a game quest
