@@ -763,24 +763,43 @@ function ChoreQuest({ task, currentUser, partner, onComplete }) {
         </Dialog>
       )}
 
+      {/* Verification System */}
+      {showVerification && (
+        <VerificationSystem
+          quest={task}
+          currentUser={currentUser}
+          partner={partner}
+          onVerificationComplete={handleVerificationComplete}
+          onClose={() => setShowVerification(false)}
+        />
+      )}
+
+      {/* Board Games */}
+      {showBoardGame && (
+        <BoardGames
+          onGameComplete={handleGameComplete}
+          onClose={() => setShowBoardGame(false)}
+        />
+      )}
+
       {/* Mini-Games */}
       {showMiniGame === 'spin' && (
         <SpinWheelGame 
-          onComplete={(bonusPoints) => handleCompleteQuest(bonusPoints)}
+          onComplete={(bonusPoints) => handleVerificationComplete({ bonusPoints, quickGame: true })}
           onClose={() => setShowMiniGame(null)}
         />
       )}
       {showMiniGame === 'tap' && (
         <TapChallengeGame 
-          onComplete={(bonusPoints) => handleCompleteQuest(bonusPoints)}
+          onComplete={(bonusPoints) => handleVerificationComplete({ bonusPoints, quickGame: true })}
           onClose={() => setShowMiniGame(null)}
         />
       )}
       {showMiniGame === 'trivia' && (
         <CoupleTrivia 
-          onComplete={(bonusPoints) => handleCompleteQuest(bonusPoints)}
+          onComplete={(bonusPoints) => handleVerificationComplete({ bonusPoints, quickGame: true })}
           onClose={() => setShowMiniGame(null)}
-          partnerName={partner?.name}
+          partnerName={partner?.displayName}
         />
       )}
     </Card>
