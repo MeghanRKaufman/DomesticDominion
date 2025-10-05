@@ -712,6 +712,14 @@ function ChoreQuest({ task, currentUser, partner, onComplete }) {
     setVerificationStep('method');
   };
 
+  const handleVerificationMethod = (method) => {
+    setVerificationStep(method);
+  };
+
+  const handleCompleteQuest = (bonusPoints = 0) => {
+    handleVerificationComplete({ bonusPoints, photoUrl });
+  };
+
   const handleVerificationComplete = async (verificationData) => {
     try {
       // Trigger random mini-game chance (20%) for non-game quests
@@ -722,18 +730,19 @@ function ChoreQuest({ task, currentUser, partner, onComplete }) {
         return;
       }
 
-      const totalPoints = points + verificationData.bonusPoints;
+      const totalPoints = points + (verificationData.bonusPoints || 0);
       
       // API call to complete task
       await axios.post(`${API}/tasks/${task.taskId}/complete`, {
         userId: currentUser.userId,
-        bonusPoints: verificationData.bonusPoints,
+        bonusPoints: verificationData.bonusPoints || 0,
         verificationData: verificationData
       });
 
       // Celebration effect
       onComplete(totalPoints);
       setShowVerification(false);
+      setVerificationStep(null);
       
     } catch (error) {
       console.error('Error completing quest:', error);
