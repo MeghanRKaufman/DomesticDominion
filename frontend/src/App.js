@@ -572,6 +572,121 @@ function VisualTalentTree({ currentUser, onNodeUnlock }) {
   );
 }
 
+// Simple Checkbox Chore List Component
+function CheckboxChoreList({ tasks, currentUser, partner, onComplete, isToday = false, showEdit = false }) {
+  const todaysTasks = isToday ? tasks.filter(task => task.assignedTo === currentUser.userId) : tasks;
+  
+  if (!todaysTasks || todaysTasks.length === 0) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        <div className="text-4xl mb-2">✨</div>
+        <p>{isToday ? "No chores assigned for today!" : "No chores in this room yet."}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {todaysTasks.map((task, index) => (
+        <div key={task.taskId || index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+          <div className="flex items-center space-x-3">
+            <input
+              type="checkbox"
+              className="w-5 h-5 text-blue-600 rounded"
+              onChange={() => onComplete(task)}
+            />
+            <div>
+              <h4 className="font-medium">{task.title}</h4>
+              {task.description && <p className="text-sm text-gray-600">{task.description}</p>}
+              <div className="flex items-center space-x-2 mt-1">
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">{task.room}</span>
+                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">{task.difficulty}</span>
+                {isToday && task.assignedTo === currentUser.userId && (
+                  <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">Assigned to you</span>
+                )}
+              </div>
+            </div>
+          </div>
+          {showEdit && (
+            <div className="flex space-x-2">
+              <Button size="sm" variant="outline">Edit</Button>
+              <Button size="sm" variant="outline">Delete</Button>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Couple Games Interface Component
+function CoupleGamesInterface({ currentUser, partner, onGameComplete }) {
+  const games = [
+    { name: "Battleship", emoji: "🚢", description: "Classic naval strategy game" },
+    { name: "Chess", emoji: "♟️", description: "The ultimate strategy game" },
+    { name: "Backgammon", emoji: "🎲", description: "Ancient board game of skill and luck" },
+    { name: "Gin Rummy", emoji: "🃏", description: "Popular card matching game" }
+  ];
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {games.map((game) => (
+        <Card key={game.name} className="hover:shadow-lg transition-shadow">
+          <CardContent className="p-6 text-center">
+            <div className="text-4xl mb-3">{game.emoji}</div>
+            <h3 className="text-xl font-bold mb-2">{game.name}</h3>
+            <p className="text-gray-600 mb-4">{game.description}</p>
+            <Button 
+              onClick={() => onGameComplete(game.name, 15)}
+              className="w-full"
+            >
+              Play Game
+            </Button>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+// Chore Management Component
+function ChoreManagement({ tasks, setTasks, currentUser }) {
+  return (
+    <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow p-6">
+        <h3 className="text-xl font-bold mb-4">📋 Chore Management</h3>
+        <p className="text-gray-600 mb-4">Manage your household chores, assign them to rooms, and set difficulty levels.</p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl mb-2">📝</div>
+              <h4 className="font-bold">Add Chores</h4>
+              <p className="text-sm text-gray-600">Create new chores</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl mb-2">⚖️</div>
+              <h4 className="font-bold">Balance Load</h4>
+              <p className="text-sm text-gray-600">Distribute fairly</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl mb-2">📊</div>
+              <h4 className="font-bold">View Stats</h4>
+              <p className="text-sm text-gray-600">Track completion</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Enhanced Quest Component with Games and Verification
 function ChoreQuest({ task, currentUser, partner, onComplete }) {
   const [showVerification, setShowVerification] = useState(false);
