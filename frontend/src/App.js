@@ -1365,7 +1365,7 @@ function ChoreQuest({ task, currentUser, partner, onComplete }) {
       });
 
       // Celebration effect
-      onComplete(totalPoints);
+      onComplete(task, gamePoints);
       setShowBoardGame(false);
       
     } catch (error) {
