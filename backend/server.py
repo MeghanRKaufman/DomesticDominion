@@ -861,6 +861,64 @@ async def get_daily_odds(couple_id: str, date: str):
     odds.pop('_id', None)
     return odds
 
+@api_router.get("/couples/{couple_id}/assignments/{date}")
+async def get_daily_assignments(couple_id: str, date: str):
+    """Get daily task assignments for a couple"""
+    # Check if assignments already exist for this date
+    existing = await db.daily_assignments.find_one({
+        "coupleId": couple_id,
+        "date": date
+    })
+    
+    if existing:
+        existing.pop('_id', None)
+        return existing
+    
+    # Generate new assignments
+    assignments = generate_daily_assignments(couple_id, date)
+    
+    # Store in database
+    assignment_doc = {
+        "coupleId": couple_id,
+        "date": date,
+        "assignments": assignments,
+        "created_at": datetime.utcnow()
+    }
+    
+    await db.daily_assignments.insert_one(assignment_doc)
+    
+    return assignment_doc
+
+@api_router.get("/couples/{couple_id}/my-tasks/{user_id}")
+async def get_my_daily_tasks(couple_id: str, user_id: str, date: str = None):
+    """Get only the tasks assigned to a specific user for today"""
+    if not date:
+        date = datetime.utcnow().strftime('%Y-%m-%d')
+    
+    # Get daily assignments
+    assignments = await get_daily_assignments(couple_id, date)
+    user_assignments = assignments.get("assignments", {})
+    
+    # Get all tasks
+    tasks = await db.tasks.find().to_list(1000)
+    tasks_by_id = {task["taskId"]: task for task in tasks}
+    
+    # Get couple users to determine which user is "user1" or "user2"
+    users = await db.users.find({"coupleId": couple_id}).to_list(2)
+    user_key = "user1" if users[0]["userId"] == user_id else "user2"
+    
+    # Filter tasks assigned to this user
+    my_tasks = {}
+    for task_id, assigned_to in user_assignments.items():
+        if assigned_to == user_key and task_id in tasks_by_id:
+            task = tasks_by_id[task_id]
+            room = task["room"]
+            if room not in my_tasks:
+                my_tasks[room] = []
+            my_tasks[room].append(task)
+    
+    return my_tasks
+
 @api_router.post("/tasks/{task_id}/complete")
 async def complete_task(task_id: str, request: CompleteTaskRequest):
     """Complete a task and award points with bonuses"""
