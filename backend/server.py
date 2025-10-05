@@ -516,6 +516,97 @@ def compute_daily_odds(couple_id: str, date: str) -> Dict[str, Dict[str, float]]
     return task_odds
 
 # API Routes
+
+@api_router.post("/couples/create", response_model=CoupleInvitation)
+async def create_couple_invitation(request: CreateCoupleRequest):
+    """Create a new couple and generate epic adventure invitation"""
+    # Create couple record
+    couple = Couple(
+        creatorId=f"temp_{uuid.uuid4().hex[:8]}",  # Will be updated when creator creates user
+        creatorName=request.creatorName
+    )
+    
+    await db.couples.insert_one(couple.dict())
+    
+    # Generate epic invitation message
+    invitation_messages = [
+        f"🗡️ **SUMMONS TO ADVENTURE** 🛡️\n\n"
+        f"Greetings, Noble {request.creatorName} seeks a legendary partner!\n\n"
+        f"You have been chosen to join the {couple.adventureTheme} and {couple.questPhrase}!\n\n"
+        f"✨ **What awaits you:**\n"
+        f"• Epic household quests with XP rewards\n"
+        f"• Legendary talent trees to unlock\n"
+        f"• Mini-games and challenges\n" 
+        f"• Glory, honor, and domestic prosperity!\n\n"
+        f"🏰 **Join Code:** {couple.inviteCode}\n\n"
+        f"Will you accept this call to adventure? 🌟",
+        
+        f"⚔️ **LEGENDARY INVITATION** 🏆\n\n"
+        f"Hark! {request.creatorName} has issued a challenge!\n\n"
+        f"Join the {couple.adventureTheme} and together we shall {couple.questPhrase}!\n\n"
+        f"🎮 **Your destiny includes:**\n"
+        f"• Transforming chores into epic quests\n"
+        f"• Earning XP, levels, and talent points\n"
+        f"• Cooperative mini-games and rewards\n"
+        f"• Building the ultimate household kingdom!\n\n"
+        f"🔮 **Adventure Code:** {couple.inviteCode}\n\n"
+        f"Answer the call, brave adventurer! 🌟"
+    ]
+    
+    invitation = CoupleInvitation(
+        inviteCode=couple.inviteCode,
+        message=random.choice(invitation_messages),
+        theme=couple.adventureTheme,
+        questPhrase=couple.questPhrase,
+        creatorName=request.creatorName,
+        expiresAt=datetime.utcnow() + timedelta(days=7)
+    )
+    
+    return invitation
+
+@api_router.post("/couples/join", response_model=dict)
+async def join_couple_adventure(request: JoinCoupleRequest):
+    """Join an existing couple using invitation code"""
+    # Find couple by invite code
+    couple = await db.couples.find_one({"inviteCode": request.inviteCode})
+    if not couple:
+        raise HTTPException(status_code=404, detail="Invalid invitation code")
+    
+    if couple["partnerId"]:
+        raise HTTPException(status_code=400, detail="This adventure already has two heroes!")
+    
+    # Update couple with partner info
+    await db.couples.update_one(
+        {"inviteCode": request.inviteCode},
+        {
+            "$set": {
+                "partnerName": request.partnerName,
+                "joined_at": datetime.utcnow(),
+                "isActive": True
+            }
+        }
+    )
+    
+    return {
+        "message": f"🎉 Welcome to the adventure, {request.partnerName}! You have joined {couple['creatorName']} in the {couple['adventureTheme']}!",
+        "coupleId": couple["coupleId"],
+        "adventureTheme": couple["adventureTheme"]
+    }
+
+@api_router.get("/couples/{invite_code}/preview")
+async def preview_couple_invitation(invite_code: str):
+    """Preview couple invitation details"""
+    couple = await db.couples.find_one({"inviteCode": invite_code})
+    if not couple:
+        raise HTTPException(status_code=404, detail="Invalid invitation code")
+    
+    return {
+        "creatorName": couple["creatorName"],
+        "adventureTheme": couple["adventureTheme"],
+        "questPhrase": couple["questPhrase"],
+        "isAvailable": couple["partnerId"] is None
+    }
+
 @api_router.post("/users", response_model=User)
 async def create_user(request: CreateUserRequest):
     """Create a new user or join existing couple"""
