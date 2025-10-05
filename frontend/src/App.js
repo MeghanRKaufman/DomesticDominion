@@ -1233,7 +1233,13 @@ function CoupleGamesInterface({ currentUser, partner, onGameComplete }) {
             <h3 className="text-xl font-bold mb-2">{game.name}</h3>
             <p className="text-gray-600 mb-4">{game.description}</p>
             <Button 
-              onClick={() => onGameComplete(game.name, 15)}
+              onClick={() => onGameComplete({
+                taskId: `game_${game.name.toLowerCase().replace(/\s+/g, '_')}`,
+                title: game.name,
+                room: 'Games',
+                difficulty: 'MEDIUM',
+                tags: ['game', 'relationship']
+              }, 15)}
               className="w-full"
             >
               Play Game
