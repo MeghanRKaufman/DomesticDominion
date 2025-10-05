@@ -773,28 +773,54 @@ async def create_user(request: CreateUserRequest):
         if not couple:
             raise HTTPException(status_code=404, detail="Invalid invitation code")
         
-        # Check if this is the creator or partner joining
-        if couple["partnerId"] is None:
+        # Check if there's already a user for this couple (creator)
+        existing_user = await db.users.find_one({"coupleId": couple["coupleId"]})
+        
+        if not existing_user:
+            # This is the creator joining their own couple
+            creator_user = User(
+                displayName=request.displayName,
+                coupleId=couple["coupleId"]
+            )
+            
+            # Update couple with creator ID
+            await db.couples.update_one(
+                {"coupleId": couple["coupleId"]},
+                {"$set": {"creatorId": creator_user.userId}}
+            )
+            
+            # Initialize default tasks for this couple
+            for task_data in DEFAULT_TASKS:
+                task = Task(**task_data)
+                await db.tasks.insert_one(task.dict())
+            
+            # Initialize talent tree nodes for this couple
+            for node_id, node_data in TALENT_TREE_NODES.items():
+                node = TalentNode(**node_data)
+                await db.talent_nodes.insert_one(node.dict())
+            
+            await db.users.insert_one(creator_user.dict())
+            return creator_user
+            
+        elif couple["partnerId"] is None:
             # This is the partner joining
             partner_user = User(
                 displayName=request.displayName,
-                coupleId=couple["coupleId"]
+                coupleId=couple["coupleId"],
+                partnerId=existing_user["userId"]
             )
             
             # Update couple with partner ID
             await db.couples.update_one(
                 {"inviteCode": request.coupleCode},
-                {"$set": {"partnerId": partner_user.userId}}
+                {"$set": {"partnerId": partner_user.userId, "isActive": True, "joined_at": datetime.utcnow()}}
             )
             
-            # Find creator user and update with partner info
-            creator_user = await db.users.find_one({"coupleId": couple["coupleId"]})
-            if creator_user:
-                await db.users.update_one(
-                    {"userId": creator_user["userId"]},
-                    {"$set": {"partnerId": partner_user.userId}}
-                )
-                partner_user.partnerId = creator_user["userId"]
+            # Update creator user with partner info
+            await db.users.update_one(
+                {"userId": existing_user["userId"]},
+                {"$set": {"partnerId": partner_user.userId}}
+            )
             
             await db.users.insert_one(partner_user.dict())
             return partner_user
