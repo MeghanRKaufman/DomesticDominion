@@ -4,6 +4,10 @@ import useWebSocket from 'react-use-websocket';
 import axios from 'axios';
 import './App.css';
 
+// Import new components
+import BoardGames from './components/BoardGames';
+import VerificationSystem from './components/VerificationSystem';
+
 // Import UI components
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import { Button } from './components/ui/button';
