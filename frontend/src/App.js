@@ -898,6 +898,26 @@ function EpicAdventureModal({ isOpen, onClose, onSuccess }) {
     }
   };
 
+  const handleStartMyAdventure = async () => {
+    setLoading(true);
+    
+    try {
+      // Create user account as the adventure creator
+      const userResponse = await axios.post(`${API}/users`, {
+        displayName: name,
+        coupleCode: invitation.inviteCode
+      });
+      
+      localStorage.setItem('currentUser', JSON.stringify(userResponse.data));
+      onSuccess(userResponse.data);
+      onClose();
+    } catch (error) {
+      alert('Error: ' + (error.response?.data?.detail || 'Failed to start adventure'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (mode === 'choose') {
     return (
       <Dialog open={isOpen}>
