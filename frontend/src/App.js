@@ -26,6 +26,45 @@ const WS_URL = BACKEND_URL.replace('https://', 'wss://').replace('http://', 'ws:
 const DIFFICULTY_POINTS = { EASY: 5, MEDIUM: 10, HARD: 20 };
 const LEVEL_UP_POINTS = 100;
 
+// Room configurations
+const ROOMS = {
+  Kitchen: { 
+    name: 'Kitchen', 
+    emoji: '🍳', 
+    color: 'bg-orange-100 border-orange-200 text-orange-800'
+  },
+  Bathroom: { 
+    name: 'Bathroom', 
+    emoji: '🛁', 
+    color: 'bg-blue-100 border-blue-200 text-blue-800'
+  },
+  'Living Room': { 
+    name: 'Living Room', 
+    emoji: '🛋️', 
+    color: 'bg-green-100 border-green-200 text-green-800'
+  },
+  Bedroom: { 
+    name: 'Bedroom', 
+    emoji: '🛏️', 
+    color: 'bg-purple-100 border-purple-200 text-purple-800'
+  },
+  US: { 
+    name: 'US ❤️', 
+    emoji: '💕', 
+    color: 'bg-pink-100 border-pink-200 text-pink-800'
+  },
+  Games: {
+    name: 'Games 🎲',
+    emoji: '🎲',
+    color: 'bg-yellow-100 border-yellow-200 text-yellow-800'
+  },
+  Growth: {
+    name: 'Growth 💪',
+    emoji: '💪',
+    color: 'bg-emerald-100 border-emerald-200 text-emerald-800'
+  }
+};
+
 // Onboarding Component
 function OnboardingModal({ isOpen, onComplete }) {
   const [step, setStep] = useState(0);
