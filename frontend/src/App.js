@@ -1181,9 +1181,10 @@ function ChoreChampionsApp() {
   // Load game data
   const loadGameData = async (user) => {
     try {
-      // Load tasks
-      const tasksResponse = await axios.get(`${API}/couples/${user.coupleId}/tasks`);
-      setTasks(tasksResponse.data);
+      // Load only tasks assigned to this user for today
+      const today = new Date().toISOString().split('T')[0];
+      const myTasksResponse = await axios.get(`${API}/couples/${user.coupleId}/my-tasks/${user.userId}?date=${today}`);
+      setTasks(myTasksResponse.data);
 
       // Load partner info if exists
       if (user.partnerId) {
@@ -1192,6 +1193,13 @@ function ChoreChampionsApp() {
       }
     } catch (error) {
       console.error('Error loading game data:', error);
+      // Fallback to all tasks if assignment system fails
+      try {
+        const tasksResponse = await axios.get(`${API}/couples/${user.coupleId}/tasks`);
+        setTasks(tasksResponse.data);
+      } catch (fallbackError) {
+        console.error('Error loading fallback tasks:', fallbackError);
+      }
     }
   };
 
