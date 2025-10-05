@@ -567,6 +567,7 @@ function ChoreQuest({ task, currentUser, partner, onComplete }) {
   const [showVerification, setShowVerification] = useState(false);
   const [showBoardGame, setShowBoardGame] = useState(false);
   const [showMiniGame, setShowMiniGame] = useState(null);
+  const [verificationStep, setVerificationStep] = useState(null);
   
   const points = DIFFICULTY_POINTS[task.difficulty];
   
