@@ -1751,14 +1751,20 @@ function BoardGames({ onGameComplete, onClose }) {
         </Dialog>
       ) : (
         <>
+          {selectedGame === 'battleship' && (
+            <BattleshipGame 
+              onGameComplete={handleGameComplete} 
+              onClose={() => setSelectedGame(null)} 
+            />
+          )}
           {selectedGame === 'chess' && (
             <ChessGame 
               onGameComplete={handleGameComplete} 
               onClose={() => setSelectedGame(null)} 
             />
           )}
-          {selectedGame === 'battleship' && (
-            <BattleshipGame 
+          {selectedGame === 'backgammon' && (
+            <BackgammonGame 
               onGameComplete={handleGameComplete} 
               onClose={() => setSelectedGame(null)} 
             />
