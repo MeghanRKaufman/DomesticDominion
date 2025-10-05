@@ -1309,7 +1309,7 @@ function ChoreChampionsApp() {
             Begin Adventure! 🚀
           </Button>
         </div>
-        <AuthModal isOpen={showAuth} onClose={() => setShowAuth(false)} onSuccess={handleAuthSuccess} />
+        <EpicAdventureModal isOpen={showAuth} onClose={() => setShowAuth(false)} onSuccess={handleAuthSuccess} />
         <OnboardingModal isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
       </div>
     );
