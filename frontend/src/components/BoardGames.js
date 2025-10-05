@@ -710,6 +710,364 @@ function ChessGame({ onGameComplete, onClose }) {
   );
 }
 
+// EPIC BACKGAMMON GAME 🎲
+function BackgammonGame({ onGameComplete, onClose }) {
+  const [board, setBoard] = useState(initializeBackgammonBoard());
+  const [currentPlayer, setCurrentPlayer] = useState('white');
+  const [dice, setDice] = useState([0, 0]);
+  const [movesLeft, setMovesLeft] = useState([]);
+  const [selectedPoint, setSelectedPoint] = useState(null);
+  const [gamePhase, setGamePhase] = useState('roll'); // roll, move, finished
+  const [score, setScore] = useState({ white: 0, black: 0 });
+  const [bearOff, setBearOff] = useState({ white: [], black: [] });
+  const [bar, setBar] = useState({ white: 0, black: 0 });
+  const [gameLog, setGameLog] = useState(['🎲 Welcome to Backgammon! Roll to begin your turn.']);
+
+  function initializeBackgammonBoard() {
+    const board = Array(24).fill(null).map(() => ({ pieces: 0, color: null }));
+    
+    // Initialize starting position
+    board[0] = { pieces: 2, color: 'black' };   // Point 1
+    board[4] = { pieces: 5, color: 'white' };   // Point 5
+    board[6] = { pieces: 3, color: 'white' };   // Point 7
+    board[11] = { pieces: 5, color: 'black' };  // Point 12
+    board[12] = { pieces: 5, color: 'white' };  // Point 13
+    board[16] = { pieces: 3, color: 'black' };  // Point 17
+    board[18] = { pieces: 5, color: 'black' };  // Point 19
+    board[23] = { pieces: 2, color: 'white' };  // Point 24
+    
+    return board;
+  }
+
+  const rollDice = () => {
+    const die1 = Math.floor(Math.random() * 6) + 1;
+    const die2 = Math.floor(Math.random() * 6) + 1;
+    setDice([die1, die2]);
+    
+    // Determine available moves
+    const moves = die1 === die2 ? [die1, die1, die1, die1] : [die1, die2];
+    setMovesLeft(moves);
+    setGamePhase('move');
+    
+    addToLog(`🎲 ${currentPlayer.toUpperCase()} rolled ${die1}, ${die2}${die1 === die2 ? ' (Doubles!)' : ''}`);
+  };
+
+  const canMakeMove = (fromPoint, toPoint, moveDistance) => {
+    // Check if piece can move from fromPoint by moveDistance
+    if (fromPoint < 0 || fromPoint >= 24) return false;
+    
+    const fromSpot = board[fromPoint];
+    if (!fromSpot.pieces || fromSpot.color !== currentPlayer) return false;
+    
+    // Check if trying to bear off
+    if ((currentPlayer === 'white' && toPoint >= 24) || (currentPlayer === 'black' && toPoint < 0)) {
+      // Can only bear off if all pieces are in home board
+      const homeBoard = currentPlayer === 'white' ? 
+        board.slice(18, 24).every(spot => !spot.pieces || spot.color === 'white') :
+        board.slice(0, 6).every(spot => !spot.pieces || spot.color === 'black');
+      
+      if (!homeBoard) return false;
+      
+      // Must use exact number unless higher point is empty
+      if (currentPlayer === 'white' && toPoint > 24) {
+        const higherPoints = board.slice(fromPoint + 1, 24).some(spot => spot.pieces && spot.color === 'white');
+        return !higherPoints;
+      }
+      if (currentPlayer === 'black' && toPoint < -1) {
+        const higherPoints = board.slice(0, fromPoint).some(spot => spot.pieces && spot.color === 'black');
+        return !higherPoints;
+      }
+      
+      return true;
+    }
+    
+    if (toPoint < 0 || toPoint >= 24) return false;
+    
+    const toSpot = board[toPoint];
+    
+    // Can't move to point occupied by opponent with 2+ pieces (blocked)
+    if (toSpot.pieces >= 2 && toSpot.color !== currentPlayer) return false;
+    
+    return true;
+  };
+
+  const makeMove = (fromPoint, moveDistance) => {
+    const direction = currentPlayer === 'white' ? 1 : -1;
+    const toPoint = fromPoint + (moveDistance * direction);
+    
+    if (!canMakeMove(fromPoint, toPoint, moveDistance)) return false;
+    
+    const newBoard = [...board];
+    const newBearOff = { ...bearOff };
+    
+    // Remove piece from source
+    newBoard[fromPoint].pieces--;
+    if (newBoard[fromPoint].pieces === 0) {
+      newBoard[fromPoint].color = null;
+    }
+    
+    // Handle bearing off
+    if ((currentPlayer === 'white' && toPoint >= 24) || (currentPlayer === 'black' && toPoint < 0)) {
+      newBearOff[currentPlayer].push('●');
+      setBearOff(newBearOff);
+      
+      // Check for win
+      if (newBearOff[currentPlayer].length === 15) {
+        setGamePhase('finished');
+        addToLog(`🏆 ${currentPlayer.toUpperCase()} WINS by bearing off all pieces!`);
+        onGameComplete('backgammon', currentPlayer === 'white' ? 200 : 100);
+        return true;
+      }
+    } else {
+      // Normal move
+      const targetSpot = newBoard[toPoint];
+      
+      // Hit opponent's blot (single piece)
+      if (targetSpot.pieces === 1 && targetSpot.color !== currentPlayer) {
+        setBar(prev => ({ ...prev, [targetSpot.color]: prev[targetSpot.color] + 1 }));
+        addToLog(`💥 ${currentPlayer.toUpperCase()} hits ${targetSpot.color} blot!`);
+        newBoard[toPoint] = { pieces: 1, color: currentPlayer };
+      } else {
+        // Normal move to empty or own point
+        if (targetSpot.color === currentPlayer || !targetSpot.pieces) {
+          newBoard[toPoint] = { 
+            pieces: targetSpot.pieces + 1, 
+            color: currentPlayer 
+          };
+        }
+      }
+    }
+    
+    setBoard(newBoard);
+    
+    // Remove used move
+    const newMovesLeft = [...movesLeft];
+    const moveIndex = newMovesLeft.indexOf(moveDistance);
+    if (moveIndex > -1) {
+      newMovesLeft.splice(moveIndex, 1);
+      setMovesLeft(newMovesLeft);
+    }
+    
+    // Check if turn is over
+    if (newMovesLeft.length === 0) {
+      endTurn();
+    }
+    
+    addToLog(`📍 Moved from point ${fromPoint + 1} to ${toPoint >= 24 || toPoint < 0 ? 'off' : toPoint + 1}`);
+    
+    return true;
+  };
+
+  const handlePointClick = (pointIndex) => {
+    if (gamePhase !== 'move') return;
+    
+    if (selectedPoint === null) {
+      // Select a point with player's pieces
+      const point = board[pointIndex];
+      if (point.pieces > 0 && point.color === currentPlayer) {
+        setSelectedPoint(pointIndex);
+      }
+    } else {
+      // Try to move to this point
+      const distance = Math.abs(pointIndex - selectedPoint);
+      
+      if (movesLeft.includes(distance)) {
+        if (makeMove(selectedPoint, distance)) {
+          setSelectedPoint(null);
+        }
+      } else {
+        // Select different piece
+        const point = board[pointIndex];
+        if (point.pieces > 0 && point.color === currentPlayer) {
+          setSelectedPoint(pointIndex);
+        } else {
+          setSelectedPoint(null);
+        }
+      }
+    }
+  };
+
+  const endTurn = () => {
+    setCurrentPlayer(currentPlayer === 'white' ? 'black' : 'white');
+    setGamePhase('roll');
+    setSelectedPoint(null);
+    setMovesLeft([]);
+  };
+
+  const addToLog = (message) => {
+    setGameLog(prev => [...prev.slice(-3), message]);
+  };
+
+  const getPointDisplay = (point, pointIndex) => {
+    if (!point.pieces) return [];
+    
+    const pieces = [];
+    const maxVisible = 5;
+    const totalPieces = point.pieces;
+    
+    for (let i = 0; i < Math.min(totalPieces, maxVisible); i++) {
+      pieces.push(
+        <div
+          key={i}
+          className={`w-6 h-6 rounded-full border-2 border-gray-700 flex items-center justify-center text-xs font-bold
+            ${point.color === 'white' ? 'bg-white text-black' : 'bg-gray-800 text-white'}
+            ${selectedPoint === pointIndex ? 'ring-2 ring-yellow-400' : ''}
+            transition-all duration-200`}
+        >
+          {i === maxVisible - 1 && totalPieces > maxVisible ? `+${totalPieces - maxVisible + 1}` : '●'}
+        </div>
+      );
+    }
+    
+    return pieces;
+  };
+
+  return (
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="max-w-6xl">
+        <DialogHeader>
+          <DialogTitle className="text-3xl text-center">🎲 Royal Backgammon Tournament 🎲</DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-4">
+          {/* Game Status */}
+          <div className="flex justify-between items-center bg-gradient-to-r from-amber-100 to-amber-200 p-4 rounded-lg">
+            <div className="flex items-center space-x-4">
+              <Badge className={`text-lg px-4 py-2 ${currentPlayer === 'white' ? 'bg-white text-black' : 'bg-black text-white'}`}>
+                {currentPlayer === 'white' ? '⚪ White' : '⚫ Black'}'s Turn
+              </Badge>
+              
+              <div className="flex space-x-2">
+                <div className="text-lg">🎲 {dice[0]} • {dice[1]}</div>
+                {movesLeft.length > 0 && (
+                  <div className="text-sm bg-blue-100 px-2 py-1 rounded">
+                    Moves left: {movesLeft.join(', ')}
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex space-x-4">
+              {gamePhase === 'roll' && (
+                <Button onClick={rollDice} className="bg-green-500 hover:bg-green-600">
+                  🎲 Roll Dice
+                </Button>
+              )}
+              
+              {gamePhase === 'move' && movesLeft.length > 0 && (
+                <Button onClick={endTurn} variant="outline">
+                  End Turn
+                </Button>
+              )}
+            </div>
+          </div>
+          
+          {/* Backgammon Board */}
+          <div className="bg-amber-800 p-6 rounded-lg shadow-2xl">
+            {/* Top Half (Points 13-24) */}
+            <div className="grid grid-cols-12 gap-2 mb-4">
+              {board.slice(12, 24).map((point, index) => {
+                const pointIndex = index + 12;
+                const pieces = getPointDisplay(point, pointIndex);
+                
+                return (
+                  <div
+                    key={pointIndex}
+                    className={`h-32 border-2 border-amber-600 cursor-pointer transition-all duration-200 flex flex-col items-center justify-end p-1
+                      ${selectedPoint === pointIndex ? 'bg-yellow-200 ring-2 ring-yellow-500' : 'bg-amber-100 hover:bg-amber-200'}`}
+                    onClick={() => handlePointClick(pointIndex)}
+                  >
+                    <div className="text-xs font-bold text-amber-800 mb-1">
+                      {pointIndex + 1}
+                    </div>
+                    <div className="flex flex-col space-y-1">
+                      {pieces}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Middle Bar Area */}
+            <div className="flex justify-between items-center bg-amber-900 p-4 rounded my-4">
+              <div className="text-center">
+                <div className="text-white font-bold">Bar</div>
+                <div className="flex space-x-1 mt-2">
+                  {Array(bar.white).fill(null).map((_, i) => (
+                    <div key={i} className="w-6 h-6 bg-white rounded-full border-2 border-gray-700"></div>
+                  ))}
+                  {Array(bar.black).fill(null).map((_, i) => (
+                    <div key={i} className="w-6 h-6 bg-gray-800 rounded-full border-2 border-gray-300"></div>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="text-center">
+                <div className="text-white font-bold">Bear Off</div>
+                <div className="flex space-x-4 mt-2">
+                  <div className="text-center">
+                    <div className="text-white text-sm">White: {bearOff.white.length}/15</div>
+                    <div className="flex flex-wrap max-w-[100px]">
+                      {bearOff.white.slice(0, 15).map((_, i) => (
+                        <div key={i} className="w-3 h-3 bg-white rounded-full m-0.5"></div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-white text-sm">Black: {bearOff.black.length}/15</div>
+                    <div className="flex flex-wrap max-w-[100px]">
+                      {bearOff.black.slice(0, 15).map((_, i) => (
+                        <div key={i} className="w-3 h-3 bg-gray-800 rounded-full m-0.5"></div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Bottom Half (Points 1-12) */}
+            <div className="grid grid-cols-12 gap-2">
+              {board.slice(0, 12).reverse().map((point, index) => {
+                const pointIndex = 11 - index;
+                const pieces = getPointDisplay(point, pointIndex);
+                
+                return (
+                  <div
+                    key={pointIndex}
+                    className={`h-32 border-2 border-amber-600 cursor-pointer transition-all duration-200 flex flex-col items-center justify-start p-1
+                      ${selectedPoint === pointIndex ? 'bg-yellow-200 ring-2 ring-yellow-500' : 'bg-amber-100 hover:bg-amber-200'}`}
+                    onClick={() => handlePointClick(pointIndex)}
+                  >
+                    <div className="text-xs font-bold text-amber-800 mb-1">
+                      {pointIndex + 1}
+                    </div>
+                    <div className="flex flex-col space-y-1">
+                      {pieces}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          
+          {/* Game Log */}
+          <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm max-h-24 overflow-y-auto">
+            {gameLog.map((log, i) => (
+              <div key={i}>{log}</div>
+            ))}
+          </div>
+          
+          {gamePhase === 'finished' && (
+            <div className="text-center text-green-600 font-bold text-2xl animate-bounce">
+              🏆 Game Complete! 🏆
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // Battleship Game Component
 function BattleshipGame({ onGameComplete, onClose }) {
   const [playerBoard, setPlayerBoard] = useState(initializeBoard());
