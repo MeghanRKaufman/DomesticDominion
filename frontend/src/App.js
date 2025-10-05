@@ -1002,8 +1002,12 @@ function EpicAdventureModal({ isOpen, onClose, onSuccess }) {
                 📋 Copy Epic Invitation Message
               </Button>
               
+              <Button onClick={handleStartMyAdventure} className="w-full bg-gradient-to-r from-purple-500 to-blue-600 text-white" disabled={loading}>
+                {loading ? '🔮 Starting...' : '🚀 Start My Adventure Now!'}
+              </Button>
+              
               <p className="text-sm text-gray-600 text-center">
-                Share this message with your adventure partner via text or email!
+                Share the invitation with your partner, or start playing solo and they can join later!
               </p>
             </div>
             
