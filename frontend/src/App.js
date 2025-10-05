@@ -1524,122 +1524,188 @@ function ChoreChampionsApp() {
         </div>
       </div>
 
-      {/* Main Game Interface */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          {/* Game Navigation */}
-          <TabsList className="grid grid-cols-3 w-full max-w-md mx-auto bg-white shadow-lg">
-            <TabsTrigger value="quests" className="text-lg font-semibold">
-              ⚔️ Quests
-            </TabsTrigger>
-            <TabsTrigger value="talents" className="text-lg font-semibold">
-              🌳 Talents
-            </TabsTrigger>
-            <TabsTrigger value="rewards" className="text-lg font-semibold">
-              🎁 Rewards
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Quests Tab */}
-          <TabsContent value="quests" className="space-y-6">
-            <Tabs defaultValue="Kitchen" className="w-full">
-              <TabsList className="grid w-full" style={{gridTemplateColumns: `repeat(${Object.keys(ROOMS).length}, minmax(0, 1fr))`}}>
-                {Object.entries(ROOMS).map(([roomKey, room]) => (
-                  <TabsTrigger 
-                    key={roomKey} 
-                    value={roomKey} 
-                    className={`${room.color} font-medium text-sm`}
-                  >
-                    <span className="mr-1">{room.emoji}</span>
-                    {room.name}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-
-              {Object.entries(ROOMS).map(([roomKey, roomData]) => (
-                <TabsContent key={roomKey} value={roomKey} className="space-y-4 mt-6">
-                  <div className="text-center mb-6">
-                    <h2 className="text-3xl font-bold mb-2">
-                      {roomData.emoji} {roomData.name} Quests
-                    </h2>
-                    <p className="text-gray-600 text-lg">
-                      {roomKey === 'Games' ? 'Play together and earn XP!' : 
-                       roomKey === 'Growth' ? 'Level up yourself!' :
-                       roomKey === 'US' ? 'Strengthen your bond!' :
-                       'Keep your space amazing!'}
-                    </p>
-                  </div>
-
-                  <div className="space-y-4">
-                    {tasks[roomKey]?.map((task) => (
-                      <ChoreQuest
-                        key={task.taskId}
-                        task={task}
-                        currentUser={currentUser}
-                        partner={partner}
-                        onComplete={handleQuestComplete}
-                      />
-                    ))}
-                  </div>
-                </TabsContent>
-              ))}
-            </Tabs>
-          </TabsContent>
-
-          {/* Talents Tab */}
-          <TabsContent value="talents">
-            <VisualTalentTree 
-              currentUser={currentUser} 
-              onNodeUnlock={handleTalentUnlock} 
-            />
-          </TabsContent>
-
-          {/* Rewards Tab */}
-          <TabsContent value="rewards">
-            <div className="text-center space-y-6">
-              <h2 className="text-3xl font-bold">🎁 Rewards & Achievements</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <Card>
-                  <CardContent className="p-6 text-center">
-                    <div className="text-4xl mb-2">🏅</div>
-                    <h3 className="font-bold mb-2">Quest Master</h3>
-                    <p className="text-sm text-gray-600">Complete 10 quests</p>
-                    <Progress value={30} className="mt-2" />
-                    <p className="text-xs mt-1">3/10 completed</p>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardContent className="p-6 text-center">
-                    <div className="text-4xl mb-2">💕</div>
-                    <h3 className="font-bold mb-2">Perfect Partnership</h3>
-                    <p className="text-sm text-gray-600">Complete 5 duo quests</p>
-                    <Progress value={60} className="mt-2" />
-                    <p className="text-xs mt-1">3/5 completed</p>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardContent className="p-6 text-center">
-                    <div className="text-4xl mb-2">🎯</div>
-                    <h3 className="font-bold mb-2">Mini-Game Champion</h3>
-                    <p className="text-sm text-gray-600">Win 15 mini-games</p>
-                    <Progress value={40} className="mt-2" />
-                    <p className="text-xs mt-1">6/15 completed</p>
-                  </CardContent>
-                </Card>
-              </div>
+      {/* Main Clean Interface */}
+      <div className="flex max-w-7xl mx-auto">
+        {/* Side Navigation */}
+        <div className="w-64 bg-white shadow-lg min-h-screen">
+          <div className="p-4">
+            <h3 className="text-lg font-bold mb-4 text-gray-800">📋 Navigation</h3>
+            
+            <div className="space-y-2">
+              <button
+                onClick={() => setActiveTab('today')}
+                className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
+                  activeTab === 'today' 
+                    ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                📅 Today's Chores
+              </button>
               
-              <div className="mt-8">
-                <h3 className="text-2xl font-bold mb-4">🎉 Unlocked Rewards</h3>
-                <div className="bg-gradient-to-r from-green-100 to-blue-100 p-6 rounded-lg">
-                  <p className="text-lg">🎊 Date Night Suggestion: Cooking class for two!</p>
-                  <p className="text-sm text-gray-600 mt-2">Unlocked by reaching Level 3 together</p>
-                </div>
+              <button
+                onClick={() => setActiveTab('all')}
+                className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
+                  activeTab === 'all' 
+                    ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                🏠 All Chores
+              </button>
+              
+              <button
+                onClick={() => setActiveTab('games')}
+                className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
+                  activeTab === 'games' 
+                    ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                🎮 Couple Games
+              </button>
+              
+              <button
+                onClick={() => setActiveTab('talents')}
+                className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
+                  activeTab === 'talents' 
+                    ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                🌳 Talent Tree
+              </button>
+              
+              <button
+                onClick={() => setActiveTab('manage')}
+                className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
+                  activeTab === 'manage' 
+                    ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                ⚙️ Manage Chores
+              </button>
+            </div>
+          </div>
+
+          {/* Room Filters (for all chores view) */}
+          {(activeTab === 'all' || activeTab === 'today') && (
+            <div className="p-4 border-t">
+              <h4 className="text-sm font-bold mb-3 text-gray-600 uppercase">🏠 Rooms</h4>
+              <div className="space-y-1">
+                {Object.entries(ROOMS).map(([roomKey, room]) => (
+                  <button
+                    key={roomKey}
+                    onClick={() => setSelectedRoom(roomKey)}
+                    className={`w-full text-left p-2 rounded text-sm transition-colors ${
+                      selectedRoom === roomKey 
+                        ? 'bg-purple-100 text-purple-800' 
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    {room.emoji} {room.name}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setSelectedRoom('all')}
+                  className={`w-full text-left p-2 rounded text-sm transition-colors ${
+                    selectedRoom === 'all' 
+                      ? 'bg-purple-100 text-purple-800' 
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  📋 All Rooms
+                </button>
               </div>
             </div>
-          </TabsContent>
-        </Tabs>
+          )}
+        </div>
+
+        {/* Main Content Area */}
+        <div className="flex-1 p-6">
+          {/* Today's Chores */}
+          {activeTab === 'today' && (
+            <div>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-3xl font-bold">📅 Today's Assigned Chores</h2>
+                <div className="text-sm text-gray-600">
+                  {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                </div>
+              </div>
+              
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <CheckboxChoreList 
+                  tasks={selectedRoom === 'all' ? Object.values(tasks).flat() : (tasks[selectedRoom] || [])}
+                  currentUser={currentUser}
+                  partner={partner}
+                  onComplete={handleQuestComplete}
+                  isToday={true}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* All Chores Management */}
+          {activeTab === 'all' && (
+            <div>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-3xl font-bold">🏠 All Household Chores</h2>
+                <Button 
+                  onClick={() => setShowAddChore(true)}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  ➕ Add Custom Chore
+                </Button>
+              </div>
+              
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <CheckboxChoreList 
+                  tasks={selectedRoom === 'all' ? Object.values(tasks).flat() : (tasks[selectedRoom] || [])}
+                  currentUser={currentUser}
+                  partner={partner}
+                  onComplete={handleQuestComplete}
+                  showEdit={true}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Couple Games */}
+          {activeTab === 'games' && (
+            <div>
+              <h2 className="text-3xl font-bold mb-6">🎮 Couple Games</h2>
+              <CoupleGamesInterface 
+                currentUser={currentUser}
+                partner={partner}
+                onGameComplete={handleQuestComplete}
+              />
+            </div>
+          )}
+
+          {/* Talent Tree */}
+          {activeTab === 'talents' && (
+            <div>
+              <h2 className="text-3xl font-bold mb-6">🌳 Talent Tree</h2>
+              <VisualTalentTree 
+                currentUser={currentUser} 
+                onNodeUnlock={handleTalentUnlock} 
+              />
+            </div>
+          )}
+
+          {/* Manage Chores */}
+          {activeTab === 'manage' && (
+            <div>
+              <h2 className="text-3xl font-bold mb-6">⚙️ Manage Chores</h2>
+              <ChoreManagement 
+                tasks={tasks}
+                setTasks={setTasks}
+                currentUser={currentUser}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Onboarding */}
