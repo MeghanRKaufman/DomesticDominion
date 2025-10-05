@@ -1653,20 +1653,28 @@ function BoardGames({ onGameComplete, onClose }) {
 
   const games = [
     { 
+      id: 'battleship', 
+      name: 'Naval Battleship', 
+      emoji: '🚢', 
+      description: 'Epic fleet combat with explosions and strategy!',
+      xp: 100,
+      time: '10-15 min'
+    },
+    { 
       id: 'chess', 
-      name: 'Chess', 
+      name: 'Royal Chess', 
       emoji: '♔', 
-      description: 'Strategic board game of kings and queens',
-      xp: 20,
+      description: 'Legendary battle of kings with timer pressure!',
+      xp: 150,
       time: '15-30 min'
     },
     { 
-      id: 'battleship', 
-      name: 'Battleship', 
-      emoji: '⚓', 
-      description: 'Naval warfare and strategy',
-      xp: 25,
-      time: '10-15 min'
+      id: 'backgammon', 
+      name: 'Backgammon Tournament', 
+      emoji: '🎲', 
+      description: 'Ancient dice game of skill, luck, and tactics!',
+      xp: 200,
+      time: '20-40 min'
     },
     { 
       id: 'gofish', 
