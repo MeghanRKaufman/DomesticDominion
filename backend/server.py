@@ -152,6 +152,39 @@ class DailyOdds(BaseModel):
     taskOdds: Dict[str, Dict[str, float]]  # taskId -> {userId: probability}
     computed_at: datetime = Field(default_factory=datetime.utcnow)
 
+class Couple(BaseModel):
+    coupleId: str = Field(default_factory=lambda: f"couple_{uuid.uuid4().hex[:8]}")
+    inviteCode: str = Field(default_factory=lambda: f"{uuid.uuid4().hex[:6].upper()}")
+    creatorId: str
+    creatorName: str
+    partnerId: Optional[str] = None
+    partnerName: Optional[str] = None
+    isActive: bool = False
+    adventureTheme: str = Field(default_factory=lambda: random.choice([
+        "Legendary Heroes of the Household Realm",
+        "Champions of the Domestic Kingdom", 
+        "Guardians of the Sacred Dwelling",
+        "Masters of the Enchanted Estate",
+        "Keepers of the Mystical Manor"
+    ]))
+    questPhrase: str = Field(default_factory=lambda: random.choice([
+        "unite our powers to conquer the chaos and restore harmony",
+        "embark on epic quests that will forge our legend",
+        "join forces to unlock treasures beyond imagination",
+        "combine our skills to achieve domestic dominion",
+        "adventure together into realms of order and prosperity"
+    ]))
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    joined_at: Optional[datetime] = None
+
+class CoupleInvitation(BaseModel):
+    inviteCode: str
+    message: str
+    theme: str
+    questPhrase: str
+    creatorName: str
+    expiresAt: datetime
+
 # Request Models
 class CreateUserRequest(BaseModel):
     displayName: str
