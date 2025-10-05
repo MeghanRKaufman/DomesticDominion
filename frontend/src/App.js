@@ -1131,27 +1131,48 @@ function ChoreChampionsApp() {
 
           {/* Quests Tab */}
           <TabsContent value="quests" className="space-y-6">
-            <div className="text-center mb-6">
-              <h2 className="text-3xl font-bold mb-2">⚔️ Available Quests</h2>
-              <p className="text-gray-600 text-lg">Choose your next household adventure!</p>
-            </div>
-
-            {Object.entries(tasks).map(([room, roomTasks]) => (
-              <div key={room} className="space-y-4">
-                <h3 className="text-2xl font-semibold text-center bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  🏠 {room} Quests
-                </h3>
-                {roomTasks?.map((task) => (
-                  <ChoreQuest
-                    key={task.taskId}
-                    task={task}
-                    currentUser={currentUser}
-                    partner={partner}
-                    onComplete={handleQuestComplete}
-                  />
+            <Tabs defaultValue="Kitchen" className="w-full">
+              <TabsList className="grid w-full" style={{gridTemplateColumns: `repeat(${Object.keys(ROOMS).length}, minmax(0, 1fr))`}}>
+                {Object.entries(ROOMS).map(([roomKey, room]) => (
+                  <TabsTrigger 
+                    key={roomKey} 
+                    value={roomKey} 
+                    className={`${room.color} font-medium text-sm`}
+                  >
+                    <span className="mr-1">{room.emoji}</span>
+                    {room.name}
+                  </TabsTrigger>
                 ))}
-              </div>
-            ))}
+              </TabsList>
+
+              {Object.entries(ROOMS).map(([roomKey, roomData]) => (
+                <TabsContent key={roomKey} value={roomKey} className="space-y-4 mt-6">
+                  <div className="text-center mb-6">
+                    <h2 className="text-3xl font-bold mb-2">
+                      {roomData.emoji} {roomData.name} Quests
+                    </h2>
+                    <p className="text-gray-600 text-lg">
+                      {roomKey === 'Games' ? 'Play together and earn XP!' : 
+                       roomKey === 'Growth' ? 'Level up yourself!' :
+                       roomKey === 'US' ? 'Strengthen your bond!' :
+                       'Keep your space amazing!'}
+                    </p>
+                  </div>
+
+                  <div className="space-y-4">
+                    {tasks[roomKey]?.map((task) => (
+                      <ChoreQuest
+                        key={task.taskId}
+                        task={task}
+                        currentUser={currentUser}
+                        partner={partner}
+                        onComplete={handleQuestComplete}
+                      />
+                    ))}
+                  </div>
+                </TabsContent>
+              ))}
+            </Tabs>
           </TabsContent>
 
           {/* Talents Tab */}
