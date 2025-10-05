@@ -609,45 +609,43 @@ async def preview_couple_invitation(invite_code: str):
 
 @api_router.post("/users", response_model=User)
 async def create_user(request: CreateUserRequest):
-    """Create a new user or join existing couple"""
+    """Create a new user and link to couple"""
     if request.coupleCode:
-        # Find existing couple
-        existing_user = await db.users.find_one({"coupleId": request.coupleCode})
-        if not existing_user:
-            raise HTTPException(status_code=404, detail="Couple code not found")
+        # Find couple by invite code
+        couple = await db.couples.find_one({"inviteCode": request.coupleCode})
+        if not couple:
+            raise HTTPException(status_code=404, detail="Invalid invitation code")
         
-        # Create partner user
-        partner_user = User(
-            displayName=request.displayName,
-            coupleId=request.coupleCode,
-            partnerId=existing_user["userId"]
-        )
-        
-        # Update existing user with partner info
-        await db.users.update_one(
-            {"userId": existing_user["userId"]},
-            {"$set": {"partnerId": partner_user.userId}}
-        )
-        
-        await db.users.insert_one(partner_user.dict())
-        return partner_user
+        # Check if this is the creator or partner joining
+        if couple["partnerId"] is None:
+            # This is the partner joining
+            partner_user = User(
+                displayName=request.displayName,
+                coupleId=couple["coupleId"]
+            )
+            
+            # Update couple with partner ID
+            await db.couples.update_one(
+                {"inviteCode": request.coupleCode},
+                {"$set": {"partnerId": partner_user.userId}}
+            )
+            
+            # Find creator user and update with partner info
+            creator_user = await db.users.find_one({"coupleId": couple["coupleId"]})
+            if creator_user:
+                await db.users.update_one(
+                    {"userId": creator_user["userId"]},
+                    {"$set": {"partnerId": partner_user.userId}}
+                )
+                partner_user.partnerId = creator_user["userId"]
+            
+            await db.users.insert_one(partner_user.dict())
+            return partner_user
+        else:
+            raise HTTPException(status_code=400, detail="This adventure already has two heroes!")
     else:
-        # Create new couple
-        couple_id = str(uuid.uuid4())[:8]
-        user = User(displayName=request.displayName, coupleId=couple_id)
-        await db.users.insert_one(user.dict())
-        
-        # Initialize default tasks
-        for task_data in DEFAULT_TASKS:
-            task = Task(**task_data)
-            await db.tasks.insert_one(task.dict())
-        
-        # Initialize talent tree nodes
-        for node_id, node_data in TALENT_TREE_NODES.items():
-            node = TalentNode(**node_data)
-            await db.talent_nodes.insert_one(node.dict())
-        
-        return user
+        # Create new user without couple (they need to create/join a couple first)
+        raise HTTPException(status_code=400, detail="Must join an adventure! Use couple invitation system.")
 
 @api_router.get("/users/{user_id}")
 async def get_user(user_id: str):
