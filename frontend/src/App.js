@@ -32,6 +32,288 @@ const MAX_NET_CHORE_SHIFT = 0.07;
 const VERIFICATION_WINDOW = 30; // minutes
 const VERIFY_PROB = 0.10; // 10% random verification
 
+// Comprehensive Talent Tree Nodes (as per spec)
+const TALENT_TREE_NODES = {
+  // ===== EFFICIENCY BRANCH =====
+  eff_qw1: {
+    id: "eff_qw1",
+    name: "Quick Wipe",
+    branch: "Efficiency",
+    tier: 1,
+    cost: 1,
+    type: "point_bonus",
+    scope: "room:Kitchen",
+    value: 1,
+    description: "+1 point on EASY kitchen tasks",
+    prereqs: [],
+    position: { x: 100, y: 50 }
+  },
+  eff_lh1: {
+    id: "eff_lh1", 
+    name: "Laundry Hand",
+    branch: "Efficiency",
+    tier: 1,
+    cost: 1,
+    type: "point_bonus",
+    scope: "taskTag:laundry",
+    value: 2,
+    description: "+2 points when starting or finishing laundry",
+    prereqs: [],
+    position: { x: 200, y: 50 }
+  },
+  eff_ds2: {
+    id: "eff_ds2",
+    name: "Dishes Speed", 
+    branch: "Efficiency",
+    tier: 2,
+    cost: 2,
+    type: "multiplier",
+    scope: "taskTag:KitchenDishSession",
+    value: 0.10,
+    description: "+10% points for each completed dish session",
+    prereqs: ["eff_qw1"],
+    position: { x: 100, y: 150 }
+  },
+  eff_tm2: {
+    id: "eff_tm2",
+    name: "Trash Master",
+    branch: "Efficiency", 
+    tier: 2,
+    cost: 2,
+    type: "chore_shift",
+    scope: "taskId:kit_take_trash",
+    value: -0.02,
+    description: "-2% chance of getting trash duty",
+    prereqs: ["eff_qw1"],
+    position: { x: 200, y: 150 }
+  },
+  eff_vh3: {
+    id: "eff_vh3",
+    name: "Vacuum Hero",
+    branch: "Efficiency",
+    tier: 3, 
+    cost: 3,
+    type: "point_bonus",
+    scope: "taskTag:vacuum",
+    value: 5,
+    description: "+5 points for vacuum tasks",
+    prereqs: ["eff_ds2"],
+    position: { x: 100, y: 250 }
+  },
+  eff_td3: {
+    id: "eff_td3",
+    name: "Toilet Tactician",
+    branch: "Efficiency",
+    tier: 3,
+    cost: 3,
+    type: "chore_shift", 
+    scope: "taskId:bath_toilet_scrub",
+    value: -0.05,
+    description: "-5% chance of toilet scrubbing (redistributed to other bathroom chores)",
+    prereqs: ["eff_tm2"],
+    position: { x: 200, y: 250 }
+  },
+  eff_edge_cap: {
+    id: "eff_edge_cap",
+    name: "Housekeeper's Edge",
+    branch: "Efficiency",
+    tier: 4,
+    cost: 4,
+    type: "multiplier",
+    scope: "global",
+    value: 0.10,
+    description: "CAPSTONE: +10% points on ALL chores",
+    prereqs: ["eff_vh3", "eff_td3"], // any two tier3
+    position: { x: 150, y: 350 }
+  },
+
+  // ===== COUPLE/US BRANCH =====
+  cou_hug1: {
+    id: "cou_hug1",
+    name: "Hug Timer", 
+    branch: "Couple",
+    tier: 1,
+    cost: 1,
+    type: "point_bonus",
+    scope: "taskId:us_hug",
+    value: 2,
+    description: "+2 points for hugs (stacked with base)",
+    prereqs: [],
+    position: { x: 400, y: 50 }
+  },
+  cou_mass1: {
+    id: "cou_mass1",
+    name: "Massage Points",
+    branch: "Couple", 
+    tier: 1,
+    cost: 1,
+    type: "point_bonus",
+    scope: "taskTag:massage",
+    value: 3,
+    description: "+3 points per massage completion",
+    prereqs: [],
+    position: { x: 500, y: 50 }
+  },
+  cou_grat2: {
+    id: "cou_grat2", 
+    name: "Gratitude Shoutout",
+    branch: "Couple",
+    tier: 2,
+    cost: 2,
+    type: "point_bonus",
+    scope: "taskTag:gratitude", 
+    value: 1,
+    description: "+1 point for partner-verified compliments",
+    prereqs: ["cou_hug1"],
+    position: { x: 400, y: 150 }
+  },
+  cou_team2: {
+    id: "cou_team2",
+    name: "Team Boost",
+    branch: "Couple",
+    tier: 2,
+    cost: 2,
+    type: "multiplier",
+    scope: "timeWindow:1hour",
+    value: 2.0,
+    description: "2x points if both users complete chores in same hour",
+    prereqs: ["cou_mass1"],
+    position: { x: 500, y: 150 }
+  },
+  cou_double3: {
+    id: "cou_double3",
+    name: "Double Us",
+    branch: "Couple",
+    tier: 3,
+    cost: 3,
+    type: "consumable",
+    scope: "daily",
+    value: "double_us",
+    description: "Once/day: Double points for US tasks when activated",
+    prereqs: ["cou_team2"],
+    position: { x: 500, y: 250 }
+  },
+  cou_rom3: {
+    id: "cou_rom3",
+    name: "Romance Perk",
+    branch: "Couple", 
+    tier: 3,
+    cost: 3,
+    type: "chore_shift",
+    scope: "room:Bedroom",
+    value: -0.03,
+    description: "After date-night: -3% bedroom chore odds for rest of day (1/day)",
+    prereqs: ["cou_grat2"],
+    position: { x: 400, y: 250 }
+  },
+  cou_soul_cap: {
+    id: "cou_soul_cap",
+    name: "Soulmate Bonus",
+    branch: "Couple",
+    tier: 4,
+    cost: 4,
+    type: "multiplier",
+    scope: "global",
+    value: 0.20,
+    description: "CAPSTONE: US tasks give +20% to ALL points earned that day",
+    prereqs: ["cou_double3", "cou_rom3"],
+    position: { x: 450, y: 350 }
+  },
+
+  // ===== GROWTH BRANCH =====
+  gr_hyd1: {
+    id: "gr_hyd1",
+    name: "Hydration Harmony",
+    branch: "Growth",
+    tier: 1,
+    cost: 1,
+    type: "point_bonus",
+    scope: "taskTag:water",
+    value: 1,
+    description: "+1 point per verified glass (partner or smart bottle)",
+    prereqs: [],
+    position: { x: 700, y: 50 }
+  },
+  gr_step1: {
+    id: "gr_step1", 
+    name: "Step Sync",
+    branch: "Growth",
+    tier: 1,
+    cost: 1,
+    type: "point_bonus",
+    scope: "taskTag:walk",
+    value: 5,
+    description: "+5 points per tracked 1-mile walk (GPS confirmed)",
+    prereqs: [],
+    position: { x: 800, y: 50 }
+  },
+  gr_str2: {
+    id: "gr_str2",
+    name: "Stretch It Out",
+    branch: "Growth",
+    tier: 2,
+    cost: 2,
+    type: "point_bonus",
+    scope: "taskTag:stretch",
+    value: 2,
+    description: "+2 points per 5-min stretch session",
+    prereqs: ["gr_hyd1"],
+    position: { x: 700, y: 150 }
+  },
+  gr_mind2: {
+    id: "gr_mind2",
+    name: "Mind Check-in", 
+    branch: "Growth",
+    tier: 2,
+    cost: 2,
+    type: "point_bonus",
+    scope: "taskTag:journal",
+    value: 2,
+    description: "+2 points per partner-verified journal/mood entry",
+    prereqs: ["gr_step1"],
+    position: { x: 800, y: 150 }
+  },
+  gr_cons3: {
+    id: "gr_cons3",
+    name: "Consistency Buff",
+    branch: "Growth",
+    tier: 3,
+    cost: 3,
+    type: "multiplier",
+    scope: "streak:7days",
+    value: 0.10,
+    description: "+10% points for next week if 7-day streak achieved",
+    prereqs: ["gr_str2"],
+    position: { x: 700, y: 250 }
+  },
+  gr_early3: {
+    id: "gr_early3",
+    name: "Early Bird",
+    branch: "Growth",
+    tier: 3, 
+    cost: 3,
+    type: "point_bonus",
+    scope: "time:before10am",
+    value: 5,
+    description: "+5 points when completing first task before 10AM",
+    prereqs: ["gr_mind2"],
+    position: { x: 800, y: 250 }
+  },
+  gr_well_cap: {
+    id: "gr_well_cap",
+    name: "Wellness Overflow",
+    branch: "Growth",
+    tier: 4,
+    cost: 4,
+    type: "chance_convert",
+    scope: "global",
+    value: 0.10,
+    description: "CAPSTONE: 10% chance growth points convert to couple points",
+    prereqs: ["gr_cons3", "gr_early3"],
+    position: { x: 750, y: 350 }
+  }
+};
+
 // Room configurations
 const ROOMS = {
   Kitchen: { 
