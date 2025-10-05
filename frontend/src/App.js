@@ -25,6 +25,12 @@ const WS_URL = BACKEND_URL.replace('https://', 'wss://').replace('http://', 'ws:
 // Game Constants
 const DIFFICULTY_POINTS = { EASY: 5, MEDIUM: 10, HARD: 20 };
 const LEVEL_UP_POINTS = 100;
+const LEVELS_PER_TALENT_POINT = 5;
+const POINTS_PER_LEVEL = 100;
+const MAX_CHORE_SHIFT_PER_PLAYER = 0.07;
+const MAX_NET_CHORE_SHIFT = 0.07;
+const VERIFICATION_WINDOW = 30; // minutes
+const VERIFY_PROB = 0.10; // 10% random verification
 
 // Room configurations
 const ROOMS = {
