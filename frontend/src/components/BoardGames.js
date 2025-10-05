@@ -428,22 +428,25 @@ function BattleshipGame({ onGameComplete, onClose }) {
   );
 }
 
-// Chess Game Component
+// EPIC CHESS GAME ♔
 function ChessGame({ onGameComplete, onClose }) {
   const [board, setBoard] = useState(initializeChessBoard());
   const [currentPlayer, setCurrentPlayer] = useState('white');
   const [selectedSquare, setSelectedSquare] = useState(null);
   const [gameStatus, setGameStatus] = useState('playing');
   const [moveHistory, setMoveHistory] = useState([]);
+  const [capturedPieces, setCapturedPieces] = useState({ white: [], black: [] });
+  const [gameTime, setGameTime] = useState({ white: 600, black: 600 }); // 10 minutes each
+  const [isTimerActive, setIsTimerActive] = useState(true);
+  const [checkStatus, setCheckStatus] = useState(null);
+
+  const pieces = {
+    'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟',
+    'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙'
+  };
 
   function initializeChessBoard() {
     const board = Array(8).fill(null).map(() => Array(8).fill(null));
-    
-    // Set up pieces (simplified)
-    const pieces = {
-      'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟',
-      'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙'
-    };
     
     // Black pieces
     board[0] = ['r','n','b','q','k','b','n','r'];
