@@ -811,82 +811,329 @@ function ChoreQuest({ task, currentUser, partner, onComplete }) {
   );
 }
 
-// Auth Modal Component
-function AuthModal({ isOpen, onClose, onSuccess }) {
-  const [isLogin, setIsLogin] = useState(false);
+// Epic Adventure Modal Component
+function EpicAdventureModal({ isOpen, onClose, onSuccess }) {
+  const [mode, setMode] = useState('choose'); // 'choose', 'create', 'join', 'preview'
   const [name, setName] = useState('');
-  const [coupleCode, setCoupleCode] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [invitation, setInvitation] = useState(null);
+  const [previewData, setPreviewData] = useState(null);
 
-  const handleSubmit = async (e) => {
+  const handleCreateAdventure = async (e) => {
     e.preventDefault();
     setLoading(true);
     
     try {
-      const response = await axios.post(`${API}/users`, {
-        displayName: name,
-        coupleCode: isLogin ? coupleCode : undefined
+      // Create couple invitation
+      const response = await axios.post(`${API}/couples/create`, {
+        creatorName: name
       });
       
-      localStorage.setItem('currentUser', JSON.stringify(response.data));
-      onSuccess(response.data);
-      onClose();
+      setInvitation(response.data);
+      setMode('invitation-created');
     } catch (error) {
-      alert('Error: ' + (error.response?.data?.detail || 'Something went wrong'));
+      alert('Error: ' + (error.response?.data?.detail || 'Failed to create adventure'));
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-center text-2xl">
-            {isLogin ? '🤝 Join Your Adventure Partner' : '🚀 Begin Your Quest'}
-          </DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="name">Hero Name</Label>
-            <Input 
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter your heroic name"
-              required
-            />
-          </div>
+  const handleJoinAdventure = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      // Join existing couple
+      const response = await axios.post(`${API}/couples/join`, {
+        partnerName: name,
+        inviteCode: inviteCode
+      });
+      
+      // Create user account
+      const userResponse = await axios.post(`${API}/users`, {
+        displayName: name,
+        coupleCode: inviteCode
+      });
+      
+      localStorage.setItem('currentUser', JSON.stringify(userResponse.data));
+      onSuccess(userResponse.data);
+      onClose();
+    } catch (error) {
+      alert('Error: ' + (error.response?.data?.detail || 'Failed to join adventure'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePreviewInvite = async () => {
+    if (!inviteCode) return;
+    
+    setLoading(true);
+    try {
+      const response = await axios.get(`${API}/couples/${inviteCode}/preview`);
+      setPreviewData(response.data);
+      setMode('preview');
+    } catch (error) {
+      alert('Invalid invitation code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copyInviteMessage = () => {
+    if (invitation) {
+      navigator.clipboard.writeText(invitation.message);
+      alert('🎉 Epic invitation copied! Share it via text or email!');
+    }
+  };
+
+  if (mode === 'choose') {
+    return (
+      <Dialog open={isOpen}>
+        <DialogContent className="sm:max-w-md text-center">
+          <DialogHeader>
+            <DialogTitle className="text-3xl">⚔️ Choose Your Path</DialogTitle>
+          </DialogHeader>
           
-          {isLogin && (
+          <div className="py-6 space-y-6">
+            <div className="text-6xl">🏰</div>
+            <p className="text-lg text-gray-600">
+              Will you forge a new legend or join an existing adventure?
+            </p>
+            
+            <div className="space-y-3">
+              <Button 
+                onClick={() => setMode('create')} 
+                className="w-full bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white text-lg py-4"
+              >
+                🌟 Create New Adventure
+              </Button>
+              
+              <Button 
+                onClick={() => setMode('join')} 
+                className="w-full bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white text-lg py-4"
+              >
+                🤝 Join Adventure Party
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (mode === 'create') {
+    return (
+      <Dialog open={isOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-2xl">🌟 Forge Your Legend</DialogTitle>
+          </DialogHeader>
+          
+          <form onSubmit={handleCreateAdventure} className="space-y-4">
+            <div className="text-center py-4">
+              <div className="text-4xl mb-3">⚔️</div>
+              <p className="text-gray-600">Enter your heroic name to begin your epic household adventure!</p>
+            </div>
+            
             <div>
-              <Label htmlFor="code">Party Code</Label>
+              <Label htmlFor="name">🏷️ Hero Name</Label>
               <Input 
-                id="code"
-                value={coupleCode}
-                onChange={(e) => setCoupleCode(e.target.value)}
-                placeholder="Enter your partner's party code"
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter your legendary name"
                 required
               />
             </div>
-          )}
+            
+            <Button type="submit" className="w-full text-lg py-3 bg-gradient-to-r from-purple-500 to-blue-600" disabled={loading}>
+              {loading ? '🔮 Forging Legend...' : '🚀 Create Epic Adventure!'}
+            </Button>
+            
+            <Button 
+              type="button" 
+              variant="ghost" 
+              className="w-full"
+              onClick={() => setMode('choose')}
+            >
+              ← Back to Path Selection
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (mode === 'invitation-created') {
+    return (
+      <Dialog open={isOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-center text-2xl">🎉 Adventure Created!</DialogTitle>
+          </DialogHeader>
           
-          <Button type="submit" className="w-full text-lg py-3" disabled={loading}>
-            {loading ? 'Loading...' : isLogin ? '🤝 Join Party' : '🚀 Start Adventure'}
-          </Button>
+          <div className="space-y-4">
+            <div className="text-center py-4">
+              <div className="text-4xl mb-3">📜</div>
+              <p className="text-lg font-bold text-purple-600">Your Epic Invitation is Ready!</p>
+            </div>
+            
+            <div className="bg-gradient-to-r from-purple-100 to-blue-100 p-4 rounded-lg">
+              <h3 className="font-bold mb-2">🔮 Invitation Code: <span className="text-lg text-purple-600">{invitation?.inviteCode}</span></h3>
+              <div className="bg-white p-3 rounded text-sm max-h-40 overflow-y-auto border">
+                {invitation?.message}
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Button onClick={copyInviteMessage} className="w-full bg-green-500 hover:bg-green-600">
+                📋 Copy Epic Invitation Message
+              </Button>
+              
+              <p className="text-sm text-gray-600 text-center">
+                Share this message with your adventure partner via text or email!
+              </p>
+            </div>
+            
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => {
+                setMode('choose');
+                setInvitation(null);
+              }}
+            >
+              Create Another Adventure
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (mode === 'join') {
+    return (
+      <Dialog open={isOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-2xl">🤝 Join the Adventure</DialogTitle>
+          </DialogHeader>
           
-          <Button 
-            type="button" 
-            variant="ghost" 
-            className="w-full"
-            onClick={() => setIsLogin(!isLogin)}
-          >
-            {isLogin ? "Don't have a party code? Start solo adventure" : 'Have a party code? Join existing adventure'}
-          </Button>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
+          <div className="space-y-4">
+            <div className="text-center py-4">
+              <div className="text-4xl mb-3">🗡️</div>
+              <p className="text-gray-600">Enter your details to join your partner's epic quest!</p>
+            </div>
+            
+            <div>
+              <Label htmlFor="joinName">🏷️ Your Hero Name</Label>
+              <Input 
+                id="joinName"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter your legendary name"
+                required
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="code">🔮 Adventure Code</Label>
+              <div className="flex space-x-2">
+                <Input 
+                  id="code"
+                  value={inviteCode}
+                  onChange={(e) => setInviteCode(e.target.value)}
+                  placeholder="Enter invitation code"
+                  required
+                />
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={handlePreviewInvite}
+                  disabled={!inviteCode || loading}
+                >
+                  👁️ Preview
+                </Button>
+              </div>
+            </div>
+            
+            <Button 
+              onClick={handleJoinAdventure} 
+              className="w-full text-lg py-3 bg-gradient-to-r from-green-500 to-teal-600" 
+              disabled={loading || !name || !inviteCode}
+            >
+              {loading ? '🔮 Joining...' : '🚀 Accept the Challenge!'}
+            </Button>
+            
+            <Button 
+              type="button" 
+              variant="ghost" 
+              className="w-full"
+              onClick={() => setMode('choose')}
+            >
+              ← Back to Path Selection
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (mode === 'preview') {
+    return (
+      <Dialog open={isOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-2xl">👁️ Adventure Preview</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="text-center py-4">
+              <div className="text-4xl mb-3">🏰</div>
+              <h3 className="text-lg font-bold text-purple-600">{previewData?.adventureTheme}</h3>
+            </div>
+            
+            <div className="bg-gradient-to-r from-purple-100 to-blue-100 p-4 rounded-lg">
+              <p className="text-sm">
+                <strong>🧙‍♂️ Adventure Leader:</strong> {previewData?.creatorName}
+              </p>
+              <p className="text-sm mt-2">
+                <strong>🎯 Quest:</strong> {previewData?.questPhrase}
+              </p>
+              <p className="text-sm mt-2">
+                <strong>📊 Status:</strong> {previewData?.isAvailable ? '✅ Ready for Partner' : '❌ Adventure Full'}
+              </p>
+            </div>
+            
+            {previewData?.isAvailable ? (
+              <Button 
+                onClick={() => setMode('join')} 
+                className="w-full bg-gradient-to-r from-green-500 to-teal-600"
+              >
+                🤝 Join This Adventure!
+              </Button>
+            ) : (
+              <div className="text-center text-red-600 font-semibold">
+                This adventure already has two heroes!
+              </div>
+            )}
+            
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => setMode('join')}
+            >
+              ← Try Different Code
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  return null;
 }
 
 // Main Game App Component
