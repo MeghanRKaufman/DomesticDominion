@@ -1635,6 +1635,9 @@ async def get_talent_nodes():
         # Ensure both 'name' and 'title' fields exist for compatibility
         if "title" in node_data_copy and "name" not in node_data_copy:
             node_data_copy["name"] = node_data_copy["title"]
+        # Ensure both 'cost' and 'costTalentPoints' fields exist for compatibility
+        if "costTalentPoints" in node_data_copy and "cost" not in node_data_copy:
+            node_data_copy["cost"] = node_data_copy["costTalentPoints"]
         nodes_list.append(node_data_copy)
     return nodes_list
 
