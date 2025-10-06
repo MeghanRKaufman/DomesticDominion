@@ -926,10 +926,117 @@ DEFAULT_TASKS = [
 
 # Helper Functions
 def calculate_level(points: int) -> tuple:
-    """Calculate level and talent points from total points"""
+    """Calculate level and talent points from total points (Enhanced NES system)"""
     level = math.floor(points / GAME_CONSTANTS["LEVELING"]["POINTS_PER_LEVEL"]) + 1
-    talent_points_earned = math.floor((level - 1) / GAME_CONSTANTS["LEVELING"]["LEVELS_PER_TALENT_POINT"])
+    # New system: Every 5 levels unlocks 1.5 Talent Points
+    talent_points_earned = math.floor((level - 1) / GAME_CONSTANTS["LEVELING"]["LEVELS_PER_TALENT_POINT"]) * GAME_CONSTANTS["LEVELING"]["TALENT_POINTS_PER_5_LEVELS"]
     return level, talent_points_earned
+
+def calculate_enhanced_task_points(task: Dict, user_talents: Dict, completion_time: datetime, is_first_task: bool = False, consecutive_tasks: int = 0) -> Dict:
+    """
+    Enhanced 6-step point calculation process:
+    1. Base points (5/10/20 based on difficulty)
+    2. Talent bonuses (flat additions)  
+    3. Talent multipliers (percentage increases)
+    4. Early bird bonus (if applicable)
+    5. Housekeeper's Edge (if applicable) 
+    6. Chore shift calculations (assignment probability adjustments)
+    """
+    result = {
+        "base_points": 0,
+        "talent_bonuses": 0,
+        "talent_multipliers": 1.0,
+        "early_bird_bonus": 0,
+        "housekeeper_edge": 0,
+        "total_points": 0,
+        "breakdown": []
+    }
+    
+    # Step 1: Base Points
+    difficulty = task.get("difficulty", "EASY")
+    result["base_points"] = GAME_CONSTANTS["POINTS"][difficulty]
+    result["breakdown"].append(f"Base {difficulty}: {result['base_points']} pts")
+    
+    # Step 2: Talent Bonuses (flat additions)
+    if user_talents and user_talents.get("nodeIds"):
+        for node_id in user_talents["nodeIds"]:
+            if node_id not in TALENT_TREE_NODES:
+                continue
+                
+            node = TALENT_TREE_NODES[node_id]
+            effect = node["effect"]
+            
+            # Check if talent applies to this task
+            if applies_to_task(effect, task):
+                if effect["type"] == "category_bonus" and task.get("category") == effect.get("category"):
+                    bonus = effect.get("points", 0)
+                    result["talent_bonuses"] += bonus
+                    result["breakdown"].append(f"{node['name']}: +{bonus} pts")
+                    
+                elif effect["type"] == "first_task_bonus" and is_first_task:
+                    bonus = effect.get("value", 0)
+                    result["talent_bonuses"] += bonus
+                    result["breakdown"].append(f"{node['name']} (First Task): +{bonus} pts")
+                    
+                elif effect["type"] == "streak_bonus" and consecutive_tasks >= effect.get("streak_count", 0):
+                    bonus = effect.get("bonus", 0)
+                    result["talent_bonuses"] += bonus
+                    result["breakdown"].append(f"{node['name']} (Streak): +{bonus} pts")
+    
+    # Step 3: Talent Multipliers  
+    if user_talents and user_talents.get("nodeIds"):
+        for node_id in user_talents["nodeIds"]:
+            if node_id not in TALENT_TREE_NODES:
+                continue
+                
+            node = TALENT_TREE_NODES[node_id]
+            effect = node["effect"]
+            
+            if applies_to_task(effect, task):
+                if effect["type"] == "category_multiplier" and task.get("category") == effect.get("category"):
+                    multiplier = effect.get("multiplier", 1.0)
+                    result["talent_multipliers"] *= multiplier
+                    result["breakdown"].append(f"{node['name']}: x{multiplier}")
+                    
+                elif effect["type"] == "joint_task_multiplier" and task.get("can_be_joint", False):
+                    multiplier = effect.get("multiplier", 1.0)
+                    result["talent_multipliers"] *= multiplier 
+                    result["breakdown"].append(f"{node['name']} (Joint): x{multiplier}")
+    
+    # Step 4: Early Bird Bonus (completed before 2 PM)
+    if completion_time.hour < 14:
+        early_bird_talents = [node_id for node_id in user_talents.get("nodeIds", []) 
+                             if node_id in TALENT_TREE_NODES and 
+                             TALENT_TREE_NODES[node_id]["effect"].get("type") == "time_bonus"]
+        if early_bird_talents:
+            result["early_bird_bonus"] = int((result["base_points"] + result["talent_bonuses"]) * 0.1)
+            result["breakdown"].append(f"Early Bird: +{result['early_bird_bonus']} pts")
+    
+    # Step 5: Housekeeper's Edge (if user has cleaning specialization)
+    cleaning_bonuses = [node_id for node_id in user_talents.get("nodeIds", []) 
+                       if node_id in TALENT_TREE_NODES and 
+                       task.get("category") == "cleaning" and
+                       "cleaning" in TALENT_TREE_NODES[node_id]["effect"].get("category", "")]
+    if cleaning_bonuses and task.get("category") == "household":
+        result["housekeeper_edge"] = 2
+        result["breakdown"].append(f"Housekeeper's Edge: +{result['housekeeper_edge']} pts")
+    
+    # Step 6: Calculate Final Total
+    base_with_bonuses = result["base_points"] + result["talent_bonuses"]
+    multiplied_total = base_with_bonuses * result["talent_multipliers"] 
+    result["total_points"] = int(multiplied_total + result["early_bird_bonus"] + result["housekeeper_edge"])
+    
+    return result
+
+def applies_to_task(effect: Dict, task: Dict) -> bool:
+    """Check if a talent effect applies to a specific task"""
+    if effect.get("category") and task.get("category") != effect["category"]:
+        return False
+    if effect.get("room") and task.get("room") != effect["room"]:
+        return False
+    if effect.get("difficulty") and task.get("difficulty") != effect["difficulty"]:
+        return False
+    return True
 
 def clamp(value: float, min_val: float, max_val: float) -> float:
     """Clamp value between min and max"""
