@@ -1644,7 +1644,7 @@ async def get_game_constants():
 @api_router.get("/quest-templates")
 async def get_quest_templates():
     """Get all predefined quest templates"""
-    return {"templates": DEFAULT_QUEST_TEMPLATES}
+    return DEFAULT_QUEST_TEMPLATES
 
 @api_router.post("/tasks/{task_id}/takeover")
 async def takeover_task(task_id: str, request: TakeoverTaskRequest):
