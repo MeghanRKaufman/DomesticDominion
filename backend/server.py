@@ -27,38 +27,58 @@ db = client[os.environ['DB_NAME']]
 app = FastAPI(title="Gamified Chore & Relationship App", version="3.0.0")
 api_router = APIRouter(prefix="/api")
 
-# Game Constants (following specification)
+# Enhanced Game Constants (New NES-themed specification)
 GAME_CONSTANTS = {
     "POINTS": {
-        "EASY": 5,
-        "MEDIUM": 10,
-        "HARD": 20
-    },
-    "BONUSES": {
-        "INITIATIVE": 2,
-        "CHAIN_FINISH": 5,
-        "APPRECIATION_MULT_BASE": 2
+        "EASY": 5,    # Minor daily tasks (brush teeth, feed pet, water plants)
+        "MEDIUM": 10, # Standard chores (make bed, vacuum, cook, dishes, tidy, walk dog)
+        "HARD": 20    # Heavy or specialty tasks (deep clean, car repair, grocery trip, food pantry visit)
     },
     "LEVELING": {
         "POINTS_PER_LEVEL": 100,
-        "LEVELS_PER_TALENT_POINT": 5
+        "LEVELS_PER_TALENT_POINT": 5,
+        "TALENT_POINTS_PER_5_LEVELS": 1.5
     },
-    "TALENT": {
-        "MAX_CHORE_SHIFT": 0.07,
-        "MAX_PER_PLAYER_CHORE_INFLUENCE": 0.07
+    "VERIFICATION": {
+        "PARTNER_VERIFIES_BONUS": 5,  # Partner verifies → +5 pts to performer
+        "BOTH_VERIFY_BONUS": 5,       # Both verify → +5 pts each (shared success bonus)
+        "RANDOM_CHECK_PROBABILITY": 0.1  # 10% chance of random verification request
     },
-    "ROOM_REDISTRIBUTION": True,
-    "US_TAB_POINTS": {
-        "HUG": 10,
-        "MASSAGE": 10
+    "TASK_TAKEOVER": {
+        "MULTIPLIER": 3,  # One partner can "Take Over" a listed task (offering 3× the points)
+        "COOLDOWN_HOURS": 24
     },
-    "COUPLE_POINTS_UNLOCK": 20,
+    "QUEST_CATEGORIES": {
+        "DAILY": ["laundry", "dishes", "tidying", "walks", "pet_feeding"],
+        "WEEKLY": ["food_pantry", "grocery_trips", "car_maintenance", "deep_cleans"],
+        "SPECIAL": ["vet_appointments", "oil_changes", "holidays"]
+    },
+    "PET_TASKS": {
+        "FEED_PETS": 5,
+        "WALK_PETS": 10,
+        "GROOM_PETS": 10,
+        "VET_VISITS": 20,
+        "CLEAN_LITTER": 10
+    },
+    "VEHICLE_TASKS": {
+        "CHECK_FLUIDS": 10,
+        "CLEAN_CAR": 10,
+        "FILL_GAS": 5,
+        "REPAIR_MAINTENANCE": 20,
+        "WASH_EXTERIOR": 10
+    },
+    "COUPLE_QUESTIONS": {
+        "ANSWER_POINTS": 5,
+        "MATCH_BONUS": 10,
+        "DAILY_LIMIT": 1
+    },
     "SOUNDS": {
-        "TASK_DONE": "whah-ping",
-        "OVERTAKE": "DUN-DUN",
-        "LEVEL_UP": "fanfare"
+        "TASK_COMPLETE": "retro_ding",
+        "LEVEL_UP": "ascending_melody", 
+        "TASK_MISSED": "dramatic_dun_dun_dun",
+        "MESSAGE_SENT": "soft_8bit_chime"
     },
-    "DAILY_CUTOFF": "02:00"
+    "UI_THEME": "NES_PIXEL_ART"
 }
 
 # WebSocket connection manager
