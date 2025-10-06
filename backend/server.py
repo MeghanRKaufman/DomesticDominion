@@ -616,6 +616,72 @@ class VerifyTaskRequest(BaseModel):
     completionId: str
     verifierId: str
 
+# New Enhanced Models for NES System
+class CoupleQuestion(BaseModel):
+    questionId: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    coupleId: str
+    question: str
+    category: str
+    date: str  # YYYY-MM-DD format
+    player1_answer: Optional[str] = None
+    player1_guess: Optional[str] = None
+    player2_answer: Optional[str] = None
+    player2_guess: Optional[str] = None
+    points_awarded: int = 0
+    completed: bool = False
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class TaskTakeover(BaseModel):
+    takeoverId: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    coupleId: str
+    taskId: str
+    originalAssignee: str
+    takingOverUser: str
+    multipliedPoints: int  # 3x original points
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    completed: bool = False
+
+class DailyLog(BaseModel):
+    logId: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    coupleId: str
+    userId: str
+    partnerId: str
+    message: str
+    filtered_message: Optional[str] = None  # AI-filtered version (when implemented)
+    date: str  # YYYY-MM-DD format
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+class VerificationRequest(BaseModel):
+    verificationId: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    coupleId: str
+    completionId: str
+    taskId: str
+    userId: str  # person who completed the task
+    partnerId: str  # person who needs to verify
+    status: str = "pending"  # pending, verified, declined, proof_requested
+    expires_at: datetime
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Request Models for New Features
+class TakeoverTaskRequest(BaseModel):
+    userId: str
+    taskId: str
+
+class SubmitCoupleAnswerRequest(BaseModel):
+    userId: str
+    questionId: str
+    answer: str
+    guess: str
+
+class SubmitDailyLogRequest(BaseModel):
+    userId: str
+    partnerId: str
+    message: str
+
+class RespondVerificationRequest(BaseModel):
+    verificationId: str
+    response: str  # "verify", "decline", "request_proof"
+
 # Talent Tree Node Definitions (exact from specification)
 TALENT_TREE_NODES = {
     # EFFICIENCY BRANCH
