@@ -456,11 +456,16 @@ class Task(BaseModel):
     title: str
     basePoints: int
     difficulty: TaskDifficulty
+    category: str = "household"  # household, pet, vehicle, personal, couple, special
+    quest_type: QuestType = QuestType.DAILY
     linkGroupId: Optional[str] = None
     recurrence: str = "daily"
     assignedOnlyTo: Optional[str] = None
     timerMinutes: Optional[int] = None
     description: Optional[str] = None
+    icon: str = "📋"  # NES-style emoji icon
+    can_takeover: bool = True
+    requires_verification: bool = False
 
 class TalentNode(BaseModel):
     nodeId: str
