@@ -1714,7 +1714,8 @@ async def get_daily_couple_question(couple_id: str):
     })
     
     if existing_question:
-        return {"question": existing_question}
+        existing_question.pop('_id', None)
+        return existing_question
     
     # Create new daily question
     import random
