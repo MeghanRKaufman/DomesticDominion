@@ -1632,6 +1632,9 @@ async def get_talent_nodes():
         node_data_copy = node_data.copy()
         if "id" not in node_data_copy and "nodeId" not in node_data_copy:
             node_data_copy["id"] = node_id
+        # Ensure both 'name' and 'title' fields exist for compatibility
+        if "title" in node_data_copy and "name" not in node_data_copy:
+            node_data_copy["name"] = node_data_copy["title"]
         nodes_list.append(node_data_copy)
     return nodes_list
 
