@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NES Pixel Art UI Sample - Gamified Chore App</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            background: linear-gradient(135deg, #2a5b84 0%, #1a3a54 100%);
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* NES-style border */
+        .nes-border {
+            border: 3px solid #ffffff;
+            border-radius: 0;
+            position: relative;
+            background: #1a1a2e;
+        }
+
+        .nes-border::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            border: 1px solid #888;
+            z-index: -1;
+        }
+
+        /* Main container */
+        .game-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 16px;
+        }
+
+        /* Header with XP bar */
+        .header {
+            margin-bottom: 16px;
+            padding: 12px;
+            background: linear-gradient(90deg, #0f0f23 0%, #1a1a2e 100%);
+        }
+
+        .player-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .pixel-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            border: 2px solid #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .xp-container {
+            flex: 1;
+            margin: 0 16px;
+        }
+
+        .xp-bar {
+            width: 100%;
+            height: 16px;
+            background: #333;
+            border: 2px solid #fff;
+            margin-top: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .xp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff00, #ffff00);
+            width: 65%;
+            animation: xp-glow 1.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes xp-glow {
+            from { filter: brightness(1); }
+            to { filter: brightness(1.2); }
+        }
+
+        .level-text {
+            font-size: 10px;
+            margin-bottom: 4px;
+        }
+
+        /* Quest Board */
+        .quest-board {
+            background: linear-gradient(135deg, #8B4513, #A0522D);
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 4px solid #654321;
+            position: relative;
+        }
+
+        .quest-board::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border: 1px solid #DEB887;
+            pointer-events: none;
+        }
+
+        .quest-title {
+            text-align: center;
+            font-size: 12px;
+            color: #FFD700;
+            margin-bottom: 16px;
+            text-shadow: 2px 2px 0px #000;
+        }
+
+        /* Quest Items */
+        .quest-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            margin-bottom: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid #555;
+            transition: all 0.2s ease;
+        }
+
+        .quest-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #FFD700;
+        }
+
+        .quest-checkbox {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #fff;
+            margin-right: 12px;
+            cursor: pointer;
+            position: relative;
+            background: #333;
+        }
+
+        .quest-checkbox.completed {
+            background: #00ff00;
+        }
+
+        .quest-checkbox.completed::after {
+            content: '✓';
+            position: absolute;
+            top: -2px;
+            left: 2px;
+            font-size: 12px;
+            color: #000;
+        }
+
+        .quest-text {
+            flex: 1;
+            font-size: 8px;
+            line-height: 1.4;
+        }
+
+        .quest-points {
+            color: #FFD700;
+            font-size: 8px;
+            min-width: 40px;
+            text-align: right;
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            margin-bottom: 16px;
+            background: #0f0f23;
+            border: 2px solid #fff;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 12px 8px;
+            background: #333;
+            color: #ccc;
+            border: none;
+            border-right: 1px solid #555;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 7px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-tab:last-child {
+            border-right: none;
+        }
+
+        .nav-tab.active {
+            background: #FFD700;
+            color: #000;
+        }
+
+        .nav-tab:hover:not(.active) {
+            background: #444;
+        }
+
+        /* Talent Tree Preview */
+        .talent-preview {
+            background: linear-gradient(135deg, #1a1a2e, #0f0f23);
+            padding: 16px;
+            border: 3px solid #FFD700;
+            margin-bottom: 16px;
+        }
+
+        .talent-points {
+            text-align: center;
+            color: #FFD700;
+            margin-bottom: 12px;
+            font-size: 10px;
+        }
+
+        .talent-branches {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .talent-branch {
+            text-align: center;
+            padding: 8px;
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid #555;
+            min-width: 80px;
+        }
+
+        .branch-icon {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .branch-name {
+            font-size: 6px;
+            color: #FFD700;
+        }
+
+        /* Retro Button Styles */
+        .nes-button {
+            background: #4ecdc4;
+            border: 3px solid #ffffff;
+            color: #000;
+            padding: 8px 16px;
+            font-family: inherit;
+            font-size: 8px;
+            cursor: pointer;
+            transition: all 0.1s ease;
+        }
+
+        .nes-button:hover {
+            background: #45b7b8;
+            transform: translate(1px, 1px);
+        }
+
+        .nes-button:active {
+            transform: translate(2px, 2px);
+        }
+
+        /* Sound indicator */
+        .sound-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 12px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Couple Status */
+        .couple-status {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .partner-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 12px;
+            border: 3px solid #fff;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .partner-name {
+            font-size: 10px;
+            margin-bottom: 4px;
+        }
+
+        .partner-level {
+            font-size: 8px;
+            color: #FFD700;
+        }
+    </style>
+</head>
+<body>
+    <div class="sound-icon">🔊</div>
+    
+    <div class="game-container">
+        <!-- Header with XP -->
+        <div class="header nes-border">
+            <div class="player-info">
+                <div class="pixel-avatar">👤</div>
+                <div class="xp-container">
+                    <div class="level-text">LEVEL 12 ADVENTURER</div>
+                    <div class="xp-bar">
+                        <div class="xp-fill"></div>
+                    </div>
+                    <div style="font-size: 6px; margin-top: 2px;">650 / 1000 XP</div>
+                </div>
+                <div class="quest-points" style="font-size: 10px;">⭐ 650</div>
+            </div>
+        </div>
+
+        <!-- Couple Status -->
+        <div class="couple-status">
+            <div class="partner-card">
+                <div class="partner-name">PLAYER 1</div>
+                <div class="partner-level">LVL 12</div>
+            </div>
+            <div class="partner-card">
+                <div class="partner-name">PLAYER 2</div>
+                <div class="partner-level">LVL 11</div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav-tabs">
+            <button class="nav-tab active">DAILY QUESTS</button>
+            <button class="nav-tab">ALL QUESTS</button>
+            <button class="nav-tab">TALENT TREE</button>
+            <button class="nav-tab">COUPLE GAMES</button>
+            <button class="nav-tab">LOGS</button>
+        </div>
+
+        <!-- Quest Board -->
+        <div class="quest-board">
+            <div class="quest-title">═══ TODAY'S ADVENTURE ═══</div>
+            
+            <div class="quest-item">
+                <div class="quest-checkbox completed"></div>
+                <div class="quest-text">🏠 Make the bed (EASY)</div>
+                <div class="quest-points">+5 XP</div>
+            </div>
+
+            <div class="quest-item">
+                <div class="quest-checkbox"></div>
+                <div class="quest-text">🍽️ Wash dishes (MEDIUM)</div>
+                <div class="quest-points">+10 XP</div>
+            </div>
+
+            <div class="quest-item">
+                <div class="quest-checkbox"></div>
+                <div class="quest-text">🧹 Vacuum living room (MEDIUM)</div>
+                <div class="quest-points">+10 XP</div>
+            </div>
+
+            <div class="quest-item">
+                <div class="quest-checkbox"></div>
+                <div class="quest-text">🛒 Grocery shopping (HARD)</div>
+                <div class="quest-points">+20 XP</div>
+            </div>
+
+            <div class="quest-item">
+                <div class="quest-checkbox"></div>
+                <div class="quest-text">🐕 Walk the dog (MEDIUM)</div>
+                <div class="quest-points">+10 XP</div>
+            </div>
+        </div>
+
+        <!-- Talent Tree Preview -->
+        <div class="talent-preview nes-border">
+            <div class="talent-points">TALENT POINTS: 3 AVAILABLE</div>
+            <div class="talent-branches">
+                <div class="talent-branch">
+                    <div class="branch-icon">⚡</div>
+                    <div class="branch-name">EFFICIENCY</div>
+                </div>
+                <div class="talent-branch">
+                    <div class="branch-icon">💕</div>
+                    <div class="branch-name">COUPLE</div>
+                </div>
+                <div class="talent-branch">
+                    <div class="branch-icon">🌱</div>
+                    <div class="branch-name">GROWTH</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button class="nes-button">COMPLETE QUEST</button>
+            <button class="nes-button">VIEW PARTNER</button>
+            <button class="nes-button">PLAY GAMES</button>
+        </div>
+    </div>
+
+    <script>
+        // Add click sound effect simulation
+        document.querySelectorAll('.quest-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('click', function() {
+                this.classList.toggle('completed');
+                // Here you would play the retro "ding!" sound
+                console.log('🔊 Quest completion sound: DING!');
+            });
+        });
+
+        // Tab switching
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                // Here you would play the soft 8-bit chime
+                console.log('🔊 Tab switch sound: CHIME!');
+            });
+        });
+
+        // Button click effects
+        document.querySelectorAll('.nes-button').forEach(button => {
+            button.addEventListener('click', function() {
+                console.log('🔊 Button click sound: BEEP!');
+            });
+        });
+    </script>
+</body>
+</html>
