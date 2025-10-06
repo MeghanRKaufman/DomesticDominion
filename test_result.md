@@ -138,12 +138,12 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Enhanced Scoring System (5/10/20 pts)"
-    - "Quest System (Daily/Weekly/Special)"
-    - "3-Tier Talent Trees (9 tiers total)"
-    - "Pet & Vehicle Categories"
-    - "Couple Questions Feature"
-    - "NES Pixel Art UI Theme"
+    - "Enhanced Scoring System (5/10/20 pts)" # ✅ COMPLETED
+    - "Quest System (Daily/Weekly/Special)" # ✅ COMPLETED
+    - "3-Tier Talent Trees (9 tiers total)" # ✅ COMPLETED
+    - "Pet & Vehicle Categories" # ✅ COMPLETED
+    - "Couple Questions Feature" # ✅ COMPLETED
+    - "NES Pixel Art UI Theme" # ✅ COMPLETED
   stuck_tasks: []
   test_all: false
   test_priority: "sequential"
