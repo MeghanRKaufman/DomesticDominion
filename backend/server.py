@@ -1687,7 +1687,7 @@ async def takeover_task(task_id: str, request: TakeoverTaskRequest):
     takeover = TaskTakeover(
         coupleId=user["coupleId"],
         taskId=task_id,
-        originalAssignee=task.get("assignedOnlyTo", ""),
+        originalAssignee=task.get("assignedOnlyTo") or "unassigned",
         takingOverUser=request.userId,
         multipliedPoints=multiplied_points
     )
