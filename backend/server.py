@@ -1553,7 +1553,8 @@ async def complete_task(task_id: str, request: CompleteTaskRequest):
     }).to_list(1000)
     
     if len(daily_completions) == 0:
-        bonus_points += GAME_CONSTANTS["BONUSES"]["INITIATIVE"]
+        # First task of the day bonus - using early bird bonus logic
+        bonus_points += 5  # Initiative bonus for first task
     
     total_points = base_points + int(bonus_points)
     
