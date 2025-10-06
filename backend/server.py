@@ -1583,7 +1583,7 @@ async def complete_task(task_id: str, request: CompleteTaskRequest):
         "userName": user["displayName"],
         "taskTitle": task["title"],
         "points": total_points,
-        "sound": GAME_CONSTANTS["SOUNDS"]["TASK_DONE"]
+        "sound": GAME_CONSTANTS["SOUNDS"]["TASK_COMPLETE"]
     })
     
     return {
