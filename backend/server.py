@@ -1625,7 +1625,14 @@ async def submit_talent_build(request: SubmitTalentBuildRequest):
 @api_router.get("/talent-nodes")
 async def get_talent_nodes():
     """Get all talent tree nodes"""
-    return {"nodes": TALENT_TREE_NODES}
+    # Convert dict to list of nodes
+    nodes_list = []
+    for node_id, node_data in TALENT_TREE_NODES.items():
+        node_data_copy = node_data.copy()
+        if "id" not in node_data_copy and "nodeId" not in node_data_copy:
+            node_data_copy["id"] = node_id
+        nodes_list.append(node_data_copy)
+    return nodes_list
 
 @api_router.get("/game-constants")
 async def get_game_constants():
