@@ -138,13 +138,16 @@ metadata:
 
 test_plan:
   current_focus:
-    - "50/50 Task Assignment Algorithm"
-    - "In-App Games Implementation"
-    - "WoW-style Talent Trees"
+    - "Enhanced Scoring System (5/10/20 pts)"
+    - "Quest System (Daily/Weekly/Special)"
+    - "3-Tier Talent Trees (9 tiers total)"
+    - "Pet & Vehicle Categories"
+    - "Couple Questions Feature"
+    - "NES Pixel Art UI Theme"
   stuck_tasks: []
   test_all: false
   test_priority: "sequential"
 
 agent_communication:
   - agent: "main"
-    message: "Phase 1 Complete: Epic couple invitation system working perfectly with adventure themes, invitation codes, and shareable messages. Moving to Phase 2: Smart task assignment algorithm."
+    message: "Phase 1 Complete: Epic couple invitation system working. Now implementing comprehensive NES-themed gamified system with enhanced scoring (5/10/20 pts), quest categories, 3-tier talent trees, verification bonuses, task takeover system, and couple questions feature."
