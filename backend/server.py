@@ -436,6 +436,72 @@ TALENT_TREE_NODES = {
     }
 }
 
+# Predefined Quest Templates (NES-themed)
+DEFAULT_QUEST_TEMPLATES = {
+    # DAILY QUESTS - Standard household tasks
+    "daily": [
+        {"title": "🛏️ Make the bed", "room": "Bedroom", "points": 5, "difficulty": "EASY", "category": "household", "icon": "🛏️"},
+        {"title": "🍽️ Wash dishes", "room": "Kitchen", "points": 10, "difficulty": "MEDIUM", "category": "household", "icon": "🍽️"},
+        {"title": "🧹 Vacuum living room", "room": "Living Room", "points": 10, "difficulty": "MEDIUM", "category": "household", "icon": "🧹"},
+        {"title": "🧺 Do laundry", "room": "Bathroom", "points": 10, "difficulty": "MEDIUM", "category": "household", "icon": "🧺"},
+        {"title": "🍳 Cook breakfast", "room": "Kitchen", "points": 10, "difficulty": "MEDIUM", "category": "household", "icon": "🍳"},
+        {"title": "🚿 Clean bathroom", "room": "Bathroom", "points": 10, "difficulty": "MEDIUM", "category": "household", "icon": "🚿"},
+        {"title": "🗑️ Take out trash", "room": "Kitchen", "points": 5, "difficulty": "EASY", "category": "household", "icon": "🗑️"},
+        {"title": "💧 Water plants", "room": "Living Room", "points": 5, "difficulty": "EASY", "category": "household", "icon": "💧"},
+        {"title": "🦷 Brush teeth", "room": "Bathroom", "points": 5, "difficulty": "EASY", "category": "personal", "icon": "🦷"},
+    ],
+    
+    # WEEKLY QUESTS - Bigger household projects
+    "weekly": [
+        {"title": "🏪 Grocery shopping", "room": "Kitchen", "points": 20, "difficulty": "HARD", "category": "household", "icon": "🏪"},
+        {"title": "🧽 Deep clean kitchen", "room": "Kitchen", "points": 20, "difficulty": "HARD", "category": "household", "icon": "🧽"},
+        {"title": "🍲 Food pantry visit", "room": "Kitchen", "points": 20, "difficulty": "HARD", "category": "household", "icon": "🍲"},
+        {"title": "🧼 Deep clean bathroom", "room": "Bathroom", "points": 20, "difficulty": "HARD", "category": "household", "icon": "🧼"},
+        {"title": "🛋️ Organize living room", "room": "Living Room", "points": 20, "difficulty": "HARD", "category": "household", "icon": "🛋️"},
+        {"title": "👕 Organize closet", "room": "Bedroom", "points": 20, "difficulty": "HARD", "category": "household", "icon": "👕"},
+    ],
+    
+    # PET TASKS
+    "pet": [
+        {"title": "🍖 Feed pets", "room": "Kitchen", "points": 5, "difficulty": "EASY", "category": "pet", "icon": "🍖"},
+        {"title": "🐕 Walk pets", "room": "US", "points": 10, "difficulty": "MEDIUM", "category": "pet", "icon": "🐕"},
+        {"title": "🛁 Groom or bathe pets", "room": "Bathroom", "points": 10, "difficulty": "MEDIUM", "category": "pet", "icon": "🛁"},
+        {"title": "🏥 Vet visits", "room": "US", "points": 20, "difficulty": "HARD", "category": "pet", "icon": "🏥"},
+        {"title": "🧹 Clean litter box", "room": "Bathroom", "points": 10, "difficulty": "MEDIUM", "category": "pet", "icon": "🧹"},
+    ],
+    
+    # VEHICLE TASKS
+    "vehicle": [
+        {"title": "🛢️ Check oil / fluids", "room": "US", "points": 10, "difficulty": "MEDIUM", "category": "vehicle", "icon": "🛢️"},
+        {"title": "🧽 Clean or vacuum car", "room": "US", "points": 10, "difficulty": "MEDIUM", "category": "vehicle", "icon": "🧽"},
+        {"title": "⛽ Fill gas", "room": "US", "points": 5, "difficulty": "EASY", "category": "vehicle", "icon": "⛽"},
+        {"title": "🔧 Repair or maintenance", "room": "US", "points": 20, "difficulty": "HARD", "category": "vehicle", "icon": "🔧"},
+        {"title": "🚗 Wash exterior", "room": "US", "points": 10, "difficulty": "MEDIUM", "category": "vehicle", "icon": "🚗"},
+    ],
+    
+    # SPECIAL QUESTS - Event-based or irregular
+    "special": [
+        {"title": "🎄 Holiday decorating", "room": "Living Room", "points": 20, "difficulty": "HARD", "category": "special", "icon": "🎄"},
+        {"title": "🛠️ Fix household item", "room": "US", "points": 20, "difficulty": "HARD", "category": "special", "icon": "🛠️"},
+        {"title": "💊 Schedule appointments", "room": "US", "points": 10, "difficulty": "MEDIUM", "category": "special", "icon": "💊"},
+        {"title": "📦 Organize storage", "room": "US", "points": 20, "difficulty": "HARD", "category": "special", "icon": "📦"},
+    ]
+}
+
+# Couple Question Templates for Daily Bonus Round
+COUPLE_QUESTION_TEMPLATES = [
+    {"question": "What's your partner's favorite childhood memory?", "category": "memories"},
+    {"question": "Which movie could they watch on repeat?", "category": "entertainment"},
+    {"question": "What's their go-to comfort food?", "category": "food"},
+    {"question": "What word would they use to describe love?", "category": "emotions"},
+    {"question": "What's their biggest dream destination?", "category": "travel"}, 
+    {"question": "What superpower would they choose?", "category": "fun"},
+    {"question": "What's their favorite way to relax?", "category": "lifestyle"},
+    {"question": "What makes them laugh the most?", "category": "humor"},
+    {"question": "What's their proudest achievement?", "category": "accomplishments"},
+    {"question": "What's their ideal weekend activity?", "category": "leisure"}
+]
+
 # Models
 class User(BaseModel):
     userId: str = Field(default_factory=lambda: f"user_{uuid.uuid4().hex[:8]}")
