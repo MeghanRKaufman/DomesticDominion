@@ -1729,7 +1729,7 @@ async def get_daily_couple_question(couple_id: str):
     )
     
     await db.couple_questions.insert_one(new_question.dict())
-    return {"question": new_question.dict()}
+    return new_question.dict()
 
 @api_router.post("/couple-questions/{question_id}/answer")
 async def submit_couple_answer(question_id: str, request: SubmitCoupleAnswerRequest):
