@@ -2201,6 +2201,62 @@ function ChoreChampionsApp() {
 
   const levelProgress = (currentUser.points % LEVEL_UP_POINTS / LEVEL_UP_POINTS) * 100;
 
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('hasSeenOnboarding');
+    setCurrentUser(null);
+    setPartner(null);
+    setTasks({});
+    setShowAuth(true);
+  };
+
+  // Get couple data for NES interface
+  const getCoupleData = () => {
+    if (currentUser && partner) {
+      return {
+        coupleId: currentUser.coupleId,
+        creatorName: currentUser.displayName,
+        partnerName: partner.displayName,
+        isActive: true
+      };
+    }
+    return {
+      coupleId: currentUser?.coupleId,
+      creatorName: currentUser?.displayName,
+      partnerName: 'Partner',
+      isActive: false
+    };
+  };
+
+  // Show NES Interface if enabled
+  if (showNESInterface && currentUser) {
+    return (
+      <div>
+        {/* Celebration Notification */}
+        {celebrationMessage && (
+          <div className="fixed top-4 right-4 bg-gradient-to-r from-green-400 to-blue-500 text-white p-4 rounded-lg shadow-2xl z-50 animate-bounce">
+            {celebrationMessage}
+          </div>
+        )}
+        
+        {/* Toggle UI Button */}
+        <button 
+          onClick={() => setShowNESInterface(false)}
+          className="fixed top-4 left-4 z-50 bg-purple-600 text-white px-3 py-2 rounded text-sm hover:bg-purple-700"
+        >
+          Switch to Classic UI
+        </button>
+
+        <NESGameInterface 
+          user={currentUser}
+          couple={getCoupleData()}
+          onLogout={handleLogout}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
       {/* Celebration Notification */}
