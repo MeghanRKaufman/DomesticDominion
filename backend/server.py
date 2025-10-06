@@ -1632,6 +1632,321 @@ async def get_game_constants():
     """Get game constants for frontend"""
     return GAME_CONSTANTS
 
+# ===== NEW NES-THEMED ENDPOINTS =====
+
+@api_router.get("/quest-templates")
+async def get_quest_templates():
+    """Get all predefined quest templates"""
+    return {"templates": DEFAULT_QUEST_TEMPLATES}
+
+@api_router.post("/tasks/{task_id}/takeover")
+async def takeover_task(task_id: str, request: TakeoverTaskRequest):
+    """Allow one partner to take over another's task for 3x points"""
+    # Find the task
+    task = await db.tasks.find_one({"taskId": task_id})
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    # Find user and verify they're in a couple
+    user = await db.users.find_one({"userId": request.userId})
+    if not user or not user.get("coupleId"):
+        raise HTTPException(status_code=404, detail="User not found or not in couple")
+    
+    # Check if task can be taken over
+    if not task.get("can_takeover", True):
+        raise HTTPException(status_code=400, detail="This task cannot be taken over")
+    
+    # Check for existing takeover
+    existing_takeover = await db.takeovers.find_one({
+        "taskId": task_id, 
+        "coupleId": user["coupleId"],
+        "completed": False
+    })
+    if existing_takeover:
+        raise HTTPException(status_code=400, detail="Task already taken over")
+    
+    # Calculate 3x points
+    base_points = task.get("basePoints", GAME_CONSTANTS["POINTS"][task["difficulty"]])
+    multiplied_points = base_points * GAME_CONSTANTS["TASK_TAKEOVER"]["MULTIPLIER"]
+    
+    # Create takeover record
+    takeover = TaskTakeover(
+        coupleId=user["coupleId"],
+        taskId=task_id,
+        originalAssignee=task.get("assignedOnlyTo", ""),
+        takingOverUser=request.userId,
+        multipliedPoints=multiplied_points
+    )
+    
+    await db.takeovers.insert_one(takeover.dict())
+    
+    # Notify partner via WebSocket
+    await manager.send_to_couple(user["coupleId"], {
+        "type": "task_takeover",
+        "message": f"{user['displayName']} took over task: {task['title']} (+{multiplied_points} pts)",
+        "taskId": task_id,
+        "takeoverUser": user["displayName"]
+    })
+    
+    return {
+        "message": "Task taken over successfully",
+        "multipliedPoints": multiplied_points,
+        "takeover": takeover.dict()
+    }
+
+@api_router.get("/couple-questions/{couple_id}")
+async def get_daily_couple_question(couple_id: str):
+    """Get today's couple question for the couple"""
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    
+    # Check if couple already has a question for today
+    existing_question = await db.couple_questions.find_one({
+        "coupleId": couple_id,
+        "date": today
+    })
+    
+    if existing_question:
+        return {"question": existing_question}
+    
+    # Create new daily question
+    import random
+    question_template = random.choice(COUPLE_QUESTION_TEMPLATES)
+    
+    new_question = CoupleQuestion(
+        coupleId=couple_id,
+        question=question_template["question"],
+        category=question_template["category"],
+        date=today
+    )
+    
+    await db.couple_questions.insert_one(new_question.dict())
+    return {"question": new_question.dict()}
+
+@api_router.post("/couple-questions/{question_id}/answer")
+async def submit_couple_answer(question_id: str, request: SubmitCoupleAnswerRequest):
+    """Submit answer and guess for couple question"""
+    question = await db.couple_questions.find_one({"questionId": question_id})
+    if not question:
+        raise HTTPException(status_code=404, detail="Question not found")
+    
+    user = await db.users.find_one({"userId": request.userId})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Determine if this is player 1 or 2 based on couple setup
+    couple = await db.couples.find_one({"coupleId": user["coupleId"]})
+    is_player1 = user["userId"] == couple["creatorId"]
+    
+    # Update the question with user's answer and guess
+    update_data = {}
+    if is_player1:
+        update_data["player1_answer"] = request.answer
+        update_data["player1_guess"] = request.guess
+    else:
+        update_data["player2_answer"] = request.answer  
+        update_data["player2_guess"] = request.guess
+    
+    await db.couple_questions.update_one(
+        {"questionId": question_id},
+        {"$set": update_data}
+    )
+    
+    # Check if both partners have answered
+    updated_question = await db.couple_questions.find_one({"questionId": question_id})
+    if (updated_question.get("player1_answer") and updated_question.get("player2_answer") and 
+        updated_question.get("player1_guess") and updated_question.get("player2_guess")):
+        
+        # Calculate points
+        points_awarded = GAME_CONSTANTS["COUPLE_QUESTIONS"]["ANSWER_POINTS"] * 2  # Both answered
+        
+        # Check for matches
+        p1_match = updated_question["player1_guess"].lower() == updated_question["player2_answer"].lower()
+        p2_match = updated_question["player2_guess"].lower() == updated_question["player1_answer"].lower()
+        
+        if p1_match:
+            points_awarded += GAME_CONSTANTS["COUPLE_QUESTIONS"]["MATCH_BONUS"]
+        if p2_match:
+            points_awarded += GAME_CONSTANTS["COUPLE_QUESTIONS"]["MATCH_BONUS"]
+        
+        # Award points to both users
+        await db.users.update_one(
+            {"userId": couple["creatorId"]}, 
+            {"$inc": {"points": points_awarded // 2}}
+        )
+        
+        if couple.get("partnerId"):
+            await db.users.update_one(
+                {"userId": couple["partnerId"]}, 
+                {"$inc": {"points": points_awarded // 2}}
+            )
+        
+        # Mark question as completed
+        await db.couple_questions.update_one(
+            {"questionId": question_id},
+            {"$set": {"completed": True, "points_awarded": points_awarded}}
+        )
+        
+        # Notify via WebSocket
+        await manager.send_to_couple(user["coupleId"], {
+            "type": "couple_question_complete",
+            "points": points_awarded,
+            "matches": {"player1": p1_match, "player2": p2_match}
+        })
+    
+    return {"message": "Answer submitted successfully"}
+
+@api_router.post("/daily-logs")
+async def submit_daily_log(request: SubmitDailyLogRequest):
+    """Submit daily observation/message about partner"""
+    user = await db.users.find_one({"userId": request.userId})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    
+    # Create log entry
+    log = DailyLog(
+        coupleId=user["coupleId"],
+        userId=request.userId,
+        partnerId=request.partnerId,
+        message=request.message,
+        date=today
+        # Note: AI tone filtering to be implemented later
+    )
+    
+    await db.daily_logs.insert_one(log.dict())
+    
+    # Award points for reflective mind talent if user has it
+    if user.get("talentBuild", {}).get("nodeIds") and "pg_reflective_mind" in user["talentBuild"]["nodeIds"]:
+        bonus_points = 5
+        await db.users.update_one(
+            {"userId": request.userId},
+            {"$inc": {"points": bonus_points}}
+        )
+        
+        # Notify user
+        await manager.send_to_couple(user["coupleId"], {
+            "type": "reflective_bonus",
+            "points": bonus_points,
+            "message": f"Reflective Mind bonus: +{bonus_points} pts"
+        })
+    
+    return {"message": "Daily log submitted successfully", "log": log.dict()}
+
+@api_router.post("/verification/{completion_id}/respond")  
+async def respond_to_verification(completion_id: str, request: RespondVerificationRequest):
+    """Respond to a verification request (verify, decline, request_proof)"""
+    verification = await db.verification_requests.find_one({"verificationId": request.verificationId})
+    if not verification:
+        raise HTTPException(status_code=404, detail="Verification request not found")
+    
+    # Check if verification has expired
+    if datetime.utcnow() > verification["expires_at"]:
+        raise HTTPException(status_code=400, detail="Verification request has expired")
+    
+    completion = await db.task_completions.find_one({"completionId": completion_id})
+    if not completion:
+        raise HTTPException(status_code=404, detail="Task completion not found")
+    
+    # Update verification status
+    await db.verification_requests.update_one(
+        {"verificationId": request.verificationId},
+        {"$set": {"status": request.response}}
+    )
+    
+    if request.response == "verify":
+        # Award verification bonus points
+        bonus = GAME_CONSTANTS["VERIFICATION"]["PARTNER_VERIFIES_BONUS"]
+        await db.users.update_one(
+            {"userId": completion["userId"]},
+            {"$inc": {"points": bonus}}
+        )
+        
+        # Mark completion as verified
+        await db.task_completions.update_one(
+            {"completionId": completion_id},
+            {"$set": {"verifiedBy": verification["partnerId"]}}
+        )
+        
+        # Notify via WebSocket
+        await manager.send_to_couple(completion["coupleId"], {
+            "type": "verification_complete",
+            "message": f"Task verified! +{bonus} bonus points awarded",
+            "points": bonus
+        })
+    
+    return {"message": f"Verification {request.response} successfully"}
+
+@api_router.get("/enhanced-tasks/{couple_id}")
+async def get_enhanced_tasks_for_couple(couple_id: str, date: Optional[str] = None):
+    """Get enhanced task list with categories, icons, and NES theming"""
+    if not date:
+        date = datetime.utcnow().strftime("%Y-%m-%d")
+    
+    # Get couple's preferences and talent builds
+    couple = await db.couples.find_one({"coupleId": couple_id})
+    if not couple:
+        raise HTTPException(status_code=404, detail="Couple not found")
+    
+    # Build task list from templates
+    daily_tasks = []
+    
+    # Add household tasks
+    for task_template in DEFAULT_QUEST_TEMPLATES["daily"]:
+        task = {
+            "taskId": f"daily_{task_template['title'].lower().replace(' ', '_').replace('🏠', '').replace('🍽️', '').replace('🧹', '').strip()}",
+            "title": task_template["title"],
+            "room": task_template["room"],
+            "basePoints": task_template["points"],
+            "difficulty": task_template["difficulty"],
+            "category": task_template["category"],
+            "quest_type": "DAILY",
+            "icon": task_template["icon"],
+            "can_takeover": True,
+            "requires_verification": False
+        }
+        daily_tasks.append(task)
+    
+    # Add pet tasks if couple has pets (this would be determined by couple settings)
+    # For now, we'll add some pet tasks by default
+    for task_template in DEFAULT_QUEST_TEMPLATES["pet"][:2]:  # Add first 2 pet tasks
+        task = {
+            "taskId": f"pet_{task_template['title'].lower().replace(' ', '_').replace('🍖', '').replace('🐕', '').strip()}",
+            "title": task_template["title"],
+            "room": task_template["room"],
+            "basePoints": task_template["points"],
+            "difficulty": task_template["difficulty"],
+            "category": task_template["category"],
+            "quest_type": "DAILY",
+            "icon": task_template["icon"],
+            "can_takeover": True,
+            "requires_verification": False
+        }
+        daily_tasks.append(task)
+    
+    # Add vehicle tasks
+    for task_template in DEFAULT_QUEST_TEMPLATES["vehicle"][:1]:  # Add first vehicle task
+        task = {
+            "taskId": f"vehicle_{task_template['title'].lower().replace(' ', '_').replace('⛽', '').replace('🛢️', '').strip()}",
+            "title": task_template["title"],
+            "room": task_template["room"],
+            "basePoints": task_template["points"],
+            "difficulty": task_template["difficulty"],
+            "category": task_template["category"], 
+            "quest_type": "DAILY",
+            "icon": task_template["icon"],
+            "can_takeover": True,
+            "requires_verification": False
+        }
+        daily_tasks.append(task)
+    
+    return {
+        "tasks": daily_tasks,
+        "quest_categories": GAME_CONSTANTS["QUEST_CATEGORIES"],
+        "theme": "NES_PIXEL_ART",
+        "date": date
+    }
+
 # WebSocket endpoint
 @app.websocket("/ws/{couple_id}")
 async def websocket_endpoint(websocket: WebSocket, couple_id: str):
