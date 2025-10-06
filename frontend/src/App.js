@@ -2300,6 +2300,13 @@ function ChoreChampionsApp() {
               <Badge className="bg-white/20 text-white text-lg px-3 py-1">
                 Party: {currentUser.coupleId}
               </Badge>
+              
+              <Button 
+                onClick={() => setShowNESInterface(true)}
+                className="bg-orange-500 hover:bg-orange-600 text-white text-sm px-4 py-2"
+              >
+                🎮 NES Mode
+              </Button>
             </div>
           </div>
         </div>
