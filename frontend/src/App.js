@@ -2258,6 +2258,7 @@ function ChoreChampionsApp() {
           onClose={() => setShowAuth(false)} 
           onSuccess={handleAuthSuccess}
           onEnhancedOnboarding={() => {
+            console.log('🚀 Opening Enhanced Onboarding');
             setShowAuth(false);
             setShowEnhancedOnboarding(true);
           }}
