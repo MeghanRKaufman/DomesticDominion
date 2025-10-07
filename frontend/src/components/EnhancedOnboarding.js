@@ -284,30 +284,15 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
   const renderStep5 = () => (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-3xl font-bold mb-2">🎯 Game Preferences</h2>
-        <p className="text-gray-600">Customize your experience</p>
+        <h2 className="text-3xl font-bold mb-2">🔔 Communication Preferences</h2>
+        <p className="text-gray-600">How would you like to stay connected?</p>
       </div>
       
-      <div>
-        <Label className="text-lg font-semibold">Difficulty Level</Label>
-        <div className="grid grid-cols-3 gap-3 mt-3">
-          {[
-            { key: 'easy', emoji: '😊', label: 'Relaxed', desc: 'Gentle start' },
-            { key: 'balanced', emoji: '⚖️', label: 'Balanced', desc: 'Perfect mix' },
-            { key: 'challenging', emoji: '🔥', label: 'Intense', desc: 'Go hard!' }
-          ].map(level => (
-            <Button
-              key={level.key}
-              variant={onboardingData.difficultyPreference === level.key ? 'default' : 'outline'}
-              onClick={() => handleInputChange('difficultyPreference', level.key)}
-              className="h-20 flex flex-col"
-            >
-              <div className="text-2xl mb-1">{level.emoji}</div>
-              <div className="text-sm font-bold">{level.label}</div>
-              <div className="text-xs">{level.desc}</div>
-            </Button>
-          ))}
-        </div>
+      <div className="bg-yellow-50 p-4 rounded-lg text-center">
+        <h3 className="font-bold text-yellow-800 mb-2">🎮 One Game, Your Pace</h3>
+        <p className="text-sm text-yellow-700">
+          The chores don't change - they need to get done regardless! Our game makes them fun and brings you closer together. Play at whatever intensity feels right for you two.
+        </p>
       </div>
 
       <div>
@@ -318,7 +303,7 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
             { key: 'verification', label: 'Task verification requests', emoji: '✅' },
             { key: 'encouragement', label: 'Motivational messages', emoji: '🎉' }
           ].map(notif => (
-            <div key={notif.key} className="flex items-center space-x-3">
+            <div key={notif.key} className="flex items-center space-x-3 p-3 border rounded-lg">
               <Button
                 variant={onboardingData.notificationPreferences[notif.key] ? 'default' : 'outline'}
                 onClick={() => handleInputChange('notificationPreferences', {
@@ -329,7 +314,14 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
               >
                 {notif.emoji}
               </Button>
-              <span>{notif.label}</span>
+              <div className="flex-1">
+                <span className="font-medium">{notif.label}</span>
+                <div className="text-xs text-gray-500 mt-1">
+                  {notif.key === 'daily' && 'Get fun couple questions and daily check-ins'}
+                  {notif.key === 'verification' && 'Be notified when your partner completes tasks'}
+                  {notif.key === 'encouragement' && 'Receive motivational messages and celebrations'}
+                </div>
+              </div>
             </div>
           ))}
         </div>
