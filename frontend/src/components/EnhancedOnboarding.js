@@ -29,8 +29,7 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
     selectedChoreCategories: [],
     customChores: [],
     
-    // Game Preferences
-    difficultyPreference: 'balanced', // 'easy', 'balanced', 'challenging'
+    // Communication Preferences (removed difficulty - game is same intensity for everyone)
     notificationPreferences: {
       daily: true,
       verification: true,
