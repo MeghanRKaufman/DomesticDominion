@@ -79,29 +79,55 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
     </div>
   );
 
+  const generateKingdomSuggestions = () => [
+    "Casa Chronicles", "Home Heroes", "Domestic Dynasty", "Chore Champions Kingdom",
+    "The Tidy Realm", "Household Haven", "Task Masters Domain", "Adventure Estate",
+    "The Clean Castle", "Harmony House", "Quest Villa", "Partnership Palace"
+  ];
+
   const renderStep1 = () => (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-3xl font-bold mb-2">🏆 Welcome, Game Master!</h2>
-        <p className="text-gray-600">Let's set up your epic household adventure</p>
+        <h2 className="text-3xl font-bold mb-2">👑 Name Your Kingdom!</h2>
+        <p className="text-gray-600">What shall we call your household adventure?</p>
       </div>
       
       <div>
-        <Label htmlFor="playerName">Your Hero Name</Label>
+        <Label htmlFor="kingdomName">🏰 Kingdom Name</Label>
         <Input
-          id="playerName"
-          value={onboardingData.playerName}
-          onChange={(e) => handleInputChange('playerName', e.target.value)}
-          placeholder="Enter your name"
+          id="kingdomName"
+          value={onboardingData.kingdomName || ''}
+          onChange={(e) => handleInputChange('kingdomName', e.target.value)}
+          placeholder="Enter your household kingdom name"
           className="text-lg"
         />
+        
+        <div className="mt-3">
+          <Label className="text-sm text-gray-600">💡 Need inspiration? Try these:</Label>
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            {generateKingdomSuggestions().slice(0, 4).map((suggestion, index) => (
+              <Button
+                key={index}
+                variant="outline"
+                size="sm"
+                onClick={() => handleInputChange('kingdomName', suggestion)}
+                className="text-xs"
+              >
+                {suggestion}
+              </Button>
+            ))}
+          </div>
+          <p className="text-xs text-gray-500 mt-2">
+            💡 Pro tip: Try "[Last Name] + [Street Name]" or "[Both Names] Castle"
+          </p>
+        </div>
       </div>
       
       <div className="bg-blue-50 p-4 rounded-lg">
         <h3 className="font-bold mb-2">🎮 What You'll Create:</h3>
         <ul className="text-sm space-y-1">
           <li>• Customize chores for your living situation</li>
-          <li>• Set up fair task distribution</li>
+          <li>• Set up fair task distribution between 2 partners</li>
           <li>• Create invitation for your partner</li>
           <li>• Launch your gamified relationship journey!</li>
         </ul>
