@@ -2031,19 +2031,6 @@ function ChoreChampionsApp() {
     }
   };
 
-  const loadGameData = async (user) => {
-    try {
-      // Load partner data if user has a coupleId
-      if (user.coupleId) {
-        // Fetch partner info and tasks - placeholder for now
-        console.log('🔄 Loading game data for user:', user.displayName);
-        // You can add API calls here to load partner info and tasks
-      }
-    } catch (error) {
-      console.error('Error loading game data:', error);
-    }
-  };
-
   const handleAuthSuccess = (user) => {
     setCurrentUser(user);
     setShowAuth(false);
