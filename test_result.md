@@ -138,12 +138,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Enhanced Scoring System (5/10/20 pts)" # ✅ COMPLETED
-    - "Quest System (Daily/Weekly/Special)" # ✅ COMPLETED
-    - "3-Tier Talent Trees (9 tiers total)" # ✅ COMPLETED
-    - "Pet & Vehicle Categories" # ✅ COMPLETED
-    - "Couple Questions Feature" # ✅ COMPLETED
-    - "NES Pixel Art UI Theme" # ✅ COMPLETED
+    - "Phase 1.1: Game Creator Onboarding Flow"
+    - "Household Customization Questions"
+    - "Chore Selection & Assignment System" 
+    - "Partner Invitation Enhancement"
+    - "Daily Features Integration (Questions, Compliments)"
   stuck_tasks: []
   test_all: false
   test_priority: "sequential"
