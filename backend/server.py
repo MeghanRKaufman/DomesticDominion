@@ -1373,6 +1373,73 @@ async def create_couple_invitation(request: CreateCoupleRequest):
     
     return invitation
 
+@api_router.post("/couples/create-enhanced", response_model=CoupleInvitation)
+async def create_enhanced_couple(request: EnhancedCoupleRequest):
+    """Create a new couple adventure with enhanced onboarding data"""
+    
+    # Generate customized chore list based on household setup
+    customized_chores = generate_customized_chores(request.householdSetup)
+    
+    # Generate couple with enhanced data
+    couple = Couple(
+        creatorName=request.playerName,
+        creatorId=f"user_{uuid.uuid4().hex[:8]}",
+        householdSetup=request.householdSetup,
+        gamePreferences=request.preferences,
+        customizedChores=customized_chores
+    )
+    
+    # Create user for the creator
+    creator_user = User(
+        displayName=request.playerName,
+        coupleId=couple.coupleId,
+        userId=couple.creatorId
+    )
+    
+    # Save to database
+    await db.couples.insert_one(couple.dict())
+    await db.users.insert_one(creator_user.dict())
+    
+    # Create enhanced invitation message
+    household_features = []
+    if request.householdSetup.get('hasPets'):
+        pet_types = request.householdSetup.get('petTypes', [])
+        household_features.append(f"🐾 Pet care tasks for your {', '.join(pet_types)}")
+    
+    if request.householdSetup.get('vehicleSharing') != 'none':
+        household_features.append("🚗 Vehicle maintenance and care")
+        
+    living_situation = request.householdSetup.get('livingSituation', 'home')
+    household_features.append(f"🏠 {living_situation.title()} specific tasks")
+    
+    invitation_message = f"""
+🏰 **EPIC ADVENTURE AWAITS!** 🏰
+
+{request.playerName} has crafted a legendary household adventure just for you two! 
+
+🎯 **Your Customized Quest Includes:**
+{chr(10).join('• ' + feature for feature in household_features)}
+• ⚖️ Fair task distribution system
+• 🎮 Daily challenges and couple bonuses
+• 🌳 Talent trees for relationship growth
+• 💬 Daily questions and communication tools
+
+🎪 **Adventure Code:** {couple.inviteCode}
+
+Ready to transform your household into an epic adventure? Join now!
+""".strip()
+    
+    invitation = CoupleInvitation(
+        inviteCode=couple.inviteCode,
+        message=invitation_message,
+        theme=couple.adventureTheme,
+        questPhrase=couple.questPhrase,
+        creatorName=request.playerName,
+        expiresAt=datetime.utcnow() + timedelta(days=7)
+    )
+    
+    return invitation
+
 @api_router.post("/couples/join", response_model=dict)
 async def join_couple_adventure(request: JoinCoupleRequest):
     """Join an existing couple using invitation code"""
