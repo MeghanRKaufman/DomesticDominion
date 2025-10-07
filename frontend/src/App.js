@@ -1551,7 +1551,7 @@ function ChoreQuest({ task, currentUser, partner, onComplete }) {
 }
 
 // Epic Adventure Modal Component
-function EpicAdventureModal({ isOpen, onClose, onSuccess }) {
+function EpicAdventureModal({ isOpen, onClose, onSuccess, onEnhancedOnboarding }) {
   const [mode, setMode] = useState('choose'); // 'choose', 'create', 'join', 'preview'
   const [name, setName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
