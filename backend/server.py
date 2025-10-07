@@ -599,6 +599,11 @@ class CreateUserRequest(BaseModel):
 class CreateCoupleRequest(BaseModel):
     creatorName: str
 
+class EnhancedCoupleRequest(BaseModel):
+    playerName: str
+    householdSetup: Dict[str, Any] = Field(default_factory=dict)
+    preferences: Dict[str, Any] = Field(default_factory=dict)
+
 class JoinCoupleRequest(BaseModel):
     partnerName: str
     inviteCode: str
