@@ -8,8 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
   const [step, setStep] = useState(1);
   const [onboardingData, setOnboardingData] = useState({
-    // Personal Info
-    playerName: '',
+    // Kingdom Info
+    kingdomName: '',
     
     // Household Setup
     hasPets: false,
