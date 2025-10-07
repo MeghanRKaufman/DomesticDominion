@@ -1910,7 +1910,8 @@ function ChoreChampionsApp() {
   const [celebrationMessage, setCelebrationMessage] = useState('');
   const [selectedRoom, setSelectedRoom] = useState('all');
   const [showAddChore, setShowAddChore] = useState(false);
-  const [showNESInterface, setShowNESInterface] = useState(true); // Enable NES theme by default
+  const [showNESInterface, setShowNESInterface] = useState(false); // Disable NES theme by default per user request
+  const [showEnhancedOnboarding, setShowEnhancedOnboarding] = useState(false);
 
   // WebSocket connection for real-time updates
   const { lastMessage } = useWebSocket(
