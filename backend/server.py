@@ -580,6 +580,10 @@ class Couple(BaseModel):
         "combine our skills to achieve domestic dominion",
         "adventure together into realms of order and prosperity"
     ]))
+    # Enhanced onboarding data
+    householdSetup: Dict[str, Any] = Field(default_factory=dict)
+    gamePreferences: Dict[str, Any] = Field(default_factory=dict)
+    customizedChores: List[str] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     joined_at: Optional[datetime] = None
 
