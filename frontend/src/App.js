@@ -2558,6 +2558,13 @@ function ChoreChampionsApp() {
 
       {/* Onboarding */}
       <OnboardingModal isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
+      
+      {/* Enhanced Onboarding */}
+      <EnhancedOnboarding 
+        isOpen={showEnhancedOnboarding} 
+        onComplete={handleEnhancedOnboardingComplete}
+        onClose={() => setShowEnhancedOnboarding(false)}
+      />
     </div>
   );
 }
