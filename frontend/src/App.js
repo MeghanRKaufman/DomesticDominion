@@ -2255,9 +2255,12 @@ function ChoreChampionsApp() {
           onClose={() => setShowAuth(false)} 
           onSuccess={handleAuthSuccess}
           onEnhancedOnboarding={() => {
-            console.log('🚀 Opening Enhanced Onboarding');
+            console.log('🚀 Opening Enhanced Onboarding - Auth:', showAuth, 'Enhanced:', showEnhancedOnboarding);
             setShowAuth(false);
-            setShowEnhancedOnboarding(true);
+            setTimeout(() => {
+              setShowEnhancedOnboarding(true);
+              console.log('✅ Enhanced onboarding should be open now');
+            }, 100);
           }}
         />
         <OnboardingModal isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
