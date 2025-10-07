@@ -2256,7 +2256,15 @@ function ChoreChampionsApp() {
             Begin Adventure! 🚀
           </Button>
         </div>
-        <EpicAdventureModal isOpen={showAuth} onClose={() => setShowAuth(false)} onSuccess={handleAuthSuccess} />
+        <EpicAdventureModal 
+          isOpen={showAuth} 
+          onClose={() => setShowAuth(false)} 
+          onSuccess={handleAuthSuccess}
+          onEnhancedOnboarding={() => {
+            setShowAuth(false);
+            setShowEnhancedOnboarding(true);
+          }}
+        />
         <OnboardingModal isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
       </div>
     );
