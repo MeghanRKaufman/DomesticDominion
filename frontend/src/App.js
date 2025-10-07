@@ -1663,10 +1663,20 @@ function EpicAdventureModal({ isOpen, onClose, onSuccess }) {
             
             <div className="space-y-3">
               <Button 
-                onClick={() => setMode('create')} 
+                onClick={() => {
+                  onClose();
+                  setShowEnhancedOnboarding(true);
+                }} 
                 className="w-full bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white text-lg py-4"
               >
-                🌟 Create New Adventure
+                🌟 Create Customized Adventure
+              </Button>
+              
+              <Button 
+                onClick={() => setMode('create')} 
+                className="w-full bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white text-sm py-3"
+              >
+                📝 Quick Setup (Simple)
               </Button>
               
               <Button 
