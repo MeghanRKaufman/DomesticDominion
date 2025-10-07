@@ -2062,10 +2062,9 @@ function ChoreChampionsApp() {
       setCurrentUser(userResponse.data);
       setShowEnhancedOnboarding(false);
       
-      // Show success message with invitation
-      setInvitation(response.data);
-      setMode('success');
-      setShowAuth(true);
+      // Success! User is now logged in and should see the main game
+      console.log('🎉 Adventure created successfully!', userResponse.data);
+      // Don't show auth modal again - user should go directly to game
       
     } catch (error) {
       console.error('Error creating enhanced adventure:', error);
