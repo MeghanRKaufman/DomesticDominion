@@ -2055,9 +2055,13 @@ function ChoreChampionsApp() {
         }
       });
       
+      // We need to get the player's actual name for the user account
+      // For now, we'll prompt them or use kingdom name
+      const playerName = prompt('What\'s your name for the game?') || onboardingData.kingdomName;
+      
       // Create user account
       const userResponse = await axios.post(`${API}/users`, {
-        displayName: onboardingData.playerName,
+        displayName: playerName,
         coupleCode: response.data.inviteCode
       });
       
