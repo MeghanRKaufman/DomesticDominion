@@ -8,6 +8,7 @@ import './App.css';
 import BoardGames from './components/BoardGames';
 import VerificationSystem from './components/VerificationSystem';
 import NESGameInterface from './components/NESGameInterface';
+import EnhancedOnboarding from './components/EnhancedOnboarding';
 
 // Import UI components
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
