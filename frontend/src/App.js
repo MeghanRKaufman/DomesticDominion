@@ -2079,7 +2079,10 @@ function ChoreChampionsApp() {
       
       // Success! User is now logged in and should see the main game
       console.log('🎉 Adventure created successfully!', userResponse.data);
-      // Don't show auth modal again - user should go directly to game
+      console.log('🎯 User state updated, should show main game now');
+      
+      // Load game data for the new user
+      await loadGameData(userResponse.data);
       
     } catch (error) {
       console.error('Error creating enhanced adventure:', error);
