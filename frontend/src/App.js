@@ -1916,6 +1916,21 @@ function ChoreChampionsApp() {
   const [invitation, setInvitation] = useState(null);
   const [mode, setMode] = useState('choose');
 
+  // Load user from localStorage on app start
+  useEffect(() => {
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+      try {
+        const userData = JSON.parse(savedUser);
+        setCurrentUser(userData);
+        console.log('✅ Loaded user from localStorage:', userData.displayName);
+      } catch (error) {
+        console.error('Error parsing saved user:', error);
+        localStorage.removeItem('currentUser');
+      }
+    }
+  }, []);
+
   // WebSocket connection for real-time updates
   const { lastMessage } = useWebSocket(
     currentUser ? `${WS_URL}/ws/${currentUser.coupleId}` : null,
