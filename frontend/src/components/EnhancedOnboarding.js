@@ -341,11 +341,11 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
           <CardTitle>📋 Your Adventure Summary</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div><strong>Hero Name:</strong> {onboardingData.playerName}</div>
-          <div><strong>Living Situation:</strong> {onboardingData.livingSituation}</div>
-          <div><strong>Pets:</strong> {onboardingData.hasPets ? onboardingData.petTypes.join(', ') || 'Yes' : 'None'}</div>
-          <div><strong>Vehicles:</strong> {onboardingData.vehicleSharing}</div>
-          <div><strong>Difficulty:</strong> {onboardingData.difficultyPreference}</div>
+          <div><strong>👑 Kingdom Name:</strong> {onboardingData.kingdomName}</div>
+          <div><strong>🏠 Living Situation:</strong> {onboardingData.livingSituation?.charAt(0).toUpperCase() + onboardingData.livingSituation?.slice(1)}</div>
+          <div><strong>🐾 Pets:</strong> {onboardingData.hasPets ? onboardingData.petTypes.join(', ') || 'Yes' : 'None'}</div>
+          <div><strong>🚗 Vehicles:</strong> {onboardingData.vehicleSharing === 'none' ? 'No vehicles' : onboardingData.vehicleSharing === 'shared' ? 'Shared vehicle(s)' : 'Separate vehicles'}</div>
+          <div><strong>📱 Notifications:</strong> {Object.entries(onboardingData.notificationPreferences).filter(([k,v]) => v).map(([k,v]) => k).join(', ') || 'None selected'}</div>
         </CardContent>
       </Card>
 
