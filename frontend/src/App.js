@@ -2030,6 +2030,54 @@ function ChoreChampionsApp() {
     loadGameData(user);
   };
 
+  const handleEnhancedOnboardingComplete = async (onboardingData) => {
+    setLoading(true);
+    
+    try {
+      // Create enhanced couple with onboarding data
+      const response = await axios.post(`${API}/couples/create-enhanced`, {
+        playerName: onboardingData.playerName,
+        householdSetup: {
+          hasPets: onboardingData.hasPets,
+          petTypes: onboardingData.petTypes,
+          hasVehicle: onboardingData.hasVehicle,
+          vehicleSharing: onboardingData.vehicleSharing,
+          livingSituation: onboardingData.livingSituation,
+          householdSize: onboardingData.householdSize,
+          hasChildren: onboardingData.hasChildren,
+          hasElderly: onboardingData.hasElderly,
+          hasSpecialNeeds: onboardingData.hasSpecialNeeds,
+          specialNeedsDetails: onboardingData.specialNeedsDetails
+        },
+        preferences: {
+          difficulty: onboardingData.difficultyPreference,
+          notifications: onboardingData.notificationPreferences
+        }
+      });
+      
+      // Create user account
+      const userResponse = await axios.post(`${API}/users`, {
+        displayName: onboardingData.playerName,
+        coupleCode: response.data.inviteCode
+      });
+      
+      localStorage.setItem('currentUser', JSON.stringify(userResponse.data));
+      setCurrentUser(userResponse.data);
+      setShowEnhancedOnboarding(false);
+      
+      // Show success message with invitation
+      setInvitation(response.data);
+      setMode('success');
+      setShowAuth(true);
+      
+    } catch (error) {
+      console.error('Error creating enhanced adventure:', error);
+      alert('Error creating adventure: ' + (error.response?.data?.detail || 'Please try again'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleOnboardingComplete = () => {
     setShowOnboarding(false);
     localStorage.setItem('hasSeenOnboarding', 'true');
