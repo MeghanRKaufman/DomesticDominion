@@ -161,24 +161,12 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
         </div>
       </div>
 
-      <div>
-        <Label className="text-lg font-semibold">Household size (including you)</Label>
-        <div className="flex items-center space-x-4 mt-2">
-          <Button
-            variant="outline"
-            onClick={() => handleInputChange('householdSize', Math.max(2, onboardingData.householdSize - 1))}
-          >
-            -
-          </Button>
-          <span className="text-2xl font-bold w-12 text-center">{onboardingData.householdSize}</span>
-          <Button
-            variant="outline"
-            onClick={() => handleInputChange('householdSize', Math.min(6, onboardingData.householdSize + 1))}
-          >
-            +
-          </Button>
-        </div>
-        <p className="text-sm text-gray-500 mt-2">For now, we focus on couples (2 people)</p>
+      <div className="bg-green-50 p-4 rounded-lg text-center">
+        <h3 className="text-lg font-bold text-green-800 mb-2">👫 Couples Adventure</h3>
+        <p className="text-sm text-green-700">
+          This game is designed for 2 partners working together to conquer household tasks and build stronger relationships!
+        </p>
+        <div className="mt-3 text-2xl">💕</div>
       </div>
     </div>
   );
