@@ -1260,6 +1260,70 @@ def generate_daily_assignments(couple_id: str, date: str = None) -> Dict[str, st
     
     return assignments
 
+def generate_customized_chores(household_setup: Dict[str, Any]) -> List[str]:
+    """Generate customized chore list based on household setup"""
+    customized_chores = []
+    
+    # Base household chores
+    base_chores = [
+        "🛏️ Make the bed",
+        "🍽️ Wash dishes", 
+        "🧹 Vacuum living room",
+        "🧺 Do laundry",
+        "🍳 Cook meals",
+        "🚿 Clean bathroom",
+        "🗑️ Take out trash",
+        "💧 Water plants"
+    ]
+    customized_chores.extend(base_chores)
+    
+    # Add pet-specific chores if they have pets
+    if household_setup.get('hasPets'):
+        pet_types = household_setup.get('petTypes', [])
+        if 'dogs' in pet_types:
+            customized_chores.extend([
+                "🐕 Walk the dog",
+                "🍖 Feed the dog", 
+                "🛁 Groom the dog"
+            ])
+        if 'cats' in pet_types:
+            customized_chores.extend([
+                "🐱 Feed the cat",
+                "🧹 Clean litter box",
+                "🛁 Groom the cat"
+            ])
+        if 'other' in pet_types:
+            customized_chores.extend([
+                "🐾 Pet care tasks",
+                "🏥 Pet health checkups"
+            ])
+    
+    # Add vehicle-specific chores based on sharing arrangement
+    vehicle_sharing = household_setup.get('vehicleSharing', 'none')
+    if vehicle_sharing != 'none':
+        customized_chores.extend([
+            "🚗 Wash the car",
+            "⛽ Fill up gas tank",
+            "🛢️ Check oil and fluids",
+            "🔧 Vehicle maintenance"
+        ])
+    
+    # Add living situation specific chores
+    living_situation = household_setup.get('livingSituation', 'home')
+    if living_situation == 'apartment':
+        customized_chores.extend([
+            "📦 Take packages to mailroom",
+            "🧹 Sweep balcony/patio"
+        ])
+    elif living_situation == 'house':
+        customized_chores.extend([
+            "🌿 Yard work and gardening",
+            "🏠 Exterior maintenance",
+            "📬 Check mailbox"
+        ])
+    
+    return customized_chores
+
 # API Routes
 
 @api_router.post("/couples/create", response_model=CoupleInvitation)
