@@ -1905,6 +1905,32 @@ async def get_talent_nodes():
         nodes_list.append(node_data_copy)
     return nodes_list
 
+# Get talent tree nodes (updated for 10-tier system)
+@api_router.get("/api/talent-tree")
+async def get_talent_tree():
+    """Get all talent tree nodes for the new 10-tier system"""
+    return {"nodes": TALENT_TREE_NODES}
+
+# Check if user can unlock premium tiers
+@api_router.get("/api/talent-tree/premium-status/{user_id}")
+async def get_premium_status(user_id: str):
+    """Check if user has premium access for tiers 6-10"""
+    try:
+        user = await db.users.find_one({"userId": user_id})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # For now, mock premium status - in production this would check subscription
+        has_premium = user.get("premium_access", False)
+        
+        return {
+            "has_premium": has_premium,
+            "max_tier_available": 10 if has_premium else 5,
+            "premium_purchase_url": "/premium-upgrade"  # Mock URL
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.get("/game-constants")
 async def get_game_constants():
     """Get game constants for frontend"""
