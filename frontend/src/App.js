@@ -34,285 +34,378 @@ const MAX_NET_CHORE_SHIFT = 0.07;
 const VERIFICATION_WINDOW = 30; // minutes
 const VERIFY_PROB = 0.10; // 10% random verification
 
-// Comprehensive Talent Tree Nodes (as per spec)
+// New 10-Tier Talent Tree System (Chore Champions)
 const TALENT_TREE_NODES = {
-  // ===== EFFICIENCY BRANCH =====
-  eff_qw1: {
-    id: "eff_qw1",
-    name: "Quick Wipe",
-    branch: "Efficiency",
+  // ===== HOUSEKEEPING HEROES (Country I: Sanctum of Stewardry) =====
+  // Free Tiers 1-5
+  "hh_dish_duty": {
+    id: "hh_dish_duty",
+    name: "Dish Duty",
+    branch: "Housekeeping",
     tier: 1,
     cost: 1,
-    type: "point_bonus",
-    scope: "room:Kitchen",
-    value: 1,
-    description: "+1 point on EASY kitchen tasks",
-    prereqs: [],
-    position: { x: 100, y: 50 }
+    description: "+5 pts each time you log dishwashing within 12 hrs of meal",
+    effect: { type: "time_bonus", category: "dishwashing", time_window: 12, bonus: 5 },
+    prerequisites: [],
+    position: { x: 100, y: 50 },
+    premium: false
   },
-  eff_lh1: {
-    id: "eff_lh1", 
-    name: "Laundry Hand",
-    branch: "Efficiency",
-    tier: 1,
-    cost: 1,
-    type: "point_bonus",
-    scope: "taskTag:laundry",
-    value: 2,
-    description: "+2 points when starting or finishing laundry",
-    prereqs: [],
-    position: { x: 200, y: 50 }
-  },
-  eff_ds2: {
-    id: "eff_ds2",
-    name: "Dishes Speed", 
-    branch: "Efficiency",
+  "hh_laundry_legends": {
+    id: "hh_laundry_legends",
+    name: "Laundry Legends",
+    branch: "Housekeeping",
     tier: 2,
     cost: 2,
-    type: "multiplier",
-    scope: "taskTag:KitchenDishSession",
-    value: 0.10,
-    description: "+10% points for each completed dish session",
-    prereqs: ["eff_qw1"],
-    position: { x: 100, y: 150 }
+    description: "+10% point bonus when laundry is folded same day",
+    effect: { type: "category_multiplier", category: "laundry", condition: "same_day", multiplier: 1.1 },
+    prerequisites: ["hh_dish_duty"],
+    position: { x: 100, y: 120 },
+    premium: false
   },
-  eff_tm2: {
-    id: "eff_tm2",
-    name: "Trash Master",
-    branch: "Efficiency", 
-    tier: 2,
-    cost: 2,
-    type: "chore_shift",
-    scope: "taskId:kit_take_trash",
-    value: -0.02,
-    description: "-2% chance of getting trash duty",
-    prereqs: ["eff_qw1"],
-    position: { x: 200, y: 150 }
-  },
-  eff_vh3: {
-    id: "eff_vh3",
-    name: "Vacuum Hero",
-    branch: "Efficiency",
-    tier: 3, 
-    cost: 3,
-    type: "point_bonus",
-    scope: "taskTag:vacuum",
-    value: 5,
-    description: "+5 points for vacuum tasks",
-    prereqs: ["eff_ds2"],
-    position: { x: 100, y: 250 }
-  },
-  eff_td3: {
-    id: "eff_td3",
-    name: "Toilet Tactician",
-    branch: "Efficiency",
+  "hh_pet_patrol": {
+    id: "hh_pet_patrol",
+    name: "Pet Patrol",
+    branch: "Housekeeping",
     tier: 3,
-    cost: 3,
-    type: "chore_shift", 
-    scope: "taskId:bath_toilet_scrub",
-    value: -0.05,
-    description: "-5% chance of toilet scrubbing (redistributed to other bathroom chores)",
-    prereqs: ["eff_tm2"],
-    position: { x: 200, y: 250 }
+    cost: 2,
+    description: "Unlocks pet task tracking (feeding, litter box, walks, meds)",
+    effect: { type: "unlock_category", category: "pet_tasks", tasks: ["feeding", "litter", "walks", "medication"] },
+    prerequisites: ["hh_laundry_legends"],
+    position: { x: 100, y: 190 },
+    premium: false
   },
-  eff_edge_cap: {
-    id: "eff_edge_cap",
-    name: "Housekeeper's Edge",
-    branch: "Efficiency",
+  "hh_vehicle_vanguard": {
+    id: "hh_vehicle_vanguard",
+    name: "Vehicle Vanguard",
+    branch: "Housekeeping",
     tier: 4,
+    cost: 2,
+    description: "Unlocks car-related tasks (oil check, gas fill, cleaning)",
+    effect: { type: "unlock_category", category: "vehicle_tasks", tasks: ["oil_check", "gas_fill", "car_cleaning", "maintenance"] },
+    prerequisites: ["hh_pet_patrol"],
+    position: { x: 100, y: 260 },
+    premium: false
+  },
+  "hh_tag_team_clean": {
+    id: "hh_tag_team_clean",
+    name: "Tag Team Clean",
+    branch: "Housekeeping",
+    tier: 5,
+    cost: 3,
+    description: "Bonus for completing a chore within 2 hrs of partner's",
+    effect: { type: "partner_sync_bonus", time_window: 2, bonus_multiplier: 1.2 },
+    prerequisites: ["hh_vehicle_vanguard"],
+    position: { x: 100, y: 330 },
+    premium: false
+  },
+  // Premium Tiers 6-10
+  "hh_efficiency_expert": {
+    id: "hh_efficiency_expert",
+    name: "Efficiency Expert",
+    branch: "Housekeeping",
+    tier: 6,
+    cost: 3,
+    description: "+15% base points when completing 3+ chores in a row",
+    effect: { type: "streak_bonus", min_streak: 3, multiplier: 1.15 },
+    prerequisites: ["hh_tag_team_clean"],
+    position: { x: 100, y: 400 },
+    premium: true
+  },
+  "hh_sanctuary_sensei": {
+    id: "hh_sanctuary_sensei",
+    name: "Sanctuary Sensei",
+    branch: "Housekeeping",
+    tier: 7,
+    cost: 3,
+    description: "Partner receives a calm-day bonus if all rooms logged",
+    effect: { type: "partner_bonus", condition: "all_rooms_complete", bonus: "calm_day" },
+    prerequisites: ["hh_efficiency_expert"],
+    position: { x: 100, y: 470 },
+    premium: true
+  },
+  "hh_green_guardian": {
+    id: "hh_green_guardian",
+    name: "Green Guardian",
+    branch: "Housekeeping",
+    tier: 8,
     cost: 4,
-    type: "multiplier",
-    scope: "global",
-    value: 0.10,
-    description: "CAPSTONE: +10% points on ALL chores",
-    prereqs: ["eff_vh3", "eff_td3"], // any two tier3
-    position: { x: 150, y: 350 }
+    description: "Track and reward eco-actions (recycling, low water use)",
+    effect: { type: "unlock_category", category: "eco_tasks", bonus_multiplier: 1.25 },
+    prerequisites: ["hh_sanctuary_sensei"],
+    position: { x: 100, y: 540 },
+    premium: true
   },
-
-  // ===== COUPLE/US BRANCH =====
-  cou_hug1: {
-    id: "cou_hug1",
-    name: "Hug Timer", 
-    branch: "Couple",
+  "hh_homebound_hero": {
+    id: "hh_homebound_hero",
+    name: "Homebound Hero",
+    branch: "Housekeeping",
+    tier: 9,
+    cost: 4,
+    description: "Gain 2x points for weekend home reset routines",
+    effect: { type: "time_multiplier", days: ["saturday", "sunday"], category: "home_reset", multiplier: 2.0 },
+    prerequisites: ["hh_green_guardian"],
+    position: { x: 100, y: 610 },
+    premium: true
+  },
+  "hh_keeper_of_keep": {
+    id: "hh_keeper_of_keep",
+    name: "Keeper of the Keep",
+    branch: "Housekeeping",
+    tier: 10,
+    cost: 5,
+    description: "Auto-completes one daily low-value task when you reach 100% partner approval for a week",
+    effect: { type: "mastery_autocomplete", condition: "100_percent_approval", duration: "week" },
+    prerequisites: ["hh_homebound_hero"],
+    position: { x: 100, y: 680 },
+    premium: true
+  },
+  
+  // ===== COUPLING QUESTLINE (Country II: The Heartlands of Concord) =====
+  // Free Tiers 1-5
+  "cq_quality_quest": {
+    id: "cq_quality_quest",
+    name: "Quality Quest",
+    branch: "Coupling",
     tier: 1,
     cost: 1,
-    type: "point_bonus",
-    scope: "taskId:us_hug",
-    value: 2,
-    description: "+2 points for hugs (stacked with base)",
-    prereqs: [],
-    position: { x: 400, y: 50 }
+    description: "+10 pts for shared activities logged (dinner, show, walk)",
+    effect: { type: "category_bonus", category: "shared_activities", bonus: 10 },
+    prerequisites: [],
+    position: { x: 300, y: 50 },
+    premium: false
   },
-  cou_mass1: {
-    id: "cou_mass1",
-    name: "Massage Points",
-    branch: "Couple", 
-    tier: 1,
-    cost: 1,
-    type: "point_bonus",
-    scope: "taskTag:massage",
-    value: 3,
-    description: "+3 points per massage completion",
-    prereqs: [],
-    position: { x: 500, y: 50 }
-  },
-  cou_grat2: {
-    id: "cou_grat2", 
-    name: "Gratitude Shoutout",
-    branch: "Couple",
+  "cq_compliment_chain": {
+    id: "cq_compliment_chain",
+    name: "Compliment Chain",
+    branch: "Coupling",
     tier: 2,
     cost: 2,
-    type: "point_bonus",
-    scope: "taskTag:gratitude", 
-    value: 1,
-    description: "+1 point for partner-verified compliments",
-    prereqs: ["cou_hug1"],
-    position: { x: 400, y: 150 }
+    description: "Consecutive days of positive notes grant streak bonus",
+    effect: { type: "streak_bonus", category: "positive_notes", bonus_per_day: 2 },
+    prerequisites: ["cq_quality_quest"],
+    position: { x: 300, y: 120 },
+    premium: false
   },
-  cou_team2: {
-    id: "cou_team2",
-    name: "Team Boost",
-    branch: "Couple",
-    tier: 2,
+  "cq_shared_goal_setter": {
+    id: "cq_shared_goal_setter",
+    name: "Shared Goal Setter",
+    branch: "Coupling",
+    tier: 3,
     cost: 2,
-    type: "multiplier",
-    scope: "timeWindow:1hour",
-    value: 2.0,
-    description: "2x points if both users complete chores in same hour",
-    prereqs: ["cou_mass1"],
-    position: { x: 500, y: 150 }
+    description: "Unlocks weekly 'Team Quest' board",
+    effect: { type: "unlock_feature", feature: "team_quest_board", frequency: "weekly" },
+    prerequisites: ["cq_compliment_chain"],
+    position: { x: 300, y: 190 },
+    premium: false
   },
-  cou_double3: {
-    id: "cou_double3",
-    name: "Double Us",
-    branch: "Couple",
-    tier: 3,
-    cost: 3,
-    type: "consumable",
-    scope: "daily",
-    value: "double_us",
-    description: "Once/day: Double points for US tasks when activated",
-    prereqs: ["cou_team2"],
-    position: { x: 500, y: 250 }
-  },
-  cou_rom3: {
-    id: "cou_rom3",
-    name: "Romance Perk",
-    branch: "Couple", 
-    tier: 3,
-    cost: 3,
-    type: "chore_shift",
-    scope: "room:Bedroom",
-    value: -0.03,
-    description: "After date-night: -3% bedroom chore odds for rest of day (1/day)",
-    prereqs: ["cou_grat2"],
-    position: { x: 400, y: 250 }
-  },
-  cou_soul_cap: {
-    id: "cou_soul_cap",
-    name: "Soulmate Bonus",
-    branch: "Couple",
+  "cq_verification_bonus": {
+    id: "cq_verification_bonus",
+    name: "Verification Bonus",
+    branch: "Coupling",
     tier: 4,
+    cost: 2,
+    description: "+5 pts for partner-verified tasks",
+    effect: { type: "verification_bonus", bonus: 5 },
+    prerequisites: ["cq_shared_goal_setter"],
+    position: { x: 300, y: 260 },
+    premium: false
+  },
+  "cq_take_one_for_love": {
+    id: "cq_take_one_for_love",
+    name: "Take One For Love",
+    branch: "Coupling",
+    tier: 5,
+    cost: 3,
+    description: "Option to take partner's task for 3x reward",
+    effect: { type: "takeover_multiplier", multiplier: 3.0 },
+    prerequisites: ["cq_verification_bonus"],
+    position: { x: 300, y: 330 },
+    premium: false
+  },
+  // Premium Tiers 6-10
+  "cq_bond_builder": {
+    id: "cq_bond_builder",
+    name: "Bond Builder",
+    branch: "Coupling",
+    tier: 6,
+    cost: 3,
+    description: "+20% points if both partners complete a quest within 2 hrs",
+    effect: { type: "partner_sync_bonus", time_window: 2, multiplier: 1.2 },
+    prerequisites: ["cq_take_one_for_love"],
+    position: { x: 300, y: 400 },
+    premium: true
+  },
+  "cq_empathy_echo": {
+    id: "cq_empathy_echo",
+    name: "Empathy Echo",
+    branch: "Coupling",
+    tier: 7,
+    cost: 3,
+    description: "Each compliment written adds +1 to partner's morale meter",
+    effect: { type: "partner_morale_bonus", bonus_per_compliment: 1 },
+    prerequisites: ["cq_bond_builder"],
+    position: { x: 300, y: 470 },
+    premium: true
+  },
+  "cq_harmony_halo": {
+    id: "cq_harmony_halo",
+    name: "Harmony Halo",
+    branch: "Coupling",
+    tier: 8,
     cost: 4,
-    type: "multiplier",
-    scope: "global",
-    value: 0.20,
-    description: "CAPSTONE: US tasks give +20% to ALL points earned that day",
-    prereqs: ["cou_double3", "cou_rom3"],
-    position: { x: 450, y: 350 }
+    description: "Negative logs are rephrased automatically into growth notes",
+    effect: { type: "message_filter", filter_type: "negative_to_growth" },
+    prerequisites: ["cq_empathy_echo"],
+    position: { x: 300, y: 540 },
+    premium: true
   },
-
-  // ===== GROWTH BRANCH =====
-  gr_hyd1: {
-    id: "gr_hyd1",
-    name: "Hydration Harmony",
+  "cq_unity_upgrade": {
+    id: "cq_unity_upgrade",
+    name: "Unity Upgrade",
+    branch: "Coupling",
+    tier: 9,
+    cost: 4,
+    description: "Unlocks 'dual chores' (tasks only rewardable when done together)",
+    effect: { type: "unlock_category", category: "dual_chores", requirement: "both_partners" },
+    prerequisites: ["cq_harmony_halo"],
+    position: { x: 300, y: 610 },
+    premium: true
+  },
+  "cq_soul_sync": {
+    id: "cq_soul_sync",
+    name: "Soul Sync",
+    branch: "Coupling",
+    tier: 10,
+    cost: 5,
+    description: "Permanently doubles verification rewards if relationship satisfaction stays above 80% for a month",
+    effect: { type: "mastery_verification_double", condition: "80_percent_satisfaction", duration: "month" },
+    prerequisites: ["cq_unity_upgrade"],
+    position: { x: 300, y: 680 },
+    premium: true
+  },
+  
+  // ===== PERSONAL GROWTH PATH (Country III: The Realm of Resonance) =====
+  // Free Tiers 1-5
+  "pg_routine_rookie": {
+    id: "pg_routine_rookie",
+    name: "Routine Rookie",
     branch: "Growth",
     tier: 1,
     cost: 1,
-    type: "point_bonus",
-    scope: "taskTag:water",
-    value: 1,
-    description: "+1 point per verified glass (partner or smart bottle)",
-    prereqs: [],
-    position: { x: 700, y: 50 }
+    description: "+5 pts for every 3-day streak of all tasks completed",
+    effect: { type: "streak_bonus", streak_length: 3, bonus: 5 },
+    prerequisites: [],
+    position: { x: 500, y: 50 },
+    premium: false
   },
-  gr_step1: {
-    id: "gr_step1", 
-    name: "Step Sync",
-    branch: "Growth",
-    tier: 1,
-    cost: 1,
-    type: "point_bonus",
-    scope: "taskTag:walk",
-    value: 5,
-    description: "+5 points per tracked 1-mile walk (GPS confirmed)",
-    prereqs: [],
-    position: { x: 800, y: 50 }
-  },
-  gr_str2: {
-    id: "gr_str2",
-    name: "Stretch It Out",
+  "pg_reflective_learner": {
+    id: "pg_reflective_learner",
+    name: "Reflective Learner",
     branch: "Growth",
     tier: 2,
     cost: 2,
-    type: "point_bonus",
-    scope: "taskTag:stretch",
-    value: 2,
-    description: "+2 points per 5-min stretch session",
-    prereqs: ["gr_hyd1"],
-    position: { x: 700, y: 150 }
+    description: "Unlocks daily self-question prompts",
+    effect: { type: "unlock_feature", feature: "daily_self_questions", frequency: "daily" },
+    prerequisites: ["pg_routine_rookie"],
+    position: { x: 500, y: 120 },
+    premium: false
   },
-  gr_mind2: {
-    id: "gr_mind2",
-    name: "Mind Check-in", 
-    branch: "Growth",
-    tier: 2,
-    cost: 2,
-    type: "point_bonus",
-    scope: "taskTag:journal",
-    value: 2,
-    description: "+2 points per partner-verified journal/mood entry",
-    prereqs: ["gr_step1"],
-    position: { x: 800, y: 150 }
-  },
-  gr_cons3: {
-    id: "gr_cons3",
-    name: "Consistency Buff",
+  "pg_zen_mode": {
+    id: "pg_zen_mode",
+    name: "Zen Mode",
     branch: "Growth",
     tier: 3,
-    cost: 3,
-    type: "multiplier",
-    scope: "streak:7days",
-    value: 0.10,
-    description: "+10% points for next week if 7-day streak achieved",
-    prereqs: ["gr_str2"],
-    position: { x: 700, y: 250 }
+    cost: 2,
+    description: "Choose 1 day a week to skip non-critical tasks with no penalty",
+    effect: { type: "skip_allowance", frequency: "weekly", task_type: "non_critical" },
+    prerequisites: ["pg_reflective_learner"],
+    position: { x: 500, y: 190 },
+    premium: false
   },
-  gr_early3: {
-    id: "gr_early3",
-    name: "Early Bird",
-    branch: "Growth",
-    tier: 3, 
-    cost: 3,
-    type: "point_bonus",
-    scope: "time:before10am",
-    value: 5,
-    description: "+5 points when completing first task before 10AM",
-    prereqs: ["gr_mind2"],
-    position: { x: 800, y: 250 }
-  },
-  gr_well_cap: {
-    id: "gr_well_cap",
-    name: "Wellness Overflow",
+  "pg_mindful_mirror": {
+    id: "pg_mindful_mirror",
+    name: "Mindful Mirror",
     branch: "Growth",
     tier: 4,
+    cost: 2,
+    description: "+10 pts for self-evaluation that matches partner's rating",
+    effect: { type: "partner_alignment_bonus", bonus: 10 },
+    prerequisites: ["pg_zen_mode"],
+    position: { x: 500, y: 260 },
+    premium: false
+  },
+  "pg_mood_manager": {
+    id: "pg_mood_manager",
+    name: "Mood Manager",
+    branch: "Growth",
+    tier: 5,
+    cost: 3,
+    description: "+10% points if all logs remain positive for a week",
+    effect: { type: "positivity_bonus", duration: "week", multiplier: 1.1 },
+    prerequisites: ["pg_mindful_mirror"],
+    position: { x: 500, y: 330 },
+    premium: false
+  },
+  // Premium Tiers 6-10
+  "pg_self_soother": {
+    id: "pg_self_soother",
+    name: "Self-Soother",
+    branch: "Growth",
+    tier: 6,
+    cost: 3,
+    description: "Unlocks 'calm break' feature to pause your partner's critique for 24 hrs",
+    effect: { type: "pause_critiques", duration: 24, frequency: "as_needed" },
+    prerequisites: ["pg_mood_manager"],
+    position: { x: 500, y: 400 },
+    premium: true
+  },
+  "pg_balance_buff": {
+    id: "pg_balance_buff",
+    name: "Balance Buff",
+    branch: "Growth",
+    tier: 7,
+    cost: 3,
+    description: "+10% base points on days with both self and partner quests complete",
+    effect: { type: "balance_bonus", requirement: "both_quest_types", multiplier: 1.1 },
+    prerequisites: ["pg_self_soother"],
+    position: { x: 500, y: 470 },
+    premium: true
+  },
+  "pg_growth_guardian": {
+    id: "pg_growth_guardian",
+    name: "Growth Guardian",
+    branch: "Growth",
+    tier: 8,
     cost: 4,
-    type: "chance_convert",
-    scope: "global",
-    value: 0.10,
-    description: "CAPSTONE: 10% chance growth points convert to couple points",
-    prereqs: ["gr_cons3", "gr_early3"],
-    position: { x: 750, y: 350 }
+    description: "Unlocks mini-quests like journaling, meditation, or gratitude",
+    effect: { type: "unlock_category", category: "mindfulness_quests", types: ["journaling", "meditation", "gratitude"] },
+    prerequisites: ["pg_balance_buff"],
+    position: { x: 500, y: 540 },
+    premium: true
+  },
+  "pg_altruist_aura": {
+    id: "pg_altruist_aura",
+    name: "Altruist Aura",
+    branch: "Growth",
+    tier: 9,
+    cost: 4,
+    description: "2x points for doing tasks that directly benefit your partner's comfort",
+    effect: { type: "altruism_multiplier", multiplier: 2.0, target: "partner_comfort" },
+    prerequisites: ["pg_growth_guardian"],
+    position: { x: 500, y: 610 },
+    premium: true
+  },
+  "pg_enlightened_partner": {
+    id: "pg_enlightened_partner",
+    name: "Enlightened Partner",
+    branch: "Growth",
+    tier: 10,
+    cost: 5,
+    description: "Gain 1 free 'Zen Token' weekly, which lets you skip or swap a task without penalty and gift that break to your partner",
+    effect: { type: "mastery_zen_token", frequency: "weekly", benefits: ["skip_task", "swap_task", "gift_partner"] },
+    prerequisites: ["pg_altruist_aura"],
+    position: { x: 500, y: 680 },
+    premium: true
   }
 };
 
