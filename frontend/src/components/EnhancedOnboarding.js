@@ -326,7 +326,39 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
     </div>
   );
 
-  // Communication step removed for simplicity
+  const renderInvitation = () => (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold mb-2">🎉 Kingdom Created!</h2>
+        <p className="text-gray-600">Time to invite your partner to join the adventure</p>
+      </div>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>📨 Invite Your Partner</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div><strong>Invitation Code:</strong> ABC123</div>
+          <div className="bg-gray-50 p-4 rounded border">
+            <p className="text-sm">
+              "Hey! I just set up our household kingdom '{onboardingData.kingdomName}' on Chore Champions! 
+              Join me to turn our daily tasks into an epic adventure. Use code: ABC123"
+            </p>
+          </div>
+          <Button className="w-full">📋 Copy Invitation Message</Button>
+        </CardContent>
+      </Card>
+
+      <div className="bg-gradient-to-r from-purple-100 to-blue-100 p-6 rounded-lg text-center">
+        <h3 className="text-xl font-bold mb-2">🎮 Next Steps:</h3>
+        <ol className="text-left space-y-2 text-sm">
+          <li>1. Share the invitation code with your partner</li>
+          <li>2. They can join using "I was invited to an adventure"</li>
+          <li>3. Once they join, you'll both start your quest together!</li>
+        </ol>
+      </div>
+    </div>
+  );
 
   const renderSummary = () => (
     <div className="space-y-6">
