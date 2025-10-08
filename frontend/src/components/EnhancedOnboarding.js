@@ -418,8 +418,7 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
           {step === 4 && renderStep4()}
           {step === 5 && renderStep5()}
           {step === 6 && renderStep6()}
-          {step === 7 && renderStep7()}
-          {step === 8 && renderSummary()}
+          {step === 7 && renderSummary()}
           
           <div className="flex justify-between mt-8">
             <Button
