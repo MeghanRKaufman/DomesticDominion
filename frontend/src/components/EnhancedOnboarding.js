@@ -40,7 +40,7 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
     }
   });
 
-  const totalSteps = 7; // Congratulations → Name → Kingdom → Living → Pets → Vehicles → Summary
+  const totalSteps = 8; // Congratulations → Name → Kingdom → Living → Pets → Vehicles → Summary → Invitation
 
   const handleInputChange = (field, value) => {
     setOnboardingData(prev => ({
