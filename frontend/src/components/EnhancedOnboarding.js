@@ -161,12 +161,21 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
       </div>
       
       <div className="bg-blue-50 p-4 rounded-lg">
-        <h4 className="font-bold mb-2 text-blue-800">💡 Suggestions:</h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Use both your last names: "The Smith & Jones Castle"</li>
-          <li>• Use your street name: "Maple Avenue Kingdom"</li>  
-          <li>• Use shared last name: "The Miller Estate"</li>
-        </ul>
+        <h4 className="font-bold mb-3 text-blue-800">💡 Kingdom Name Ideas:</h4>
+        <div className="text-sm text-blue-700 space-y-2">
+          <div>
+            <strong>Last name + Street name:</strong>
+            <div className="ml-2 text-gray-600">"Johnson Oak Street Kingdom" or "Miller Maple Ave Estate"</div>
+          </div>
+          <div>
+            <strong>Combined last names:</strong>
+            <div className="ml-2 text-gray-600">"The Smith-Jones Castle" or "Miller & Garcia Dynasty"</div>
+          </div>
+          <div>
+            <strong>Celebrity couple style (like "Brangelina"):</strong>
+            <div className="ml-2 text-gray-600">"Johnmiller Kingdom" (John + Miller) or "Saralex Estate" (Sarah + Alex)</div>
+          </div>
+        </div>
       </div>
     </div>
   );
