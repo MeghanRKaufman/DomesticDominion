@@ -346,7 +346,7 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
     </div>
   );
 
-  const renderStep5 = () => (
+  const renderStep7 = () => (
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-3xl font-bold mb-2">🔔 Communication Preferences</h2>
