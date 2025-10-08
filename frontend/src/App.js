@@ -1684,56 +1684,7 @@ function EpicAdventureModal({ isOpen, onClose, onSuccess, onEnhancedOnboarding }
 
   // OLD CREATE MODE REMOVED - Only enhanced onboarding now
 
-  if (mode === 'invitation-created') {
-    return (
-      <Dialog open={isOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="text-center text-2xl">🎉 Adventure Created!</DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div className="text-center py-4">
-              <div className="text-4xl mb-3">📜</div>
-              <p className="text-lg font-bold text-purple-600">Your Epic Invitation is Ready!</p>
-            </div>
-            
-            <div className="bg-gradient-to-r from-purple-100 to-blue-100 p-4 rounded-lg">
-              <h3 className="font-bold mb-2">🔮 Invitation Code: <span className="text-lg text-purple-600">{invitation?.inviteCode}</span></h3>
-              <div className="bg-white p-3 rounded text-sm max-h-40 overflow-y-auto border">
-                {invitation?.message}
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Button onClick={copyInviteMessage} className="w-full bg-green-500 hover:bg-green-600">
-                📋 Copy Epic Invitation Message
-              </Button>
-              
-              <Button onClick={handleStartMyAdventure} className="w-full bg-gradient-to-r from-purple-500 to-blue-600 text-white" disabled={loading}>
-                {loading ? '🔮 Starting...' : '🚀 Start My Adventure Now!'}
-              </Button>
-              
-              <p className="text-sm text-gray-600 text-center">
-                Share the invitation with your partner, or start playing solo and they can join later!
-              </p>
-            </div>
-            
-            <Button 
-              variant="outline" 
-              className="w-full"
-              onClick={() => {
-                setMode('choose');
-                setInvitation(null);
-              }}
-            >
-              Create Another Adventure
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+  // OLD INVITATION-CREATED MODE REMOVED - Enhanced onboarding handles this now
 
   if (mode === 'join') {
     return (
