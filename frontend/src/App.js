@@ -2158,35 +2158,65 @@ function ChoreChampionsApp() {
   console.log('🔍 currentUser state:', currentUser);
   
   if (!currentUser) {
-    console.log('📍 Rendering landing page (no currentUser)');
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-600 flex items-center justify-center">
-        <div className="text-center max-w-lg mx-auto p-8">
-          <div className="animate-bounce mb-6">
-            <div className="text-8xl mb-4">🏆</div>
+        {/* Show enhanced onboarding immediately if flag is true */}
+        {showEnhancedOnboarding ? (
+          <div className="fixed inset-0 bg-white z-50 overflow-y-auto">
+            <div className="min-h-screen flex items-center justify-center p-4">
+              <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full p-8">
+                <div className="text-center mb-8">
+                  <h1 className="text-4xl font-bold text-purple-600 mb-4">🏰 Create Your Kingdom</h1>
+                  <p className="text-gray-600">Let's set up your epic household adventure!</p>
+                </div>
+                
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-lg font-semibold mb-2">👑 What should we call your kingdom?</label>
+                    <input 
+                      type="text" 
+                      placeholder="Enter kingdom name (e.g., Casa Chronicles, The Smith Estate)"
+                      className="w-full p-4 border-2 border-purple-300 rounded-lg text-lg"
+                    />
+                  </div>
+                  
+                  <div className="flex space-x-4">
+                    <button 
+                      onClick={() => setShowEnhancedOnboarding(false)}
+                      className="flex-1 py-3 px-6 border-2 border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50"
+                    >
+                      ← Back
+                    </button>
+                    <button className="flex-1 py-3 px-6 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                      Continue Setup →
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <h1 className="text-6xl font-bold mb-6 text-white drop-shadow-lg">
-            Chore Champions
-          </h1>
-          <p className="text-xl text-white/90 mb-8 leading-relaxed">
-            Transform your household into an epic RPG adventure! Complete quests, level up together, and unlock amazing rewards! ⚔️✨
-          </p>
-          <Button 
-            onClick={() => {
-              console.log('🚀 BUTTON CLICKED - showEnhancedOnboarding before:', showEnhancedOnboarding);
-              setShowEnhancedOnboarding(true);
-              console.log('✅ setShowEnhancedOnboarding(true) called');
-              setTimeout(() => {
-                console.log('⏰ showEnhancedOnboarding after timeout:', showEnhancedOnboarding);
-              }, 100);
-            }} 
-            size="lg" 
-            className="text-xl px-8 py-4 bg-white text-purple-600 hover:bg-gray-100 font-bold shadow-2xl"
-          >
-            Begin Adventure! 🚀
-          </Button>
-        </div>
-        {/* Epic Adventure Modal removed - going directly to enhanced onboarding */}
+        ) : (
+          // Landing page
+          <div className="text-center max-w-lg mx-auto p-8">
+            <div className="animate-bounce mb-6">
+              <div className="text-8xl mb-4">🏆</div>
+            </div>
+            <h1 className="text-6xl font-bold mb-6 text-white drop-shadow-lg">
+              Chore Champions
+            </h1>
+            <p className="text-xl text-white/90 mb-8 leading-relaxed">
+              Transform your household into an epic RPG adventure! Complete quests, level up together, and unlock amazing rewards! ⚔️✨
+            </p>
+            <Button 
+              onClick={() => setShowEnhancedOnboarding(true)}
+              size="lg" 
+              className="text-xl px-8 py-4 bg-white text-purple-600 hover:bg-gray-100 font-bold shadow-2xl"
+            >
+              Begin Adventure! 🚀
+            </Button>
+          </div>
+        )}
+        
         <OnboardingModal isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
       </div>
     );
