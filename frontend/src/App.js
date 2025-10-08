@@ -2154,35 +2154,51 @@ function ChoreChampionsApp() {
   if (!currentUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-600 flex items-center justify-center">
-        {/* Use the actual EnhancedOnboarding component */}
-        <EnhancedOnboarding 
-          isOpen={showEnhancedOnboarding} 
-          onComplete={handleEnhancedOnboardingComplete}
-          onClose={() => setShowEnhancedOnboarding(false)}
-        />
+        {showEnhancedOnboarding ? (
+          <EnhancedOnboarding 
+            isOpen={showEnhancedOnboarding} 
+            onComplete={handleEnhancedOnboardingComplete}
+            onClose={() => setShowEnhancedOnboarding(false)}
+          />
         ) : (
-          // Landing page
-          <div className="text-center max-w-lg mx-auto p-8">
+          // Clean Welcome Screen
+          <div className="text-center max-w-2xl mx-auto p-8">
             <div className="animate-bounce mb-6">
               <div className="text-8xl mb-4">🏆</div>
             </div>
             <h1 className="text-6xl font-bold mb-6 text-white drop-shadow-lg">
               Chore Champions
             </h1>
-            <p className="text-xl text-white/90 mb-8 leading-relaxed">
-              Transform your household into an epic RPG adventure! Complete quests, level up together, and unlock amazing rewards! ⚔️✨
-            </p>
-            <Button 
-              onClick={() => setShowEnhancedOnboarding(true)}
-              size="lg" 
-              className="text-xl px-8 py-4 bg-white text-purple-600 hover:bg-gray-100 font-bold shadow-2xl"
-            >
-              Begin Adventure! 🚀
-            </Button>
+            
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 mb-8 text-white">
+              <p className="text-xl mb-6 leading-relaxed">
+                Hi! Welcome to Chore Champions! This is where you can turn your kingdom (your household) into a great treasure of your life by turning the things you have to do every day anyway into an adventure!
+              </p>
+              <p className="text-lg mb-6">
+                If you're a gamer, like to play games or board games, or if you like to be competitive in a positive way - this would be a great game for you!
+              </p>
+            </div>
+            
+            <div className="space-y-4">
+              <Button 
+                onClick={() => setShowEnhancedOnboarding(true)}
+                size="lg" 
+                className="w-full text-xl px-8 py-4 bg-white text-purple-600 hover:bg-gray-100 font-bold shadow-2xl"
+              >
+                🌟 Start an Adventure
+              </Button>
+              
+              <Button 
+                onClick={() => setShowAuth(true)}
+                size="lg"
+                variant="outline" 
+                className="w-full text-lg px-8 py-3 bg-white/20 text-white border-white hover:bg-white/30"
+              >
+                👑 I was invited to an adventure
+              </Button>
+            </div>
           </div>
         )}
-        
-        <OnboardingModal isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
       </div>
     );
   }
