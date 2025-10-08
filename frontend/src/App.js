@@ -1914,7 +1914,6 @@ function ChoreChampionsApp() {
   const [showEnhancedOnboarding, setShowEnhancedOnboarding] = useState(false);
   const [loading, setLoading] = useState(false);
   const [invitation, setInvitation] = useState(null);
-  const [mode, setMode] = useState('choose');
 
   // Load user from localStorage on app start
   useEffect(() => {
