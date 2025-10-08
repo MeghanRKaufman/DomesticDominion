@@ -2023,6 +2023,33 @@ function ChoreChampionsApp() {
     }
   }, [lastMessage]);
 
+  // Load messages when user changes
+  useEffect(() => {
+    if (currentUser?.coupleId) {
+      loadMessages();
+      checkDailyMessageStatus();
+    }
+  }, [currentUser]);
+
+  const loadMessages = async () => {
+    try {
+      const response = await axios.get(`${API}/messages/${currentUser.coupleId}`);
+      setMessages(response.data);
+    } catch (error) {
+      console.error('Error loading messages:', error);
+    }
+  };
+
+  const checkDailyMessageStatus = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const response = await axios.get(`${API}/messages/${currentUser.coupleId}/daily-status?date=${today}&user_id=${currentUser.userId}`);
+      setHasDailyMessage(response.data.has_daily_message);
+    } catch (error) {
+      console.error('Error checking daily message status:', error);
+    }
+  };
+
   const playNotificationSound = () => {
     // Create the "whah-ping" celebration sound
     try {
