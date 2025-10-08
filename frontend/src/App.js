@@ -2325,25 +2325,47 @@ function ChoreChampionsApp() {
             
             <div className="space-y-2">
               <button
-                onClick={() => setActiveTab('today')}
+                onClick={() => setActiveTab('my-chores')}
                 className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
-                  activeTab === 'today' 
+                  activeTab === 'my-chores' 
                     ? 'bg-blue-100 text-blue-800 border border-blue-200' 
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                📅 Today's Chores
+                🎯 My Chores for Today
               </button>
               
               <button
-                onClick={() => setActiveTab('all')}
+                onClick={() => setActiveTab('all-chores')}
                 className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
-                  activeTab === 'all' 
+                  activeTab === 'all-chores' 
                     ? 'bg-blue-100 text-blue-800 border border-blue-200' 
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                🏠 All Chores
+                📋 All Chores
+              </button>
+              
+              <button
+                onClick={() => setActiveTab('teammate')}
+                className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
+                  activeTab === 'teammate' 
+                    ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                👥 My Teammate
+              </button>
+              
+              <button
+                onClick={() => setActiveTab('messages')}
+                className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
+                  activeTab === 'messages' 
+                    ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                💬 Messages
               </button>
               
               <button
@@ -2354,29 +2376,7 @@ function ChoreChampionsApp() {
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                🎮 Couple Games
-              </button>
-              
-              <button
-                onClick={() => setActiveTab('talents')}
-                className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
-                  activeTab === 'talents' 
-                    ? 'bg-blue-100 text-blue-800 border border-blue-200' 
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                🌳 Talent Tree
-              </button>
-              
-              <button
-                onClick={() => setActiveTab('manage')}
-                className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
-                  activeTab === 'manage' 
-                    ? 'bg-blue-100 text-blue-800 border border-blue-200' 
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                ⚙️ Manage Chores
+                🎮 US Activities
               </button>
             </div>
           </div>
