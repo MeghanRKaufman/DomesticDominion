@@ -2463,6 +2463,68 @@ function ChoreChampionsApp() {
             </div>
           )}
 
+          {/* My Teammate */}
+          {activeTab === 'teammate' && (
+            <div>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-3xl font-bold">👥 My Teammate</h2>
+              </div>
+              
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                {partner ? (
+                  <div className="text-center">
+                    <div className="text-6xl mb-4">👤</div>
+                    <h3 className="text-2xl font-bold mb-2">{partner.displayName}</h3>
+                    <p className="text-gray-600 mb-4">Your adventure partner</p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                      <div className="bg-blue-50 p-4 rounded-lg">
+                        <div className="text-2xl mb-2">📊</div>
+                        <h4 className="font-bold">Level {partner.level || 1}</h4>
+                        <p className="text-sm text-gray-600">{partner.totalPoints || 0} total points</p>
+                      </div>
+                      
+                      <div className="bg-green-50 p-4 rounded-lg">
+                        <div className="text-2xl mb-2">🏆</div>
+                        <h4 className="font-bold">Streak</h4>
+                        <p className="text-sm text-gray-600">{partner.currentStreak || 0} days</p>
+                      </div>
+                      
+                      <div className="bg-purple-50 p-4 rounded-lg">
+                        <div className="text-2xl mb-2">💎</div>
+                        <h4 className="font-bold">Talent Points</h4>
+                        <p className="text-sm text-gray-600">{partner.talentPoints || 0} available</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="text-4xl mb-4">👥</div>
+                    <h3 className="text-xl font-bold mb-2">No Teammate Yet</h3>
+                    <p className="text-gray-600">Invite your partner to join the adventure!</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Messages */}
+          {activeTab === 'messages' && (
+            <div>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-3xl font-bold">💬 Messages</h2>
+              </div>
+              
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <div className="text-center py-8">
+                  <div className="text-4xl mb-4">💬</div>
+                  <h3 className="text-xl font-bold mb-2">Messages Coming Soon</h3>
+                  <p className="text-gray-600">Chat with your teammate, send encouragement, and share achievements!</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* US Activities */}
           {activeTab === 'games' && (
             <div>
