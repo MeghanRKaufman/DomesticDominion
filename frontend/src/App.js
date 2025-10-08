@@ -2155,8 +2155,6 @@ function ChoreChampionsApp() {
     }
   };
 
-  console.log('🔍 currentUser state:', currentUser);
-  
   if (!currentUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-600 flex items-center justify-center">
