@@ -2416,11 +2416,11 @@ function ChoreChampionsApp() {
 
         {/* Main Content Area */}
         <div className="flex-1 p-6">
-          {/* Today's Chores */}
-          {activeTab === 'today' && (
+          {/* My Chores for Today */}
+          {activeTab === 'my-chores' && (
             <div>
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold">📅 Today's Assigned Chores</h2>
+                <h2 className="text-3xl font-bold">🎯 My Chores for Today</h2>
                 <div className="text-sm text-gray-600">
                   {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                 </div>
