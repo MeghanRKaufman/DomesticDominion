@@ -2439,10 +2439,10 @@ function ChoreChampionsApp() {
           )}
 
           {/* All Chores Management */}
-          {activeTab === 'all' && (
+          {activeTab === 'all-chores' && (
             <div>
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold">🏠 All Household Chores</h2>
+                <h2 className="text-3xl font-bold">📋 All Chores</h2>
                 <Button 
                   onClick={() => setShowAddChore(true)}
                   className="bg-green-600 hover:bg-green-700"
