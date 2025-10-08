@@ -2536,29 +2536,6 @@ function ChoreChampionsApp() {
               />
             </div>
           )}
-
-          {/* Talent Tree */}
-          {activeTab === 'talents' && (
-            <div>
-              <h2 className="text-3xl font-bold mb-6">🌳 Talent Tree</h2>
-              <VisualTalentTree 
-                currentUser={currentUser} 
-                onNodeUnlock={handleTalentUnlock} 
-              />
-            </div>
-          )}
-
-          {/* Manage Chores */}
-          {activeTab === 'manage' && (
-            <div>
-              <h2 className="text-3xl font-bold mb-6">⚙️ Manage Chores</h2>
-              <ChoreManagement 
-                tasks={tasks}
-                setTasks={setTasks}
-                currentUser={currentUser}
-              />
-            </div>
-          )}
         </div>
       </div>
 
