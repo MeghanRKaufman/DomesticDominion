@@ -89,32 +89,24 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
   const renderStep1 = () => (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-3xl font-bold mb-2">🏰 Welcome to Chore Champions!</h2>
-        <p className="text-gray-600">Transform your household into an epic adventure</p>
+        <div className="text-6xl mb-4">👑</div>
+        <h2 className="text-3xl font-bold mb-4 text-purple-600">Congratulations!</h2>
+        <p className="text-lg text-gray-700 mb-4">
+          Great choice on accepting your quest to lead your kingdom! This is a journey of great wealth and fortune in all aspects of your household adventure.
+        </p>
       </div>
       
-      <div className="bg-blue-50 p-6 rounded-lg">
-        <h3 className="text-xl font-bold mb-4 text-blue-800">💡 What is a "Kingdom"?</h3>
-        <p className="text-gray-700 mb-4">
-          Your <strong>Kingdom</strong> is your household's adventure name! It's what makes your chores feel like epic quests instead of boring tasks.
+      <div className="bg-gradient-to-r from-purple-100 to-blue-100 p-6 rounded-lg">
+        <h3 className="text-xl font-bold mb-4 text-purple-800">🏰 Let's Set Up Your Kingdom</h3>
+        <p className="text-gray-700">
+          We'll ask you a few simple questions to customize your adventure perfectly for your household. This will help us create the right quests, rewards, and challenges for you and your partner.
         </p>
-        <p className="text-gray-700 mb-4">
-          Think of it like naming your home in a fantasy game - it gives you and your partner a shared identity as you tackle household adventures together!
-        </p>
-        <div className="bg-white p-4 rounded border-l-4 border-blue-400">
-          <p className="text-sm font-medium text-blue-800">Examples:</p>
-          <ul className="text-sm text-gray-600 mt-2 space-y-1">
-            <li>• The Smith & Jones Castle (your last names)</li>
-            <li>• Oak Street Kingdom (your street name)</li>
-            <li>• The Miller Estate (shared last name)</li>
-          </ul>
-        </div>
       </div>
       
       <div className="bg-green-50 p-4 rounded-lg text-center">
-        <h3 className="font-bold text-green-800 mb-2">🎮 Ready to Start Your Adventure?</h3>
+        <h3 className="font-bold text-green-800 mb-2">🎮 Ready to Begin?</h3>
         <p className="text-sm text-green-700">
-          We'll help you set up everything: your kingdom name, household tasks, pet care, and more!
+          This will only take a few minutes and you can always change settings later!
         </p>
       </div>
     </div>
