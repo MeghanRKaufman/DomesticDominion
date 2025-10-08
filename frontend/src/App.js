@@ -2415,6 +2415,17 @@ function ChoreChampionsApp() {
               </button>
               
               <button
+                onClick={() => setActiveTab('talent-tree')}
+                className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
+                  activeTab === 'talent-tree' 
+                    ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                🌳 Talent Tree
+              </button>
+              
+              <button
                 onClick={() => setActiveTab('messages')}
                 className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
                   activeTab === 'messages' 
