@@ -1682,48 +1682,7 @@ function EpicAdventureModal({ isOpen, onClose, onSuccess, onEnhancedOnboarding }
     );
   }
 
-  if (mode === 'create') {
-    return (
-      <Dialog open={isOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-center text-2xl">🌟 Forge Your Legend</DialogTitle>
-          </DialogHeader>
-          
-          <form onSubmit={handleCreateAdventure} className="space-y-4">
-            <div className="text-center py-4">
-              <div className="text-4xl mb-3">⚔️</div>
-              <p className="text-gray-600">Enter your heroic name to begin your epic household adventure!</p>
-            </div>
-            
-            <div>
-              <Label htmlFor="name">🏷️ Hero Name</Label>
-              <Input 
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Enter your legendary name"
-                required
-              />
-            </div>
-            
-            <Button type="submit" className="w-full text-lg py-3 bg-gradient-to-r from-purple-500 to-blue-600" disabled={loading}>
-              {loading ? '🔮 Forging Legend...' : '🚀 Create Epic Adventure!'}
-            </Button>
-            
-            <Button 
-              type="button" 
-              variant="ghost" 
-              className="w-full"
-              onClick={() => setMode('choose')}
-            >
-              ← Back to Path Selection
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+  // OLD CREATE MODE REMOVED - Only enhanced onboarding now
 
   if (mode === 'invitation-created') {
     return (
