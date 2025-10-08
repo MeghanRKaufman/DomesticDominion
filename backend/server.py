@@ -2009,6 +2009,143 @@ async def get_premium_status(user_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# ===== PI MESSAGE INTEGRATION ENDPOINTS =====
+
+# Message models
+class MessageRequest(BaseModel):
+    message: str
+    enhancement_level: str = "moderate"
+    preserve_style: bool = True
+    user_id: str
+
+class SendMessageRequest(BaseModel):
+    content: str
+    original_content: Optional[str] = None
+    enhanced: bool = False
+    empathy_score: float = 0.0
+    sender_id: str
+    couple_id: str
+
+# Pi message enhancement endpoint
+@api_router.post("/api/pi/enhance-message")
+async def enhance_message_endpoint(request: MessageRequest):
+    """
+    Enhance a message using Pi AI for empathetic communication
+    """
+    try:
+        result = await enhance_message_with_pi(
+            message=request.message,
+            enhancement_level=request.enhancement_level,
+            preserve_style=request.preserve_style
+        )
+        
+        # Log the enhancement for analytics (optional)
+        enhancement_log = {
+            "user_id": request.user_id,
+            "timestamp": datetime.now(timezone.utc),
+            "original_message": request.message,
+            "enhanced_message": result["enhanced_message"],
+            "enhancement_level": request.enhancement_level,
+            "confidence_score": result["confidence_score"]
+        }
+        
+        # Store in database for future analysis (optional)
+        await db.pi_enhancements.insert_one(enhancement_log)
+        
+        return result
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Message enhancement failed: {str(e)}")
+
+# Send message endpoint
+@api_router.post("/api/messages/send")
+async def send_message(request: SendMessageRequest):
+    """
+    Send a message between partners
+    """
+    try:
+        # Create message document
+        message_doc = {
+            "id": str(uuid.uuid4()),
+            "content": request.content,
+            "original_content": request.original_content,
+            "enhanced": request.enhanced,
+            "empathy_score": request.empathy_score,
+            "sender_id": request.sender_id,
+            "couple_id": request.couple_id,
+            "timestamp": datetime.now(timezone.utc),
+            "read": False
+        }
+        
+        # Store message in database
+        await db.messages.insert_one(message_doc)
+        
+        # Notify partner via websocket if connected
+        if request.couple_id in manager.active_connections:
+            notification = {
+                "type": "new_message",
+                "sender_id": request.sender_id,
+                "content": request.content,
+                "enhanced": request.enhanced,
+                "timestamp": message_doc["timestamp"].isoformat()
+            }
+            await manager.send_message(request.couple_id, notification)
+        
+        return {"id": message_doc["id"], "status": "sent", "timestamp": message_doc["timestamp"]}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to send message: {str(e)}")
+
+# Get messages for a couple
+@api_router.get("/api/messages/{couple_id}")
+async def get_messages(couple_id: str, limit: int = 50):
+    """
+    Get recent messages for a couple
+    """
+    try:
+        messages = await db.messages.find(
+            {"couple_id": couple_id}
+        ).sort("timestamp", -1).limit(limit).to_list(length=None)
+        
+        # Convert ObjectId and datetime for JSON serialization
+        for message in messages:
+            if "_id" in message:
+                del message["_id"]
+            message["timestamp"] = message["timestamp"].isoformat()
+        
+        return messages
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get messages: {str(e)}")
+
+# Check daily message status
+@api_router.get("/api/messages/{couple_id}/daily-status")
+async def check_daily_message_status(couple_id: str, date: str, user_id: str):
+    """
+    Check if user has sent their required daily message
+    """
+    try:
+        # Parse date
+        target_date = datetime.fromisoformat(date)
+        start_of_day = target_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_of_day = target_date.replace(hour=23, minute=59, second=59, microsecond=999999)
+        
+        # Check for messages from user on that date
+        message_count = await db.messages.count_documents({
+            "couple_id": couple_id,
+            "sender_id": user_id,
+            "timestamp": {"$gte": start_of_day, "$lte": end_of_day}
+        })
+        
+        return {
+            "has_daily_message": message_count > 0,
+            "message_count": message_count,
+            "date": date
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to check daily message status: {str(e)}")
+
 @api_router.get("/game-constants")
 async def get_game_constants():
     """Get game constants for frontend"""
