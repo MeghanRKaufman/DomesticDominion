@@ -2935,6 +2935,243 @@ function ChoreChampionsApp() {
             </div>
           )}
 
+          {/* Talent Tree */}
+          {activeTab === 'talent-tree' && (
+            <div>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-3xl font-bold">🌳 Talent Tree - Chore Champions</h2>
+                <div className="flex items-center space-x-4">
+                  <div className="text-right">
+                    <div className="text-sm text-gray-600">Available Talent Points</div>
+                    <div className="text-2xl font-bold text-blue-600">⭐ {currentUser.talentPoints}</div>
+                  </div>
+                  <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1">
+                    Level {Math.floor(currentUser.points / LEVEL_UP_POINTS) + 1}
+                  </Badge>
+                </div>
+              </div>
+              
+              {/* Premium Unlock Notice */}
+              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 p-4 mb-6">
+                <div className="flex items-center">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-yellow-800">🏆 Free Tiers 1-5 Available</h3>
+                    <p className="text-yellow-700">Unlock premium tiers 6-10 with in-app purchase for advanced mastery nodes and couple bonuses!</p>
+                  </div>
+                  <Button className="bg-yellow-600 hover:bg-yellow-700 text-white ml-4">
+                    Unlock Premium 👑
+                  </Button>
+                </div>
+              </div>
+
+              {/* Talent Tree Branches */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Housekeeping Heroes Branch */}
+                <div className="bg-gradient-to-b from-green-50 to-emerald-50 rounded-xl border-2 border-green-200 p-6">
+                  <div className="text-center mb-6">
+                    <h3 className="text-2xl font-bold text-green-800 mb-2">🏡 Housekeeping Heroes</h3>
+                    <p className="text-sm text-green-600 italic">Sanctum of Stewardry</p>
+                    <p className="text-xs text-green-600 mt-1">Master your shared spaces and domestic pride</p>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {Object.values(TALENT_TREE_NODES)
+                      .filter(node => node.branch === 'Housekeeping')
+                      .sort((a, b) => a.tier - b.tier)
+                      .map(node => (
+                        <div 
+                          key={node.id}
+                          className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${
+                            node.premium && node.tier > 5
+                              ? 'bg-gradient-to-r from-amber-100 to-yellow-100 border-amber-300 opacity-75'
+                              : currentUser.talentBuild?.[node.id]
+                              ? 'bg-green-100 border-green-400 shadow-md'
+                              : currentUser.talentPoints >= node.cost
+                              ? 'bg-white border-green-200 hover:border-green-400 hover:shadow-md'
+                              : 'bg-gray-50 border-gray-200 opacity-50'
+                          }`}
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2">
+                                <span className="text-lg font-bold text-green-800">
+                                  {node.name}
+                                </span>
+                                <Badge variant="outline" className="text-xs">
+                                  Tier {node.tier}
+                                </Badge>
+                                {node.premium && (
+                                  <Badge className="bg-yellow-500 text-white text-xs">👑</Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-700 mt-1">{node.description}</p>
+                            </div>
+                            <div className="text-right ml-4">
+                              <div className="text-sm font-semibold text-blue-600">
+                                ⭐ {node.cost}
+                              </div>
+                              {currentUser.talentBuild?.[node.id] && (
+                                <div className="text-xs text-green-600 font-semibold">✓ Unlocked</div>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {node.prerequisites.length > 0 && (
+                            <div className="text-xs text-gray-500 mt-2">
+                              Requires: {node.prerequisites.map(prereq => 
+                                TALENT_TREE_NODES[prereq]?.name || prereq
+                              ).join(', ')}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                </div>
+
+                {/* Coupling Questline Branch */}
+                <div className="bg-gradient-to-b from-pink-50 to-rose-50 rounded-xl border-2 border-pink-200 p-6">
+                  <div className="text-center mb-6">
+                    <h3 className="text-2xl font-bold text-pink-800 mb-2">💞 Coupling Questline</h3>
+                    <p className="text-sm text-pink-600 italic">Heartlands of Concord</p>
+                    <p className="text-xs text-pink-600 mt-1">Enhance teamwork and emotional connection</p>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {Object.values(TALENT_TREE_NODES)
+                      .filter(node => node.branch === 'Coupling')
+                      .sort((a, b) => a.tier - b.tier)
+                      .map(node => (
+                        <div 
+                          key={node.id}
+                          className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${
+                            node.premium && node.tier > 5
+                              ? 'bg-gradient-to-r from-amber-100 to-yellow-100 border-amber-300 opacity-75'
+                              : currentUser.talentBuild?.[node.id]
+                              ? 'bg-pink-100 border-pink-400 shadow-md'
+                              : currentUser.talentPoints >= node.cost
+                              ? 'bg-white border-pink-200 hover:border-pink-400 hover:shadow-md'
+                              : 'bg-gray-50 border-gray-200 opacity-50'
+                          }`}
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2">
+                                <span className="text-lg font-bold text-pink-800">
+                                  {node.name}
+                                </span>
+                                <Badge variant="outline" className="text-xs">
+                                  Tier {node.tier}
+                                </Badge>
+                                {node.premium && (
+                                  <Badge className="bg-yellow-500 text-white text-xs">👑</Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-700 mt-1">{node.description}</p>
+                            </div>
+                            <div className="text-right ml-4">
+                              <div className="text-sm font-semibold text-blue-600">
+                                ⭐ {node.cost}
+                              </div>
+                              {currentUser.talentBuild?.[node.id] && (
+                                <div className="text-xs text-pink-600 font-semibold">✓ Unlocked</div>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {node.prerequisites.length > 0 && (
+                            <div className="text-xs text-gray-500 mt-2">
+                              Requires: {node.prerequisites.map(prereq => 
+                                TALENT_TREE_NODES[prereq]?.name || prereq
+                              ).join(', ')}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                </div>
+
+                {/* Personal Growth Path Branch */}
+                <div className="bg-gradient-to-b from-purple-50 to-indigo-50 rounded-xl border-2 border-purple-200 p-6">
+                  <div className="text-center mb-6">
+                    <h3 className="text-2xl font-bold text-purple-800 mb-2">🌱 Personal Growth Path</h3>
+                    <p className="text-sm text-purple-600 italic">Realm of Resonance</p>
+                    <p className="text-xs text-purple-600 mt-1">Develop inner balance and self-mastery</p>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {Object.values(TALENT_TREE_NODES)
+                      .filter(node => node.branch === 'Growth')
+                      .sort((a, b) => a.tier - b.tier)
+                      .map(node => (
+                        <div 
+                          key={node.id}
+                          className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${
+                            node.premium && node.tier > 5
+                              ? 'bg-gradient-to-r from-amber-100 to-yellow-100 border-amber-300 opacity-75'
+                              : currentUser.talentBuild?.[node.id]
+                              ? 'bg-purple-100 border-purple-400 shadow-md'
+                              : currentUser.talentPoints >= node.cost
+                              ? 'bg-white border-purple-200 hover:border-purple-400 hover:shadow-md'
+                              : 'bg-gray-50 border-gray-200 opacity-50'
+                          }`}
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2">
+                                <span className="text-lg font-bold text-purple-800">
+                                  {node.name}
+                                </span>
+                                <Badge variant="outline" className="text-xs">
+                                  Tier {node.tier}
+                                </Badge>
+                                {node.premium && (
+                                  <Badge className="bg-yellow-500 text-white text-xs">👑</Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-700 mt-1">{node.description}</p>
+                            </div>
+                            <div className="text-right ml-4">
+                              <div className="text-sm font-semibold text-blue-600">
+                                ⭐ {node.cost}
+                              </div>
+                              {currentUser.talentBuild?.[node.id] && (
+                                <div className="text-xs text-purple-600 font-semibold">✓ Unlocked</div>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {node.prerequisites.length > 0 && (
+                            <div className="text-xs text-gray-500 mt-2">
+                              Requires: {node.prerequisites.map(prereq => 
+                                TALENT_TREE_NODES[prereq]?.name || prereq
+                              ).join(', ')}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Mastery Achievement Section */}
+              <div className="mt-8 bg-gradient-to-r from-gray-900 via-purple-900 to-indigo-900 rounded-xl p-6 text-white">
+                <h3 className="text-2xl font-bold mb-4 text-center">🌟 Hidden Mastery Region: The Constellation Garden</h3>
+                <p className="text-center text-gray-300 mb-4">
+                  Unlock this shared space when both partners reach Tier 10 in any tree. 
+                  Here you can meet, relax, and send emotional gifts to strengthen your bond.
+                </p>
+                <div className="flex justify-center space-x-4">
+                  <Badge className="bg-white/20 text-white px-4 py-2">
+                    Partner Progress: 🌱 Tier {Math.max(...Object.values(TALENT_TREE_NODES).filter(n => partner?.talentBuild?.[n.id]).map(n => n.tier) || [0])}
+                  </Badge>
+                  <Badge className="bg-white/20 text-white px-4 py-2">
+                    Your Progress: 🌱 Tier {Math.max(...Object.values(TALENT_TREE_NODES).filter(n => currentUser.talentBuild?.[n.id]).map(n => n.tier) || [0])}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* US Activities */}
           {activeTab === 'games' && (
             <div>
