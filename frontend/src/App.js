@@ -2622,41 +2622,111 @@ function ChoreChampionsApp() {
                 <h2 className="text-3xl font-bold">👥 My Teammate</h2>
               </div>
               
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                {partner ? (
-                  <div className="text-center">
-                    <div className="text-6xl mb-4">👤</div>
-                    <h3 className="text-2xl font-bold mb-2">{partner.displayName}</h3>
-                    <p className="text-gray-600 mb-4">Your adventure partner</p>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                      <div className="bg-blue-50 p-4 rounded-lg">
-                        <div className="text-2xl mb-2">📊</div>
-                        <h4 className="font-bold">Level {partner.level || 1}</h4>
-                        <p className="text-sm text-gray-600">{partner.totalPoints || 0} total points</p>
-                      </div>
+              {partner ? (
+                <div className="space-y-6">
+                  {/* Partner Stats */}
+                  <div className="bg-white rounded-lg shadow-lg p-6">
+                    <div className="text-center">
+                      <div className="text-6xl mb-4">👤</div>
+                      <h3 className="text-2xl font-bold mb-2">{partner.displayName}</h3>
+                      <p className="text-gray-600 mb-4">Your adventure partner</p>
                       
-                      <div className="bg-green-50 p-4 rounded-lg">
-                        <div className="text-2xl mb-2">🏆</div>
-                        <h4 className="font-bold">Streak</h4>
-                        <p className="text-sm text-gray-600">{partner.currentStreak || 0} days</p>
-                      </div>
-                      
-                      <div className="bg-purple-50 p-4 rounded-lg">
-                        <div className="text-2xl mb-2">💎</div>
-                        <h4 className="font-bold">Talent Points</h4>
-                        <p className="text-sm text-gray-600">{partner.talentPoints || 0} available</p>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                        <div className="bg-blue-50 p-4 rounded-lg">
+                          <div className="text-2xl mb-2">📊</div>
+                          <h4 className="font-bold">Level {partner.level || 1}</h4>
+                          <p className="text-sm text-gray-600">{partner.totalPoints || 0} total points</p>
+                        </div>
+                        
+                        <div className="bg-green-50 p-4 rounded-lg">
+                          <div className="text-2xl mb-2">🏆</div>
+                          <h4 className="font-bold">Today's Progress</h4>
+                          <p className="text-sm text-gray-600">{partnerChores.filter(c => c.completed).length}/{partnerChores.length} chores done</p>
+                        </div>
+                        
+                        <div className="bg-purple-50 p-4 rounded-lg">
+                          <div className="text-2xl mb-2">💎</div>
+                          <h4 className="font-bold">Points Today</h4>
+                          <p className="text-sm text-gray-600">{partnerChores.filter(c => c.completed).reduce((sum, c) => sum + c.points, 0)} points</p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                ) : (
+
+                  {/* Partner's Today's Chores */}
+                  <div className="bg-white rounded-lg shadow-lg p-6">
+                    <h3 className="text-lg font-bold mb-4">🎯 {partner.displayName}'s Chores for Today</h3>
+                    
+                    {partnerChores.length > 0 ? (
+                      <div className="space-y-3">
+                        {partnerChores.map((chore) => (
+                          <div key={chore.id} className={`border rounded-lg p-4 ${chore.completed ? 'bg-green-50 border-green-200' : 'bg-gray-50'}`}>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                                  chore.completed ? 'bg-green-500 text-white' : 'bg-gray-300'
+                                }`}>
+                                  {chore.completed ? '✓' : '○'}
+                                </div>
+                                <div>
+                                  <h4 className="font-bold">{chore.title}</h4>
+                                  <div className="flex items-center space-x-3 text-sm text-gray-600">
+                                    <span>🏠 {chore.room}</span>
+                                    <span className={`px-2 py-1 rounded text-xs ${
+                                      chore.difficulty === 'EASY' ? 'bg-green-100 text-green-800' :
+                                      chore.difficulty === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
+                                      'bg-red-100 text-red-800'
+                                    }`}>
+                                      {chore.difficulty}
+                                    </span>
+                                    <span className="text-purple-600 font-bold">+{chore.points} pts</span>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {!chore.completed && (
+                                <button 
+                                  onClick={() => {
+                                    // Take over task for 3x points
+                                    const takeoverPoints = chore.points * 3;
+                                    handleQuestComplete(takeoverPoints);
+                                    setPartnerChores(prev => prev.map(c => 
+                                      c.id === chore.id ? {...c, completed: true, takenOver: true} : c
+                                    ));
+                                    setCelebrationMessage(`🎉 Task Takeover! You earned ${takeoverPoints} points (3x bonus) for helping your partner!`);
+                                    setTimeout(() => setCelebrationMessage(''), 3000);
+                                  }}
+                                  className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 text-sm font-bold"
+                                >
+                                  Take Over (3x Points!)
+                                </button>
+                              )}
+                              
+                              {chore.takenOver && (
+                                <div className="text-sm text-orange-600 font-bold">
+                                  ✨ You took over this task!
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        No chores assigned to {partner.displayName} today
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-white rounded-lg shadow-lg p-6">
                   <div className="text-center py-8">
                     <div className="text-4xl mb-4">👥</div>
                     <h3 className="text-xl font-bold mb-2">No Teammate Yet</h3>
                     <p className="text-gray-600">Invite your partner to join the adventure!</p>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           )}
 
