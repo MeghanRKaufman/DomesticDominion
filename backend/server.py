@@ -144,6 +144,133 @@ TALENT_TREE_NODES = {
         "position": {"x": 100, "y": 50},
         "premium": False
     },
+    
+    # Tier 2: Clothfold Downs - Laundry, linens, organization
+    "hh_laundry_legends": {
+        "id": "hh_laundry_legends", 
+        "name": "Laundry Legends",
+        "branch": "Housekeeping",
+        "tier": 2,
+        "cost": 2,
+        "description": "+10% point bonus when laundry is folded same day",
+        "effect": {"type": "category_multiplier", "category": "laundry", "condition": "same_day", "multiplier": 1.1},
+        "prerequisites": ["hh_dish_duty"],
+        "position": {"x": 100, "y": 120},
+        "premium": False
+    },
+    
+    # Tier 3: Pawshire Fields - Pet care
+    "hh_pet_patrol": {
+        "id": "hh_pet_patrol",
+        "name": "Pet Patrol", 
+        "branch": "Housekeeping",
+        "tier": 3,
+        "cost": 2,
+        "description": "Unlocks pet task tracking (feeding, litter box, walks, meds)",
+        "effect": {"type": "unlock_category", "category": "pet_tasks", "tasks": ["feeding", "litter", "walks", "medication"]},
+        "prerequisites": ["hh_laundry_legends"],
+        "position": {"x": 100, "y": 190},
+        "premium": False
+    },
+    
+    # Tier 4: Motorstead - Vehicle maintenance
+    "hh_vehicle_vanguard": {
+        "id": "hh_vehicle_vanguard",
+        "name": "Vehicle Vanguard",
+        "branch": "Housekeeping", 
+        "tier": 4,
+        "cost": 2,
+        "description": "Unlocks car-related tasks (oil check, gas fill, cleaning)",
+        "effect": {"type": "unlock_category", "category": "vehicle_tasks", "tasks": ["oil_check", "gas_fill", "car_cleaning", "maintenance"]},
+        "prerequisites": ["hh_pet_patrol"],
+        "position": {"x": 100, "y": 260},
+        "premium": False
+    },
+    
+    # Tier 5: Twin Task Hills - Synchronize chores with partner
+    "hh_tag_team_clean": {
+        "id": "hh_tag_team_clean",
+        "name": "Tag Team Clean",
+        "branch": "Housekeeping",
+        "tier": 5,
+        "cost": 3,
+        "description": "Bonus for completing a chore within 2 hrs of partner's",
+        "effect": {"type": "partner_sync_bonus", "time_window": 2, "bonus_multiplier": 1.2},
+        "prerequisites": ["hh_vehicle_vanguard"],
+        "position": {"x": 100, "y": 330},
+        "premium": False
+    },
+    
+    # Premium Tiers 6-10 (Paid unlock)
+    # Tier 6: Sparkspire City - Efficiency bonuses
+    "hh_efficiency_expert": {
+        "id": "hh_efficiency_expert",
+        "name": "Efficiency Expert",
+        "branch": "Housekeeping",
+        "tier": 6,
+        "cost": 3,
+        "description": "+15% base points when completing 3+ chores in a row",
+        "effect": {"type": "streak_bonus", "min_streak": 3, "multiplier": 1.15},
+        "prerequisites": ["hh_tag_team_clean"],
+        "position": {"x": 100, "y": 400},
+        "premium": True
+    },
+    
+    # Tier 7: Zenwood Sanctuary - Home as calm, balanced energy
+    "hh_sanctuary_sensei": {
+        "id": "hh_sanctuary_sensei", 
+        "name": "Sanctuary Sensei",
+        "branch": "Housekeeping",
+        "tier": 7,
+        "cost": 3,
+        "description": "Partner receives a calm-day bonus if all rooms logged",
+        "effect": {"type": "partner_bonus", "condition": "all_rooms_complete", "bonus": "calm_day"},
+        "prerequisites": ["hh_efficiency_expert"],
+        "position": {"x": 100, "y": 470},
+        "premium": True
+    },
+    
+    # Tier 8: Ecohollow Grove - Environmentally mindful chores
+    "hh_green_guardian": {
+        "id": "hh_green_guardian",
+        "name": "Green Guardian", 
+        "branch": "Housekeeping",
+        "tier": 8,
+        "cost": 4,
+        "description": "Track and reward eco-actions (recycling, low water use)",
+        "effect": {"type": "unlock_category", "category": "eco_tasks", "bonus_multiplier": 1.25},
+        "prerequisites": ["hh_sanctuary_sensei"],
+        "position": {"x": 100, "y": 540},
+        "premium": True
+    },
+    
+    # Tier 9: Citadel of Order - Total household harmony
+    "hh_homebound_hero": {
+        "id": "hh_homebound_hero",
+        "name": "Homebound Hero",
+        "branch": "Housekeeping",
+        "tier": 9,
+        "cost": 4,
+        "description": "Gain 2x points for weekend home reset routines",
+        "effect": {"type": "time_multiplier", "days": ["saturday", "sunday"], "category": "home_reset", "multiplier": 2.0},
+        "prerequisites": ["hh_green_guardian"],
+        "position": {"x": 100, "y": 610},
+        "premium": True
+    },
+    
+    # Tier 10: Crown of the Keep - Mastery node
+    "hh_keeper_of_keep": {
+        "id": "hh_keeper_of_keep",
+        "name": "Keeper of the Keep",
+        "branch": "Housekeeping", 
+        "tier": 10,
+        "cost": 5,
+        "description": "Auto-completes one daily low-value task when you reach 100% partner approval for a week",
+        "effect": {"type": "mastery_autocomplete", "condition": "100_percent_approval", "duration": "week"},
+        "prerequisites": ["hh_homebound_hero"],
+        "position": {"x": 100, "y": 680},
+        "premium": True
+    },
     "pg_mindful_moments": {
         "id": "pg_mindful_moments", 
         "name": "Mindful Moments",
