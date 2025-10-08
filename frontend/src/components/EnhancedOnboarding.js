@@ -7,6 +7,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 
 const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
   const [step, setStep] = useState(1);
+  
+  // Debug logging
+  console.log('🔍 EnhancedOnboarding render - isOpen:', isOpen);
   const [onboardingData, setOnboardingData] = useState({
     // Kingdom Info
     kingdomName: '',
