@@ -1920,6 +1920,18 @@ function ChoreChampionsApp() {
   const [showEnhancedOnboarding, setShowEnhancedOnboarding] = useState(false);
   const [loading, setLoading] = useState(false);
   const [invitation, setInvitation] = useState(null);
+  
+  // Pi Integration State
+  const [messageText, setMessageText] = useState('');
+  const [enhancedMessage, setEnhancedMessage] = useState('');
+  const [enhancementData, setEnhancementData] = useState(null);
+  const [enhancementLevel, setEnhancementLevel] = useState('moderate');
+  const [preserveStyle, setPreserveStyle] = useState(true);
+  const [isEnhancing, setIsEnhancing] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [showPiSettings, setShowPiSettings] = useState(false);
+  const [hasDailyMessage, setHasDailyMessage] = useState(false);
 
   // Load user from localStorage on app start
   useEffect(() => {
