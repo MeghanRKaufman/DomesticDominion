@@ -2834,104 +2834,183 @@ function ChoreChampionsApp() {
             </div>
           )}
 
-          {/* Messages */}
+          {/* Messages - Pi Enhanced Communication */}
           {activeTab === 'messages' && (
             <div>
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold">💬 Messages & Communication</h2>
+                <h2 className="text-3xl font-bold">💬 Messages</h2>
+                <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1">
+                  ✨ Pi Enhanced
+                </Badge>
               </div>
-              
-              <div className="space-y-6">
-                {/* Send Filtered Message */}
-                <div className="bg-white rounded-lg shadow-lg p-6">
-                  <h3 className="text-lg font-bold mb-4">📝 Send a Thoughtful Message</h3>
-                  <p className="text-gray-600 mb-4">
-                    Write what's on your mind and we'll help you say it in the most appropriate way. Perfect for when you need to be direct but kind, or want to sugar-coat tough conversations.
-                  </p>
+
+              {/* Pi Integration Info */}
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-l-4 border-purple-400 p-4 mb-6">
+                <div className="flex items-center">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-purple-800">🤖 Pi AI Message Enhancement</h3>
+                    <p className="text-purple-700">Your messages are enhanced for empathetic communication using Pi AI to help build stronger connections.</p>
+                  </div>
+                  <Button 
+                    onClick={() => setShowPiSettings(true)}
+                    className="bg-purple-600 hover:bg-purple-700 text-white ml-4"
+                  >
+                    ⚙️ Pi Settings
+                  </Button>
+                </div>
+              </div>
+
+              {/* Message Composer */}
+              <div className="bg-white rounded-xl border-2 border-gray-200 p-6 mb-6">
+                <h3 className="text-lg font-semibold mb-4">✍️ Compose Message</h3>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="message-input">Your Message</Label>
+                    <textarea
+                      id="message-input"
+                      className="w-full p-3 border rounded-lg resize-none"
+                      rows={4}
+                      placeholder="Write your message here..."
+                      value={messageText}
+                      onChange={(e) => setMessageText(e.target.value)}
+                    />
+                  </div>
                   
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Your message:</label>
-                      <textarea 
-                        className="w-full p-3 border rounded-lg resize-none"
-                        rows="4"
-                        placeholder="Type what you really want to say... we'll help make it sound better!"
-                      />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div>
+                        <Label className="text-sm">Enhancement Level</Label>
+                        <select 
+                          className="ml-2 p-1 border rounded"
+                          value={enhancementLevel}
+                          onChange={(e) => setEnhancementLevel(e.target.value)}
+                        >
+                          <option value="light">Light</option>
+                          <option value="moderate">Moderate</option>
+                          <option value="significant">Significant</option>
+                        </select>
+                      </div>
+                      
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id="preserve-style"
+                          checked={preserveStyle}
+                          onChange={(e) => setPreserveStyle(e.target.checked)}
+                          className="mr-2"
+                        />
+                        <Label htmlFor="preserve-style" className="text-sm">Preserve my style</Label>
+                      </div>
                     </div>
                     
                     <div className="flex space-x-3">
-                      <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                        🤖 Filter & Send
-                      </button>
-                      <button className="px-4 py-2 border rounded hover:bg-gray-50">
-                        Preview Filtered Version
-                      </button>
+                      <Button
+                        onClick={handleEnhanceMessage}
+                        className="bg-purple-600 hover:bg-purple-700"
+                        disabled={!messageText.trim() || isEnhancing}
+                      >
+                        {isEnhancing ? '✨ Enhancing...' : '✨ Enhance with Pi'}
+                      </Button>
+                      
+                      <Button
+                        onClick={handleSendMessage}
+                        className="bg-blue-600 hover:bg-blue-700"
+                        disabled={!messageText.trim() || isSending}
+                      >
+                        {isSending ? '📤 Sending...' : '📤 Send'}
+                      </Button>
                     </div>
                   </div>
-                </div>
 
-                {/* Daily Required Message */}
-                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6">
-                  <div className="flex items-center mb-3">
-                    <div className="text-2xl mr-3">⭐</div>
-                    <h3 className="text-lg font-bold">Daily Message Requirement</h3>
-                  </div>
-                  <p className="text-gray-700 mb-4">
-                    Send at least one filtered message to your partner each day to keep your communication streak alive!
-                  </p>
-                  <div className="text-sm text-yellow-700">
-                    Today's status: <strong>Not completed</strong> - Send a message above to complete your daily requirement.
-                  </div>
-                </div>
-
-                {/* Daily Couple Questions */}
-                <div className="bg-white rounded-lg shadow-lg p-6">
-                  <h3 className="text-lg font-bold mb-4">❓ Daily Couple Question</h3>
-                  <div className="bg-purple-50 p-4 rounded-lg mb-4">
-                    <p className="font-medium text-purple-800 mb-2">Today's Question:</p>
-                    <p className="text-lg">"What's one thing your partner did this week that made you smile?"</p>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Your answer:</label>
-                      <input 
-                        type="text" 
-                        className="w-full p-3 border rounded-lg"
-                        placeholder="Type your answer here..."
-                      />
+                  {/* Enhanced Preview */}
+                  {enhancedMessage && (
+                    <div className="mt-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+                      <h4 className="font-semibold text-purple-800 mb-2">✨ Pi Enhanced Version</h4>
+                      <p className="text-gray-800 mb-3">{enhancedMessage}</p>
+                      
+                      {enhancementData && (
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center space-x-4">
+                            <span className="text-purple-600">
+                              Empathy Score: {(enhancementData.confidence_score * 100).toFixed(1)}%
+                            </span>
+                            {enhancementData.enhancements_applied && (
+                              <span className="text-purple-600">
+                                Applied: {enhancementData.enhancements_applied.join(', ')}
+                              </span>
+                            )}
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={handleUseEnhanced}
+                            className="bg-purple-500 hover:bg-purple-600 text-white"
+                          >
+                            Use Enhanced Version
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Guess your partner's answer:</label>
-                      <input 
-                        type="text" 
-                        className="w-full p-3 border rounded-lg"
-                        placeholder="What do you think they'll say?"
-                      />
-                    </div>
-                    <button className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
-                      Submit Answers (+5 points each, +10 if you match!)
-                    </button>
-                  </div>
-                </div>
-
-                {/* Message History */}
-                <div className="bg-white rounded-lg shadow-lg p-6">
-                  <h3 className="text-lg font-bold mb-4">💌 Recent Messages</h3>
-                  <div className="space-y-3">
-                    <div className="border-l-4 border-green-400 pl-4">
-                      <p className="text-sm text-gray-600">Today, 2:30 PM</p>
-                      <p className="font-medium">Thanks for taking care of the dishes yesterday! It really helped me relax after work.</p>
-                      <p className="text-xs text-green-600">✓ Filtered for positive tone</p>
-                    </div>
-                    <div className="border-l-4 border-blue-400 pl-4">
-                      <p className="text-sm text-gray-600">Yesterday, 8:15 AM</p>
-                      <p className="font-medium">I noticed the laundry is piling up. Would you mind if we tackled it together this weekend?</p>
-                      <p className="text-xs text-blue-600">✓ Filtered for gentle approach</p>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
+
+              {/* Message History */}
+              <div className="bg-white rounded-xl border-2 border-gray-200 p-6">
+                <h3 className="text-lg font-semibold mb-4">📝 Recent Messages</h3>
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {messages.map((message, index) => (
+                    <div key={index} className={`p-4 rounded-lg border-l-4 ${
+                      message.sender === currentUser.userId 
+                        ? 'border-blue-400 bg-blue-50' 
+                        : 'border-green-400 bg-green-50'
+                    }`}>
+                      <div className="flex justify-between items-start mb-2">
+                        <span className={`font-semibold ${
+                          message.sender === currentUser.userId ? 'text-blue-800' : 'text-green-800'
+                        }`}>
+                          {message.sender === currentUser.userId ? 'You' : partner?.displayName || 'Partner'}
+                        </span>
+                        <span className="text-sm text-gray-500">
+                          {new Date(message.timestamp).toLocaleString()}
+                        </span>
+                      </div>
+                      
+                      <p className="text-gray-800 mb-2">{message.content}</p>
+                      
+                      {message.enhanced && (
+                        <div className="text-xs space-y-1">
+                          <p className="text-purple-600">✨ Enhanced by Pi (Empathy: {(message.empathy_score * 100).toFixed(1)}%)</p>
+                          {message.original_content && (
+                            <details className="text-gray-500">
+                              <summary className="cursor-pointer">Show original</summary>
+                              <p className="mt-1 italic">{message.original_content}</p>
+                            </details>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  
+                  {messages.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>No messages yet. Start a conversation!</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Daily Required Message Reminder */}
+              {!hasDailyMessage && (
+                <div className="mt-6 bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                  <div className="flex items-center">
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-yellow-800">📅 Daily Message Reminder</h4>
+                      <p className="text-yellow-700">Don't forget to send your daily filtered message to keep your connection strong!</p>
+                    </div>
+                    <Badge className="bg-yellow-500 text-white">Required</Badge>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
