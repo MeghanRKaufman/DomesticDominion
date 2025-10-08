@@ -2483,15 +2483,58 @@ function ChoreChampionsApp() {
                 </div>
               </div>
               
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                <CheckboxChoreList 
-                  tasks={selectedRoom === 'all' ? Object.values(tasks).flat() : (tasks[selectedRoom] || [])}
-                  currentUser={currentUser}
-                  partner={partner}
-                  onComplete={handleQuestComplete}
-                  isToday={true}
-                />
-              </div>
+              {myDailyChores.length > 0 ? (
+                <div className="grid gap-4">
+                  {myDailyChores
+                    .filter(chore => selectedRoom === 'all' || chore.room.toLowerCase().includes(selectedRoom.toLowerCase()))
+                    .map((chore) => (
+                    <div key={chore.id} className="bg-white rounded-lg shadow p-4 flex items-center space-x-4">
+                      <input 
+                        type="checkbox"
+                        className="w-6 h-6 rounded border-2 border-purple-300 text-purple-600 focus:ring-purple-500"
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            handleQuestComplete(chore.points);
+                            // Remove from daily list when completed
+                            setMyDailyChores(prev => prev.filter(c => c.id !== chore.id));
+                          }
+                        }}
+                      />
+                      <div className="flex-1">
+                        <h3 className="font-bold text-lg">{chore.title}</h3>
+                        <div className="flex items-center space-x-4 text-sm text-gray-600">
+                          <span>🏠 {chore.room}</span>
+                          <span className={`px-2 py-1 rounded text-xs ${
+                            chore.difficulty === 'EASY' ? 'bg-green-100 text-green-800' :
+                            chore.difficulty === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {chore.difficulty}
+                          </span>
+                          <span className="text-purple-600 font-bold">+{chore.points} pts</span>
+                        </div>
+                      </div>
+                      <button className="px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm">
+                        Request Partner Verification
+                      </button>
+                    </div>
+                  ))}
+                  
+                  {myDailyChores.filter(chore => selectedRoom === 'all' || chore.room.toLowerCase().includes(selectedRoom.toLowerCase())).length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      No chores in selected room filter
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-white rounded-lg shadow-lg p-6">
+                  <div className="text-center py-8">
+                    <div className="text-4xl mb-4">🎯</div>
+                    <h3 className="text-xl font-bold mb-2">Your Daily Quest Awaits</h3>
+                    <p className="text-gray-600">Complete onboarding to get your personalized chore assignments!</p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
