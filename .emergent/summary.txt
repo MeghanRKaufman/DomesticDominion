@@ -1,30 +1,31 @@
 <analysis>
-The AI engineer began by requesting a clearer problem statement, leading to a detailed Gamified Chore App specification. Initially, the AI built a functional frontend/backend with authentication, chore listing, and assignment. A significant challenge was a persistent authentication modal and backend API errors (500s, 400s). The AI systematically debugged backend issues related to chore data models, JSON serialization, and single-user couple handling, even leveraging a troubleshoot agent. However, the user then clarified the gamified aspect was missing, requesting a complete RPG-style overhaul with detailed game mechanics. The AI pivoted, rebuilt the frontend for an RPG theme, and subsequently integrated board games and a robust verification system, addressing the user's latest feedback. The current state is that the preview URL is reported as not working, which the AI is investigating.
+The AI engineer's work began by confirming existing architectural details, then shifted to extensive feature development driven by evolving user feedback. Initial efforts involved overhauling the app into an RPG-themed system with gamified tasks and mini-games. Critically, user feedback deprioritized a planned NES pixel-art UI to a skin, redirecting focus to enhancing the original UI.
+
+A significant portion of the trajectory focused on debugging and refining a **multi-step onboarding flow**. This involved fixing persistent navigation loops, redundant inputs, simplifying game difficulty, introducing Kingdom naming with contextual suggestions, and integrating a comprehensive introductory welcome screen. The AI systematically resolved complex state management, duplicate declarations, and modal interaction issues.
+
+The backend now supports an enhanced scoring system and talent tree structure. The onboarding process is functional, inclusive, and aligns with user requests. Currently, the AI is implementing the core daily chore system, including My Chores, All Chores, and My Teammate tabs within the original UI. The next immediate task is to develop the message filtering system for communication features.
 </analysis>
 
 <product_requirements>
-The user envisions a Gamified Chore App for partners, transforming household tasks and personal growth into an RPG-like experience. Key features include:
-
-*   **Chore Checklist System**: Chores organized by room (Kitchen, Bathroom, Living Room, Bedroom, US) with checkboxes and timers.
-*   **Points System**: Tiered points (5/10/20) for chore difficulty, plus bonuses (Initiative, Chain Finish).
-*   **Talent Tree System**: A private, branching talent tree (Efficiency, Couple, Growth) where players invest earned talent points to gain perks (e.g., chore odds shifts, bonus points).
-*   **Daily Flow**: Adjustable end-of-day cutoff, daily assignment algorithm with percentage odds based on talent tree, hidden builds revealed as percentages.
-*   **US Tab**: Relationship upkeep tasks (hug, massage) treated as chores, non-optional.
-*   **Mini-Games**: Integration of basic board/card games (Chess, Backgammon, Battleship, Speed, Go Fish, War) as couple tasks for extra points.
-*   **Verification**: Couples verification for tasks, including photo upload (before/after pic) or partner approval.
-*   **Leveling System**: Points accumulate to levels (100 points/level), unlocking talent points (1 per 5 levels).
-*   **Real-time Sync**: Notifications (whah-ping sound) and live updates between partners for task completion.
-*   **UI/UX**: Clean, modern, checklist style with tabs, evolving into an RPG-themed interface with onboarding and clear explanations.
+The goal is a Gamified Chore App for partners, transforming household tasks into an RPG-like adventure.
+**Core Features:**
+1.  **Gamified Scoring & Leveling:** Tiered points (5/10/20), leveling (100 pts/level, 1.5 TP/5 levels initially, then 1 TP/3 levels), verification bonuses (+5 for partner, +5 each for both).
+2.  **Quest System:** Daily, Weekly, Special quests with Quest Complete button, partner verification, and random checks. Pet/Vehicle categories (5-20 pts) integrated based on user choices.
+3.  **Talent Tree System:** WoW-style 3-tier branching tree (Efficiency, Couple, Growth) with prerequisites and costs. Visuals should be black/white until points are spent. Deeper specs to be provided by the user.
+4.  **Couple Connection Features:** Daily personal connection questions (+5/+10 pts), daily logs/notes with AI tone filtering (anytime option, daily required message), real-life game verification with winner tracking (+5 pts), monthly game shopping.
+5.  **UI/UX:** Focus on the original UI. NES pixel art theme as an optional skin (later development). XP/Level bar, pixel avatars, tabs (Daily Quests, Talent Tree, Logs, Stats, My Chores, All Chores, My Teammate).
+6.  **Enhanced Onboarding:** Welcome intro, choice to start/join, congratulatory message, essential questions (first name, kingdom name with dynamic suggestions, living situation, pets, vehicles, communication preferences), partner invitation.
+7.  **Core Task Management:** Immediate chore split for new users, My Chores for Today tab (assigned half), All Chores tab (all possible chores), My Teammate tab (partner's chores, progress, task takeover option for 3x points).
 </product_requirements>
 
 <key_technical_concepts>
--   **Full-Stack Development**: FastAPI backend, React frontend.
--   **Database**: MongoDB for data persistence.
--   **Real-time Communication**: Websockets for live updates and notifications.
--   **Gamification Logic**: Complex point calculation, leveling, and talent tree algorithms.
--   **User Authentication**: Couple-based user registration and state management.
--   **API Design**: RESTful APIs for chores, users, couples, and assignments.
--   **UI/UX Frameworks**: Tailwind CSS for styling, Radix UI for components.
+-   **Full-Stack Development**: FastAPI (Python) backend, React (JavaScript) frontend.
+-   **Database**: MongoDB for persistence, UUIDs for IDs.
+-   **Real-time Communication**: Websockets (for updates/notifications).
+-   **Gamification Logic**: Complex points, leveling, and talent tree algorithms.
+-   **User Management**: Couple-based authentication, invitation system.
+-   **UI/UX Frameworks**: Tailwind CSS, Radix UI.
+-   **AI Integration**: Tone filtering for messages.
 </key_technical_concepts>
 
 <code_architecture>
@@ -33,58 +34,45 @@ The application follows a standard full-stack architecture:
 
 
 -   ****:
-    -   **Summary**: This is the main FastAPI application file, handling all backend logic. It defines API endpoints for user/couple management, chore creation/retrieval, assignment generation, and game-related tasks. It interacts with MongoDB for data storage.
-    -   **Changes**: Initial setup was present. Modified extensively to fix chore filtering, handle MongoDB  serialization, gracefully manage single-user couples in assignment generation, and integrate game tasks and verification logic.
-
+    -   **Summary**: Main FastAPI application handling API endpoints and MongoDB interactions.
+    -   **Changes**: Extensively modified for couple management, gamified task assignment, talent tree point calculation, and  serialization fixes. New endpoints added for couple creation/joining and fetching daily tasks. Enhanced point calculation logic, task models, and new models for supporting onboarding data (kingdom name, household preferences) were integrated.
 -   ****:
-    -   **Summary**: The main React component for the application. It manages global state (current user, chores, assignments), handles user authentication, renders the main UI (tabs for rooms, chore lists), and orchestrates API calls.
-    -   **Changes**: Received significant rewrites. Initially for basic chore app, then multiple debugging iterations for persistent authentication modal (adding error handling, making data loading non-blocking). Later, completely rebuilt to implement the RPG-style gamified theme, integrating new UI components, game components, and verification system, and adding  configuration.
-
+    -   **Summary**: Main React component managing state, authentication, and UI rendering.
+    -   **Changes**: Received significant refactoring. Authentication and modal logic were extensively debugged and refined to fix navigation loops and redundant inputs, streamlining the initial user flow. The  was integrated as a skin but its display logic was removed.  is now a central component. New state variables (, , , , , , , , ) added for onboarding.  added to load user from . The main UI structure was adapted to support My Chores for Today, All Chores, and My Teammate tabs.
 -   ****:
-    -   **Summary**: Global and component-specific styles for the React frontend.
-    -   **Changes**: Updated with enhanced styling, including animation for timers.
-
+    -   **Summary**: Global styles for the frontend.
+    -   **Changes**: Updated with enhanced styling and NES pixel art theme additions (though NES UI is now deprioritized).
 -   ****:
-    -   **Summary**: Lists Python dependencies for the FastAPI backend.
-    -   **Changes**: usage: websockets [--version | <uri>] was added to enable real-time communication.
-
--   ****:
-    -   **Summary**: Defines Node.js dependencies and scripts for the React frontend.
-    -   **Changes**:  or similar for websockets was implicitly added via yarn add v1.22.22
-info Visit https://yarnpkg.com/en/docs/cli/add for documentation about this command. (though output truncated).
-
--   ****:
-    -   **Summary**: A collection of reusable UI components (e.g., , , , , , , , ) built using Radix UI and styled with Tailwind CSS to provide a consistent look and feel.
-    -   **Changes**: These files were newly created to build the app's interface.
-
--   ****:
-    -   **Summary**: Component intended to encapsulate the logic and UI for the various mini-games.
-    -   **Changes**: This file was created to integrate the mini-games requested by the user.
-
--   ****:
-    -   **Summary**: Component handling the UI and logic for chore verification, including options for partner approval or photo upload.
-    -   **Changes**: This file was newly created to implement the enhanced verification system.
+    -   **Summary**: A multi-step component for initial user setup.
+    -   **Changes**: Iterated multiple times to implement a welcome intro, player name input, kingdom naming (with dynamic, realistic suggestions and explanations), living situation, pet/vehicle ownership questions, communication preferences, and a summary/partner invitation step. It now has 7 functional steps with proper state management and navigation.
 </code_architecture>
 
 <pending_tasks>
--   Investigate and resolve the The preview is not working issue reported by the user.
--   Implement the full logic for all talent tree node effects and their impact on points and chore odds.
--   Develop the specific mechanics and UI for each mini-game (Chess, Backgammon, Battleship, etc.).
--   Refine the couple verification system for photo uploads (before/after pic).
--   Implement the complete leveling curve and talent point economy logic.
--   Implement the room redistribution rule for chore odds as detailed in the spec.
--   Implement the policy for missed US tab tasks (block submission vs. penalty).
+-   Implement the visual World of Warcraft-style talent tree (with user-provided deeper specs) in the original UI.
+-   Develop the anytime message filtering system and the required daily filtered message.
+-   Integrate board games as a US task, including winner tracking and monthly game shopping activity.
+-   Refine the notification system for real-time interactions.
 </pending_tasks>
 
 <current_work>
-The AI engineer has just completed a major overhaul of the application based on extensive user feedback, aiming to transform it from a basic chore checklist into a gamified RPG experience. This involved:
-1.  **Backend updates ()**: To include game tasks and enhanced verification logic.
-2.  **Frontend rebuild ()**: To implement the RPG-style landing page, authentication modal, and integrate new components for games and verification. The  configuration was also updated to include a Games tab.
-3.  **New Frontend Components**: Creation of  and  in .
+The AI engineer has just completed a major overhaul and stabilization of the **Enhanced Onboarding & Game Setup (Phase 1)**. This involved fixing multiple persistent navigation loops, removing redundant inputs (e.g., asking for name twice, difficulty selection), and refining the onboarding content. The onboarding now features:
+1.  A clear, inclusive welcome intro ().
+2.  Player first name input ().
+3.  Kingdom naming with dynamic suggestions and explanation ().
+4.  Living situation preference ().
+5.  Pet ownership details ().
+6.  Vehicle ownership details ().
+7.  A summary and partner invitation step ().
+This entire flow is robust and navigates correctly.
 
-After these significant changes, the frontend was restarted and a screenshot was taken, which the AI reported as Perfect! The enhanced app is running beautifully. However, the user immediately reported, The preview is not working. The AI is currently in the process of debugging this issue, having checked the service statuses (all running) and is about to check frontend logs for errors.
+Following this, the AI has started working on **Phase 2.1: Daily Game Mechanics**. This includes:
+-   **Chore Assignment System**: Implementing logic to assign a user's half of daily chores based on their onboarding selections (pets, cars, living situation).
+-   **My Chores for Today tab**: Updating  to display the dynamically generated assigned chores.
+-   **All Chores tab**: Updating  to display every possible chore available in the system.
+-   **My Teammate tab**: Updating  to show the partner's assigned chores, their progress, and allow a task takeover option.
+The backend () has been updated with chore generation functionality and new models for tasks. The current focus is to continue building out these UI tabs and chore generation logic.
 </current_work>
 
 <optional_next_step>
-Check frontend logs for errors to diagnose why the preview is not working, then formulate a fix.
+Start implementing the message filtering system for Phase 2.2 by adding a Messages tab.
 </optional_next_step>
