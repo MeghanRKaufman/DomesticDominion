@@ -2181,11 +2181,13 @@ function ChoreChampionsApp() {
           onClose={() => setShowAuth(false)} 
           onSuccess={handleAuthSuccess}
           onEnhancedOnboarding={() => {
-            console.log('🚀 Opening Enhanced Onboarding - Auth:', showAuth, 'Enhanced:', showEnhancedOnboarding);
+            console.log('🚀 ENHANCED ONBOARDING CLICKED!');
+            console.log('Current states - Auth:', showAuth, 'Enhanced:', showEnhancedOnboarding);
             setShowAuth(false);
             setTimeout(() => {
+              console.log('⏰ Setting enhanced onboarding to TRUE');
               setShowEnhancedOnboarding(true);
-              console.log('✅ Enhanced onboarding should be open now');
+              console.log('✅ Enhanced onboarding state set to true');
             }, 100);
           }}
         />
