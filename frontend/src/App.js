@@ -2179,21 +2179,7 @@ function ChoreChampionsApp() {
             Begin Adventure! 🚀
           </Button>
         </div>
-        <EpicAdventureModal 
-          isOpen={showAuth} 
-          onClose={() => setShowAuth(false)} 
-          onSuccess={handleAuthSuccess}
-          onEnhancedOnboarding={() => {
-            console.log('🚀 ENHANCED ONBOARDING CLICKED!');
-            console.log('Current states - Auth:', showAuth, 'Enhanced:', showEnhancedOnboarding);
-            setShowAuth(false);
-            setTimeout(() => {
-              console.log('⏰ Setting enhanced onboarding to TRUE');
-              setShowEnhancedOnboarding(true);
-              console.log('✅ Enhanced onboarding state set to true');
-            }, 100);
-          }}
-        />
+        {/* Epic Adventure Modal removed - going directly to enhanced onboarding */}
         <OnboardingModal isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
       </div>
     );
