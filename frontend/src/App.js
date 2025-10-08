@@ -1818,7 +1818,10 @@ function ChoreChampionsApp() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [activeTab, setActiveTab] = useState('my-chores');
   const [celebrationMessage, setCelebrationMessage] = useState('');
-  const [selectedRoom, setSelectedRoom] = useState('all');
+  const [selectedRoom, setSelectedRoom] = useState('my-chores');
+  const [myDailyChores, setMyDailyChores] = useState([]);
+  const [allChores, setAllChores] = useState([]);
+  const [partnerChores, setPartnerChores] = useState([]);
   const [showAddChore, setShowAddChore] = useState(false);
   const [showNESInterface, setShowNESInterface] = useState(false); // Disable NES theme by default per user request
   const [showEnhancedOnboarding, setShowEnhancedOnboarding] = useState(false);
