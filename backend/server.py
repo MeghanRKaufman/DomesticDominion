@@ -23,6 +23,83 @@ load_dotenv(ROOT_DIR / '.env')
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
+# Pi API Configuration
+PI_API_URL = "https://api.inflection.ai/v1/chat/completions"
+PI_API_KEY = os.environ.get('PI_API_KEY')  # Will be set from user or Emergent key
+
+# Pi API Client for message enhancement
+async def enhance_message_with_pi(message: str, enhancement_level: str = "moderate", preserve_style: bool = True) -> dict:
+    """
+    Enhance a message using Pi AI for empathetic communication
+    """
+    try:
+        # Create enhancement prompt based on level
+        if enhancement_level == "light":
+            prompt = f"Please make this message slightly more empathetic and kind while preserving the original meaning and style: '{message}'"
+        elif enhancement_level == "significant":
+            prompt = f"Please rewrite this message to be much more empathetic, understanding, and supportive while keeping the core message intact: '{message}'"
+        else:  # moderate
+            prompt = f"Please enhance this message to be more empathetic and considerate while maintaining the original tone and meaning: '{message}'"
+        
+        if preserve_style:
+            prompt += " Keep the writing style as close to the original as possible."
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                PI_API_URL,
+                headers={
+                    "Authorization": f"Bearer {PI_API_KEY}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": "pi-3-mini",
+                    "messages": [
+                        {
+                            "role": "system", 
+                            "content": "You are Pi, a helpful and empathetic AI assistant. Your role is to help enhance messages between partners to be more loving, understanding, and supportive. Always maintain respect and authenticity."
+                        },
+                        {"role": "user", "content": prompt}
+                    ],
+                    "max_tokens": 200,
+                    "temperature": 0.7
+                },
+                timeout=30.0
+            )
+            
+        if response.status_code == 200:
+            result = response.json()
+            enhanced_message = result['choices'][0]['message']['content'].strip()
+            
+            # Remove quotes if Pi added them
+            if enhanced_message.startswith('"') and enhanced_message.endswith('"'):
+                enhanced_message = enhanced_message[1:-1]
+            
+            return {
+                "enhanced_message": enhanced_message,
+                "confidence_score": 0.85,  # Mock score - Pi doesn't provide this
+                "enhancements_applied": ["empathy", "tone_softening"],
+                "original_message": message
+            }
+        else:
+            # Fallback to mock enhancement if Pi API fails
+            return {
+                "enhanced_message": f"I wanted to share something with you: {message} I hope you understand where I'm coming from.",
+                "confidence_score": 0.5,
+                "enhancements_applied": ["basic_empathy"],
+                "original_message": message,
+                "note": "Pi API unavailable, using fallback enhancement"
+            }
+            
+    except Exception as e:
+        print(f"Pi API Error: {e}")
+        # Fallback enhancement
+        return {
+            "enhanced_message": f"I'd like to talk about something: {message} I value our communication and hope we can work through this together.",
+            "confidence_score": 0.4,
+            "enhancements_applied": ["fallback_empathy"],
+            "original_message": message,
+            "note": f"Pi API error: {str(e)}"
+        }
 
 # Create the main app
 app = FastAPI(title="Gamified Chore & Relationship App", version="3.0.0")
