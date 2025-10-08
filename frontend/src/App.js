@@ -2486,11 +2486,29 @@ function ChoreChampionsApp() {
       <OnboardingModal isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
       
       {/* Enhanced Onboarding */}
+      {showEnhancedOnboarding && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white p-8 rounded-lg max-w-md">
+            <h2 className="text-2xl font-bold mb-4">🎉 TEST: Enhanced Onboarding Works!</h2>
+            <p className="mb-4">If you see this, the state management is working.</p>
+            <button 
+              onClick={() => setShowEnhancedOnboarding(false)}
+              className="bg-blue-500 text-white px-4 py-2 rounded"
+            >
+              Close Test Modal
+            </button>
+          </div>
+        </div>
+      )}
+      
+      {/* Original Enhanced Onboarding (commented out for testing) */}
+      {/*
       <EnhancedOnboarding 
         isOpen={showEnhancedOnboarding} 
         onComplete={handleEnhancedOnboardingComplete}
         onClose={() => setShowEnhancedOnboarding(false)}
       />
+      */}
     </div>
   );
 }
