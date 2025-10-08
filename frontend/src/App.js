@@ -2192,6 +2192,8 @@ function ChoreChampionsApp() {
     );
   }
 
+  console.log('📍 Rendering main app (currentUser exists)');
+  
   const levelProgress = (currentUser.points % LEVEL_UP_POINTS / LEVEL_UP_POINTS) * 100;
 
   // Handle logout
