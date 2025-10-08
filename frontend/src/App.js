@@ -2463,10 +2463,10 @@ function ChoreChampionsApp() {
             </div>
           )}
 
-          {/* Couple Games */}
+          {/* US Activities */}
           {activeTab === 'games' && (
             <div>
-              <h2 className="text-3xl font-bold mb-6">🎮 Couple Games</h2>
+              <h2 className="text-3xl font-bold mb-6">🎮 US Activities</h2>
               <CoupleGamesInterface 
                 currentUser={currentUser}
                 partner={partner}
