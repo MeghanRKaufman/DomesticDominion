@@ -454,6 +454,7 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
           <CardTitle>📋 Your Adventure Summary</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div><strong>👋 Your Name:</strong> {onboardingData.playerName}</div>
           <div><strong>👑 Kingdom Name:</strong> {onboardingData.kingdomName}</div>
           <div><strong>🏠 Living Situation:</strong> {onboardingData.livingSituation?.charAt(0).toUpperCase() + onboardingData.livingSituation?.slice(1)}</div>
           <div><strong>🐾 Pets:</strong> {onboardingData.hasPets ? onboardingData.petTypes.join(', ') || 'Yes' : 'None'}</div>
