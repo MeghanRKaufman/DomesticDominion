@@ -82,9 +82,8 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
   );
 
   const generateKingdomSuggestions = () => [
-    "Casa Chronicles", "Home Heroes", "Domestic Dynasty", "Chore Champions Kingdom",
-    "The Tidy Realm", "Household Haven", "Task Masters Domain", "Adventure Estate",
-    "The Clean Castle", "Harmony House", "Quest Villa", "Partnership Palace"
+    "The [LastName] Estate", "[LastName] + [PartnerLastName] Castle", "[StreetName] Kingdom", "[YourNames] Adventure Zone",
+    "The Smith & Jones Realm", "Oak Street Dynasty", "Maple Lane Manor", "The Miller Household"
   ];
 
   const renderStep1 = () => (
