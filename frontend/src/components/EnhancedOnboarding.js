@@ -317,53 +317,7 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
     </div>
   );
 
-  const renderStep7 = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold mb-2">🔔 Communication Preferences</h2>
-        <p className="text-gray-600">How would you like to stay connected?</p>
-      </div>
-      
-      <div className="bg-yellow-50 p-4 rounded-lg text-center">
-        <h3 className="font-bold text-yellow-800 mb-2">🎮 One Game, Your Pace</h3>
-        <p className="text-sm text-yellow-700">
-          The chores don't change - they need to get done regardless! Our game makes them fun and brings you closer together. Play at whatever intensity feels right for you two.
-        </p>
-      </div>
-
-      <div>
-        <Label className="text-lg font-semibold">Notification Preferences</Label>
-        <div className="space-y-3 mt-3">
-          {[
-            { key: 'daily', label: 'Daily questions and check-ins', emoji: '💬' },
-            { key: 'verification', label: 'Task verification requests', emoji: '✅' },
-            { key: 'encouragement', label: 'Motivational messages', emoji: '🎉' }
-          ].map(notif => (
-            <div key={notif.key} className="flex items-center space-x-3 p-3 border rounded-lg">
-              <Button
-                variant={onboardingData.notificationPreferences[notif.key] ? 'default' : 'outline'}
-                onClick={() => handleInputChange('notificationPreferences', {
-                  ...onboardingData.notificationPreferences,
-                  [notif.key]: !onboardingData.notificationPreferences[notif.key]
-                })}
-                className="w-12 h-12"
-              >
-                {notif.emoji}
-              </Button>
-              <div className="flex-1">
-                <span className="font-medium">{notif.label}</span>
-                <div className="text-xs text-gray-500 mt-1">
-                  {notif.key === 'daily' && 'Get fun couple questions and daily check-ins'}
-                  {notif.key === 'verification' && 'Be notified when your partner completes tasks'}
-                  {notif.key === 'encouragement' && 'Receive motivational messages and celebrations'}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+  // Communication step removed for simplicity
 
   const renderSummary = () => (
     <div className="space-y-6">
