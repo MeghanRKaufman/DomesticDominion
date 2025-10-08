@@ -1992,6 +1992,9 @@ function ChoreChampionsApp() {
       // Load game data for the new user
       await loadGameData(userResponse.data);
       
+      // Generate daily chores based on onboarding
+      await generateDailyChores(onboardingData, userResponse.data);
+      
     } catch (error) {
       console.error('Error creating enhanced adventure:', error);
       alert('Error creating adventure: ' + (error.response?.data?.detail || 'Please try again'));
