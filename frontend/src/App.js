@@ -2382,7 +2382,7 @@ function ChoreChampionsApp() {
           </div>
 
           {/* Room Filters (for all chores view) */}
-          {(activeTab === 'all' || activeTab === 'today') && (
+          {(activeTab === 'all-chores' || activeTab === 'my-chores') && (
             <div className="p-4 border-t">
               <h4 className="text-sm font-bold mb-3 text-gray-600 uppercase">🏠 Rooms</h4>
               <div className="space-y-1">
