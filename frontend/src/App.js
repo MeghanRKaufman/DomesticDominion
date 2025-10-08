@@ -2170,8 +2170,12 @@ function ChoreChampionsApp() {
           </p>
           <Button 
             onClick={() => {
-              console.log('🚀 DIRECT TO ENHANCED ONBOARDING!');
+              console.log('🚀 BUTTON CLICKED - showEnhancedOnboarding before:', showEnhancedOnboarding);
               setShowEnhancedOnboarding(true);
+              console.log('✅ setShowEnhancedOnboarding(true) called');
+              setTimeout(() => {
+                console.log('⏰ showEnhancedOnboarding after timeout:', showEnhancedOnboarding);
+              }, 100);
             }} 
             size="lg" 
             className="text-xl px-8 py-4 bg-white text-purple-600 hover:bg-gray-100 font-bold shadow-2xl"
