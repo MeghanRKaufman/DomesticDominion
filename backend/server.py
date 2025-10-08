@@ -271,6 +271,149 @@ TALENT_TREE_NODES = {
         "position": {"x": 100, "y": 680},
         "premium": True
     },
+    
+    # ===== COUPLING QUESTLINE (Country II: The Heartlands of Concord) =====
+    # Free Tiers 1-5
+    # Tier 1: Affection's Edge - Small kindnesses, compliments
+    "cq_quality_quest": {
+        "id": "cq_quality_quest",
+        "name": "Quality Quest",
+        "branch": "Coupling",
+        "tier": 1,
+        "cost": 1,
+        "description": "+10 pts for shared activities logged (dinner, show, walk)",
+        "effect": {"type": "category_bonus", "category": "shared_activities", "bonus": 10},
+        "prerequisites": [],
+        "position": {"x": 300, "y": 50},
+        "premium": False
+    },
+    
+    # Tier 2: Bondbridge Fields - Shared activity quests
+    "cq_compliment_chain": {
+        "id": "cq_compliment_chain",
+        "name": "Compliment Chain",
+        "branch": "Coupling",
+        "tier": 2,
+        "cost": 2,
+        "description": "Consecutive days of positive notes grant streak bonus",
+        "effect": {"type": "streak_bonus", "category": "positive_notes", "bonus_per_day": 2},
+        "prerequisites": ["cq_quality_quest"],
+        "position": {"x": 300, "y": 120},
+        "premium": False
+    },
+    
+    # Tier 3: Echo's Hollow - Logging appreciation notes
+    "cq_shared_goal_setter": {
+        "id": "cq_shared_goal_setter", 
+        "name": "Shared Goal Setter",
+        "branch": "Coupling",
+        "tier": 3,
+        "cost": 2,
+        "description": "Unlocks weekly 'Team Quest' board",
+        "effect": {"type": "unlock_feature", "feature": "team_quest_board", "frequency": "weekly"},
+        "prerequisites": ["cq_compliment_chain"],
+        "position": {"x": 300, "y": 190},
+        "premium": False
+    },
+    
+    # Tier 4: Trustmere Vale - Partner verification and cooperation
+    "cq_verification_bonus": {
+        "id": "cq_verification_bonus",
+        "name": "Verification Bonus",
+        "branch": "Coupling",
+        "tier": 4,
+        "cost": 2,
+        "description": "+5 pts for partner-verified tasks",
+        "effect": {"type": "verification_bonus", "bonus": 5},
+        "prerequisites": ["cq_shared_goal_setter"],
+        "position": {"x": 300, "y": 260},
+        "premium": False
+    },
+    
+    # Tier 5: Sacrifice Summit - Take a task for love
+    "cq_take_one_for_love": {
+        "id": "cq_take_one_for_love",
+        "name": "Take One For Love", 
+        "branch": "Coupling",
+        "tier": 5,
+        "cost": 3,
+        "description": "Option to take partner's task for 3x reward",
+        "effect": {"type": "takeover_multiplier", "multiplier": 3.0},
+        "prerequisites": ["cq_verification_bonus"],
+        "position": {"x": 300, "y": 330},
+        "premium": False
+    },
+    
+    # Premium Tiers 6-10
+    # Tier 6: Duality Basin - Timed partner task completion bonuses
+    "cq_bond_builder": {
+        "id": "cq_bond_builder",
+        "name": "Bond Builder",
+        "branch": "Coupling",
+        "tier": 6,
+        "cost": 3,
+        "description": "+20% points if both partners complete a quest within 2 hrs",
+        "effect": {"type": "partner_sync_bonus", "time_window": 2, "multiplier": 1.2},
+        "prerequisites": ["cq_take_one_for_love"],
+        "position": {"x": 300, "y": 400},
+        "premium": True
+    },
+    
+    # Tier 7: Empathy Keep - Emotional intelligence rewards
+    "cq_empathy_echo": {
+        "id": "cq_empathy_echo",
+        "name": "Empathy Echo",
+        "branch": "Coupling",
+        "tier": 7,
+        "cost": 3,
+        "description": "Each compliment written adds +1 to partner's morale meter",
+        "effect": {"type": "partner_morale_bonus", "bonus_per_compliment": 1},
+        "prerequisites": ["cq_bond_builder"],
+        "position": {"x": 300, "y": 470},
+        "premium": True
+    },
+    
+    # Tier 8: Harmony Garden - Conflict resolution via reworded critiques
+    "cq_harmony_halo": {
+        "id": "cq_harmony_halo",
+        "name": "Harmony Halo",
+        "branch": "Coupling",
+        "tier": 8,
+        "cost": 4,
+        "description": "Negative logs are rephrased automatically into growth notes",
+        "effect": {"type": "message_filter", "filter_type": "negative_to_growth"},
+        "prerequisites": ["cq_empathy_echo"],
+        "position": {"x": 300, "y": 540},
+        "premium": True
+    },
+    
+    # Tier 9: Union Cathedral - Joint chores and couple challenges
+    "cq_unity_upgrade": {
+        "id": "cq_unity_upgrade",
+        "name": "Unity Upgrade",
+        "branch": "Coupling",
+        "tier": 9,
+        "cost": 4,
+        "description": "Unlocks 'dual chores' (tasks only rewardable when done together)",
+        "effect": {"type": "unlock_category", "category": "dual_chores", "requirement": "both_partners"},
+        "prerequisites": ["cq_harmony_halo"],
+        "position": {"x": 300, "y": 610},
+        "premium": True
+    },
+    
+    # Tier 10: Soulforge Citadel - Mastery node  
+    "cq_soul_sync": {
+        "id": "cq_soul_sync",
+        "name": "Soul Sync",
+        "branch": "Coupling",
+        "tier": 10,
+        "cost": 5,
+        "description": "Permanently doubles verification rewards if relationship satisfaction stays above 80% for a month",
+        "effect": {"type": "mastery_verification_double", "condition": "80_percent_satisfaction", "duration": "month"},
+        "prerequisites": ["cq_unity_upgrade"],
+        "position": {"x": 300, "y": 680},
+        "premium": True
+    },
     "pg_mindful_moments": {
         "id": "pg_mindful_moments", 
         "name": "Mindful Moments",
