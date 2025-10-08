@@ -200,7 +200,7 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
     </div>
   );
 
-  const renderStep2 = () => (
+  const renderStep4 = () => (
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-3xl font-bold mb-2">🏠 Your Living Situation</h2>
