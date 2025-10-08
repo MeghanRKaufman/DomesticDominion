@@ -2169,7 +2169,10 @@ function ChoreChampionsApp() {
             Transform your household into an epic RPG adventure! Complete quests, level up together, and unlock amazing rewards! ⚔️✨
           </p>
           <Button 
-            onClick={() => setShowAuth(true)} 
+            onClick={() => {
+              console.log('🚀 DIRECT TO ENHANCED ONBOARDING!');
+              setShowEnhancedOnboarding(true);
+            }} 
             size="lg" 
             className="text-xl px-8 py-4 bg-white text-purple-600 hover:bg-gray-100 font-bold shadow-2xl"
           >
