@@ -82,8 +82,8 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
   );
 
   const generateKingdomSuggestions = () => [
-    "The [LastName] Estate", "[LastName] + [PartnerLastName] Castle", "[StreetName] Kingdom", "[YourNames] Adventure Zone",
-    "The Smith & Jones Realm", "Oak Street Dynasty", "Maple Lane Manor", "The Miller Household"
+    "Johnson Oak Street Kingdom", "The Miller-Garcia Castle", "Saralex Dynasty", "Johnmiller Estate",
+    "The Smith & Jones Realm", "Maple Avenue Manor", "Branson Pine Street", "The Rodriguez-Kim Adventures"
   ];
 
   const renderStep1 = () => (
