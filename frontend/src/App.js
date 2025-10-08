@@ -2175,7 +2175,7 @@ function ChoreChampionsApp() {
                 Hi! Welcome to Chore Champions! This is where you can turn your kingdom (your household) into a great treasure of your life by turning the things you have to do every day anyway into an adventure!
               </p>
               <p className="text-lg mb-6">
-                If you're a gamer, like to play games or board games, or if you like to be competitive in a positive way - this would be a great game for you!
+                Perfect for couples who find household duties and chores miserable, or just want something that they can both do together while being totally productive. If you're a gamer, like to play games or board games, or if you like to be competitive in a positive way - this would be a great game for you too!
               </p>
             </div>
             
