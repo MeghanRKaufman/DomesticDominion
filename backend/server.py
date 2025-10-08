@@ -556,9 +556,8 @@ TALENT_TREE_NODES = {
         "prerequisites": ["pg_altruist_aura"],
         "position": {"x": 500, "y": 680},
         "premium": True
-    },
-    
-    "pg_mindful_moments": {
+    }
+}
         "id": "pg_mindful_moments", 
         "name": "Mindful Moments",
         "branch": "Growth",
