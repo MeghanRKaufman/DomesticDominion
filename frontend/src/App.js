@@ -1816,7 +1816,7 @@ function ChoreChampionsApp() {
   const [tasks, setTasks] = useState({});
   const [showAuth, setShowAuth] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [activeTab, setActiveTab] = useState('today');
+  const [activeTab, setActiveTab] = useState('my-chores');
   const [celebrationMessage, setCelebrationMessage] = useState('');
   const [selectedRoom, setSelectedRoom] = useState('all');
   const [showAddChore, setShowAddChore] = useState(false);
