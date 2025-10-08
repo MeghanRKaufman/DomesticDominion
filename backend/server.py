@@ -414,6 +414,150 @@ TALENT_TREE_NODES = {
         "position": {"x": 300, "y": 680},
         "premium": True
     },
+    
+    # ===== PERSONAL GROWTH PATH (Country III: The Realm of Resonance) =====
+    # Free Tiers 1-5
+    # Tier 1: Routine Ridge - Building daily consistency
+    "pg_routine_rookie": {
+        "id": "pg_routine_rookie",
+        "name": "Routine Rookie",
+        "branch": "Growth",
+        "tier": 1,
+        "cost": 1,
+        "description": "+5 pts for every 3-day streak of all tasks completed",
+        "effect": {"type": "streak_bonus", "streak_length": 3, "bonus": 5},
+        "prerequisites": [],
+        "position": {"x": 500, "y": 50},
+        "premium": False
+    },
+    
+    # Tier 2: Mirrorpool Glen - Reflection and self-awareness
+    "pg_reflective_learner": {
+        "id": "pg_reflective_learner",
+        "name": "Reflective Learner",
+        "branch": "Growth",
+        "tier": 2,
+        "cost": 2,
+        "description": "Unlocks daily self-question prompts",
+        "effect": {"type": "unlock_feature", "feature": "daily_self_questions", "frequency": "daily"},
+        "prerequisites": ["pg_routine_rookie"],
+        "position": {"x": 500, "y": 120},
+        "premium": False
+    },
+    
+    # Tier 3: Zenstep Meadow - Learning rest, balance, and forgiveness
+    "pg_zen_mode": {
+        "id": "pg_zen_mode", 
+        "name": "Zen Mode",
+        "branch": "Growth",
+        "tier": 3,
+        "cost": 2,
+        "description": "Choose 1 day a week to skip non-critical tasks with no penalty",
+        "effect": {"type": "skip_allowance", "frequency": "weekly", "task_type": "non_critical"},
+        "prerequisites": ["pg_reflective_learner"],
+        "position": {"x": 500, "y": 190},
+        "premium": False
+    },
+    
+    # Tier 4: Harmony Hollow - Partner-aligned self-ratings
+    "pg_mindful_mirror": {
+        "id": "pg_mindful_mirror",
+        "name": "Mindful Mirror",
+        "branch": "Growth",
+        "tier": 4,
+        "cost": 2,
+        "description": "+10 pts for self-evaluation that matches partner's rating",
+        "effect": {"type": "partner_alignment_bonus", "bonus": 10},
+        "prerequisites": ["pg_zen_mode"],
+        "position": {"x": 500, "y": 260},
+        "premium": False
+    },
+    
+    # Tier 5: Moodspire Plateau - Emotional consistency rewards
+    "pg_mood_manager": {
+        "id": "pg_mood_manager",
+        "name": "Mood Manager",
+        "branch": "Growth",
+        "tier": 5,
+        "cost": 3,
+        "description": "+10% points if all logs remain positive for a week",
+        "effect": {"type": "positivity_bonus", "duration": "week", "multiplier": 1.1},
+        "prerequisites": ["pg_mindful_mirror"],
+        "position": {"x": 500, "y": 330},
+        "premium": False
+    },
+    
+    # Premium Tiers 6-10
+    # Tier 6: Serenity Marsh - Calming tools (pause critiques, reflect options)
+    "pg_self_soother": {
+        "id": "pg_self_soother",
+        "name": "Self-Soother",
+        "branch": "Growth",
+        "tier": 6,
+        "cost": 3,
+        "description": "Unlocks 'calm break' feature to pause your partner's critique for 24 hrs",
+        "effect": {"type": "pause_critiques", "duration": 24, "frequency": "as_needed"},
+        "prerequisites": ["pg_mood_manager"],
+        "position": {"x": 500, "y": 400},
+        "premium": True
+    },
+    
+    # Tier 7: Balance Bridge - Equal focus on self and relationship tasks
+    "pg_balance_buff": {
+        "id": "pg_balance_buff",
+        "name": "Balance Buff",
+        "branch": "Growth",
+        "tier": 7,
+        "cost": 3,
+        "description": "+10% base points on days with both self and partner quests complete",
+        "effect": {"type": "balance_bonus", "requirement": "both_quest_types", "multiplier": 1.1},
+        "prerequisites": ["pg_self_soother"],
+        "position": {"x": 500, "y": 470},
+        "premium": True
+    },
+    
+    # Tier 8: Spiritwood Trail - Journaling, gratitude, meditation tasks
+    "pg_growth_guardian": {
+        "id": "pg_growth_guardian",
+        "name": "Growth Guardian",
+        "branch": "Growth",
+        "tier": 8,
+        "cost": 4,
+        "description": "Unlocks mini-quests like journaling, meditation, or gratitude",
+        "effect": {"type": "unlock_category", "category": "mindfulness_quests", "types": ["journaling", "meditation", "gratitude"]},
+        "prerequisites": ["pg_balance_buff"],
+        "position": {"x": 500, "y": 540},
+        "premium": True
+    },
+    
+    # Tier 9: Gracepeak Monastery - Altruism rewards (acts of service)
+    "pg_altruist_aura": {
+        "id": "pg_altruist_aura",
+        "name": "Altruist Aura",
+        "branch": "Growth",
+        "tier": 9,
+        "cost": 4,
+        "description": "2x points for doing tasks that directly benefit your partner's comfort",
+        "effect": {"type": "altruism_multiplier", "multiplier": 2.0, "target": "partner_comfort"},
+        "prerequisites": ["pg_growth_guardian"],
+        "position": {"x": 500, "y": 610},
+        "premium": True
+    },
+    
+    # Tier 10: Enlightened Pinnacle - Mastery node
+    "pg_enlightened_partner": {
+        "id": "pg_enlightened_partner",
+        "name": "Enlightened Partner",
+        "branch": "Growth",
+        "tier": 10,
+        "cost": 5,
+        "description": "Gain 1 free 'Zen Token' weekly, which lets you skip or swap a task without penalty and gift that break to your partner",
+        "effect": {"type": "mastery_zen_token", "frequency": "weekly", "benefits": ["skip_task", "swap_task", "gift_partner"]},
+        "prerequisites": ["pg_altruist_aura"],
+        "position": {"x": 500, "y": 680},
+        "premium": True
+    },
+    
     "pg_mindful_moments": {
         "id": "pg_mindful_moments", 
         "name": "Mindful Moments",
