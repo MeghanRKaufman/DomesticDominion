@@ -2395,6 +2395,78 @@ function ChoreChampionsApp() {
     };
   };
 
+  // Pi Integration Handler Functions
+  const handleEnhanceMessage = async () => {
+    if (!messageText.trim()) return;
+    
+    setIsEnhancing(true);
+    try {
+      const response = await axios.post(`${API}/pi/enhance-message`, {
+        message: messageText,
+        enhancement_level: enhancementLevel,
+        preserve_style: preserveStyle,
+        user_id: currentUser.userId
+      });
+      
+      setEnhancedMessage(response.data.enhanced_message);
+      setEnhancementData(response.data);
+    } catch (error) {
+      console.error('Error enhancing message:', error);
+      alert('Failed to enhance message. Please try again.');
+    } finally {
+      setIsEnhancing(false);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    const messageToSend = enhancedMessage || messageText;
+    if (!messageToSend.trim()) return;
+    
+    setIsSending(true);
+    try {
+      const response = await axios.post(`${API}/messages/send`, {
+        content: messageToSend,
+        original_content: enhancedMessage ? messageText : null,
+        enhanced: !!enhancedMessage,
+        empathy_score: enhancementData?.confidence_score || 0,
+        sender_id: currentUser.userId,
+        couple_id: currentUser.coupleId
+      });
+      
+      // Add to local messages
+      const newMessage = {
+        id: response.data.id,
+        content: messageToSend,
+        original_content: enhancedMessage ? messageText : null,
+        enhanced: !!enhancedMessage,
+        empathy_score: enhancementData?.confidence_score || 0,
+        sender: currentUser.userId,
+        timestamp: new Date().toISOString()
+      };
+      
+      setMessages(prev => [newMessage, ...prev]);
+      setMessageText('');
+      setEnhancedMessage('');
+      setEnhancementData(null);
+      setHasDailyMessage(true);
+      
+      setCelebrationMessage('📤 Message sent successfully!');
+      setTimeout(() => setCelebrationMessage(''), 3000);
+      
+    } catch (error) {
+      console.error('Error sending message:', error);
+      alert('Failed to send message. Please try again.');
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleUseEnhanced = () => {
+    setMessageText(enhancedMessage);
+    setEnhancedMessage('');
+    setEnhancementData(null);
+  };
+
   // Show NES Interface if enabled
   if (showNESInterface && currentUser) {
     return (
