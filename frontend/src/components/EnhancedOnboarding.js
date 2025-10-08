@@ -363,8 +363,14 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
     </div>
   );
 
-  if (!isOpen) return null;
+  console.log('🔍 EnhancedOnboarding: isOpen =', isOpen);
+  
+  if (!isOpen) {
+    console.log('🚫 EnhancedOnboarding: Not opening because isOpen is false');
+    return null;
+  }
 
+  console.log('✅ EnhancedOnboarding: Should be rendering now!');
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
