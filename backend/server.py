@@ -25,7 +25,7 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 # Pi API Configuration
 PI_API_URL = "https://api.inflection.ai/v1/chat/completions"
-PI_API_KEY = os.environ.get('PI_API_KEY')  # Will be set from user or Emergent key
+PI_API_KEY = os.environ.get('PI_API_KEY', 'sk-emergent-281893dE8B579E7725')  # Using Emergent LLM key as fallback
 
 # Pi API Client for message enhancement
 async def enhance_message_with_pi(message: str, enhancement_level: str = "moderate", preserve_style: bool = True) -> dict:
