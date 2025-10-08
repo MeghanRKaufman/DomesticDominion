@@ -2552,13 +2552,65 @@ function ChoreChampionsApp() {
               </div>
               
               <div className="bg-white rounded-lg shadow-lg p-6">
-                <CheckboxChoreList 
-                  tasks={selectedRoom === 'all' ? Object.values(tasks).flat() : (tasks[selectedRoom] || [])}
-                  currentUser={currentUser}
-                  partner={partner}
-                  onComplete={handleQuestComplete}
-                  showEdit={true}
-                />
+                <div className="mb-6">
+                  <h3 className="text-lg font-bold mb-4">Complete Household Chore Library</h3>
+                  <p className="text-gray-600 mb-4">Every possible chore for every room. Manage, edit, or assign to daily rotation.</p>
+                </div>
+                
+                {allChores.length > 0 ? (
+                  <div className="space-y-6">
+                    {['household', 'pets', 'vehicle'].map(category => {
+                      const categoryChores = allChores.filter(chore => chore.category === category);
+                      if (categoryChores.length === 0) return null;
+                      
+                      return (
+                        <div key={category}>
+                          <h4 className="font-bold text-lg mb-3 capitalize text-purple-600">
+                            {category === 'household' && '🏠 Household'}
+                            {category === 'pets' && '🐾 Pet Care'}
+                            {category === 'vehicle' && '🚗 Vehicle'}
+                          </h4>
+                          <div className="grid gap-3">
+                            {categoryChores
+                              .filter(chore => selectedRoom === 'all' || chore.room.toLowerCase().includes(selectedRoom.toLowerCase()))
+                              .map((chore) => (
+                              <div key={chore.id} className="border rounded-lg p-4 flex items-center justify-between">
+                                <div>
+                                  <h5 className="font-bold">{chore.title}</h5>
+                                  <div className="flex items-center space-x-3 text-sm text-gray-600">
+                                    <span>🏠 {chore.room}</span>
+                                    <span className={`px-2 py-1 rounded text-xs ${
+                                      chore.difficulty === 'EASY' ? 'bg-green-100 text-green-800' :
+                                      chore.difficulty === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
+                                      'bg-red-100 text-red-800'
+                                    }`}>
+                                      {chore.difficulty}
+                                    </span>
+                                    <span className="text-purple-600 font-bold">+{chore.points} pts</span>
+                                  </div>
+                                </div>
+                                <div className="flex space-x-2">
+                                  <button className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm">
+                                    Edit
+                                  </button>
+                                  <button className="px-3 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 text-sm">
+                                    Add to Daily
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="text-4xl mb-4">📋</div>
+                    <h3 className="text-xl font-bold mb-2">No Chores Available</h3>
+                    <p className="text-gray-600">Complete onboarding to generate your personalized chore library!</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
