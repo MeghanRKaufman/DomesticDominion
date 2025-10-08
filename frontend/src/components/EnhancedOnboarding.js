@@ -89,6 +89,70 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
   const renderStep1 = () => (
     <div className="space-y-6">
       <div className="text-center">
+        <h2 className="text-3xl font-bold mb-2">🏰 Welcome to Chore Champions!</h2>
+        <p className="text-gray-600">Transform your household into an epic adventure</p>
+      </div>
+      
+      <div className="bg-blue-50 p-6 rounded-lg">
+        <h3 className="text-xl font-bold mb-4 text-blue-800">💡 What is a "Kingdom"?</h3>
+        <p className="text-gray-700 mb-4">
+          Your <strong>Kingdom</strong> is your household's adventure name! It's what makes your chores feel like epic quests instead of boring tasks.
+        </p>
+        <p className="text-gray-700 mb-4">
+          Think of it like naming your home in a fantasy game - it gives you and your partner a shared identity as you tackle household adventures together!
+        </p>
+        <div className="bg-white p-4 rounded border-l-4 border-blue-400">
+          <p className="text-sm font-medium text-blue-800">Examples:</p>
+          <ul className="text-sm text-gray-600 mt-2 space-y-1">
+            <li>• The Smith & Jones Castle (your last names)</li>
+            <li>• Oak Street Kingdom (your street name)</li>
+            <li>• The Miller Estate (shared last name)</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div className="bg-green-50 p-4 rounded-lg text-center">
+        <h3 className="font-bold text-green-800 mb-2">🎮 Ready to Start Your Adventure?</h3>
+        <p className="text-sm text-green-700">
+          We'll help you set up everything: your kingdom name, household tasks, pet care, and more!
+        </p>
+      </div>
+    </div>
+  );
+
+  const renderStep2 = () => (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold mb-2">👋 What's Your Name?</h2>
+        <p className="text-gray-600">Let's get to know you, future champion!</p>
+      </div>
+      
+      <div>
+        <Label htmlFor="playerName">🏷️ Your First Name</Label>
+        <Input
+          id="playerName"
+          value={onboardingData.playerName}
+          onChange={(e) => handleInputChange('playerName', e.target.value)}
+          placeholder="Enter your first name"
+          className="text-lg"
+        />
+      </div>
+      
+      <div className="bg-yellow-50 p-4 rounded-lg">
+        <h3 className="font-bold mb-2">🤝 How This Works:</h3>
+        <ul className="text-sm space-y-1">
+          <li>1. You'll create your household "Kingdom"</li>
+          <li>2. Set up tasks that fit your living situation</li>
+          <li>3. Invite your partner to join the adventure</li>
+          <li>4. Start completing quests together and level up!</li>
+        </ul>
+      </div>
+    </div>
+  );
+
+  const renderStep3 = () => (
+    <div className="space-y-6">
+      <div className="text-center">
         <h2 className="text-3xl font-bold mb-2">👑 Name Your Kingdom!</h2>
         <p className="text-gray-600">What shall we call your household adventure?</p>
       </div>
