@@ -126,20 +126,23 @@ class QuestType(str, Enum):
     WEEKLY = "WEEKLY" 
     SPECIAL = "SPECIAL"
 
-# Comprehensive 3-Tier Talent Tree System
+# Comprehensive 10-Tier Talent Tree System (Chore Champions)
+# Based on new world map specification with 3 kingdoms/branches
 TALENT_TREE_NODES = {
-    # ===== PERSONAL GROWTH TREE =====
-    # Tier 1
-    "pg_early_riser": {
-        "id": "pg_early_riser",
-        "name": "Early Riser",
-        "branch": "Growth",
+    # ===== HOUSEKEEPING HEROES (Country I: Sanctum of Stewardry) =====
+    # Free Tiers 1-5
+    # Tier 1: Dustvale - Basic cleaning, dishes, tidying
+    "hh_dish_duty": {
+        "id": "hh_dish_duty",
+        "name": "Dish Duty",
+        "branch": "Housekeeping",
         "tier": 1,
         "cost": 1,
-        "description": "+5 pts for first task of the day",
-        "effect": {"type": "first_task_bonus", "value": 5},
+        "description": "+5 pts each time you log dishwashing within 12 hrs of meal",
+        "effect": {"type": "time_bonus", "category": "dishwashing", "time_window": 12, "bonus": 5},
         "prerequisites": [],
-        "position": {"x": 100, "y": 50}
+        "position": {"x": 100, "y": 50},
+        "premium": False
     },
     "pg_mindful_moments": {
         "id": "pg_mindful_moments", 
