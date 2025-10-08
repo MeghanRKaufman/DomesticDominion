@@ -2734,14 +2734,98 @@ function ChoreChampionsApp() {
           {activeTab === 'messages' && (
             <div>
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold">💬 Messages</h2>
+                <h2 className="text-3xl font-bold">💬 Messages & Communication</h2>
               </div>
               
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                <div className="text-center py-8">
-                  <div className="text-4xl mb-4">💬</div>
-                  <h3 className="text-xl font-bold mb-2">Messages Coming Soon</h3>
-                  <p className="text-gray-600">Chat with your teammate, send encouragement, and share achievements!</p>
+              <div className="space-y-6">
+                {/* Send Filtered Message */}
+                <div className="bg-white rounded-lg shadow-lg p-6">
+                  <h3 className="text-lg font-bold mb-4">📝 Send a Thoughtful Message</h3>
+                  <p className="text-gray-600 mb-4">
+                    Write what's on your mind and we'll help you say it in the most appropriate way. Perfect for when you need to be direct but kind, or want to sugar-coat tough conversations.
+                  </p>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Your message:</label>
+                      <textarea 
+                        className="w-full p-3 border rounded-lg resize-none"
+                        rows="4"
+                        placeholder="Type what you really want to say... we'll help make it sound better!"
+                      />
+                    </div>
+                    
+                    <div className="flex space-x-3">
+                      <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                        🤖 Filter & Send
+                      </button>
+                      <button className="px-4 py-2 border rounded hover:bg-gray-50">
+                        Preview Filtered Version
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Daily Required Message */}
+                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6">
+                  <div className="flex items-center mb-3">
+                    <div className="text-2xl mr-3">⭐</div>
+                    <h3 className="text-lg font-bold">Daily Message Requirement</h3>
+                  </div>
+                  <p className="text-gray-700 mb-4">
+                    Send at least one filtered message to your partner each day to keep your communication streak alive!
+                  </p>
+                  <div className="text-sm text-yellow-700">
+                    Today's status: <strong>Not completed</strong> - Send a message above to complete your daily requirement.
+                  </div>
+                </div>
+
+                {/* Daily Couple Questions */}
+                <div className="bg-white rounded-lg shadow-lg p-6">
+                  <h3 className="text-lg font-bold mb-4">❓ Daily Couple Question</h3>
+                  <div className="bg-purple-50 p-4 rounded-lg mb-4">
+                    <p className="font-medium text-purple-800 mb-2">Today's Question:</p>
+                    <p className="text-lg">"What's one thing your partner did this week that made you smile?"</p>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Your answer:</label>
+                      <input 
+                        type="text" 
+                        className="w-full p-3 border rounded-lg"
+                        placeholder="Type your answer here..."
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Guess your partner's answer:</label>
+                      <input 
+                        type="text" 
+                        className="w-full p-3 border rounded-lg"
+                        placeholder="What do you think they'll say?"
+                      />
+                    </div>
+                    <button className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
+                      Submit Answers (+5 points each, +10 if you match!)
+                    </button>
+                  </div>
+                </div>
+
+                {/* Message History */}
+                <div className="bg-white rounded-lg shadow-lg p-6">
+                  <h3 className="text-lg font-bold mb-4">💌 Recent Messages</h3>
+                  <div className="space-y-3">
+                    <div className="border-l-4 border-green-400 pl-4">
+                      <p className="text-sm text-gray-600">Today, 2:30 PM</p>
+                      <p className="font-medium">Thanks for taking care of the dishes yesterday! It really helped me relax after work.</p>
+                      <p className="text-xs text-green-600">✓ Filtered for positive tone</p>
+                    </div>
+                    <div className="border-l-4 border-blue-400 pl-4">
+                      <p className="text-sm text-gray-600">Yesterday, 8:15 AM</p>
+                      <p className="font-medium">I noticed the laundry is piling up. Would you mind if we tackled it together this weekend?</p>
+                      <p className="text-xs text-blue-600">✓ Filtered for gentle approach</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
