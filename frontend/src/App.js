@@ -1951,9 +1951,9 @@ function ChoreChampionsApp() {
     setLoading(true);
     
     try {
-      // Create enhanced couple with onboarding data
+      // Create enhanced couple with onboarding data  
       const response = await axios.post(`${API}/couples/create-enhanced`, {
-        playerName: onboardingData.kingdomName, // Using kingdom name as the adventure identifier
+        playerName: onboardingData.playerName, // Using actual player name
         householdSetup: {
           hasPets: onboardingData.hasPets,
           petTypes: onboardingData.petTypes,
