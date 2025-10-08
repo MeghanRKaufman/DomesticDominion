@@ -1943,6 +1943,57 @@ function ChoreChampionsApp() {
     }
   };
 
+  const generateDailyChores = async (onboardingData, user) => {
+    try {
+      // Generate chores based on onboarding preferences
+      const choreList = [];
+      
+      // Basic household chores
+      choreList.push(
+        { id: 'make_bed', title: '🛏️ Make the bed', room: 'Bedroom', points: 5, difficulty: 'EASY', category: 'household' },
+        { id: 'dishes', title: '🍽️ Wash dishes', room: 'Kitchen', points: 10, difficulty: 'MEDIUM', category: 'household' },
+        { id: 'vacuum', title: '🧹 Vacuum living room', room: 'Living Room', points: 10, difficulty: 'MEDIUM', category: 'household' },
+        { id: 'laundry', title: '👕 Do laundry', room: 'Laundry', points: 10, difficulty: 'MEDIUM', category: 'household' },
+        { id: 'trash', title: '🗑️ Take out trash', room: 'Kitchen', points: 5, difficulty: 'EASY', category: 'household' },
+        { id: 'bathroom', title: '🚿 Clean bathroom', room: 'Bathroom', points: 10, difficulty: 'MEDIUM', category: 'household' }
+      );
+
+      // Add pet chores if they have pets
+      if (onboardingData.hasPets) {
+        choreList.push(
+          { id: 'feed_pets', title: '🍖 Feed pets', room: 'Kitchen', points: 5, difficulty: 'EASY', category: 'pets' },
+          { id: 'walk_pets', title: '🐕 Walk pets', room: 'Outdoors', points: 10, difficulty: 'MEDIUM', category: 'pets' }
+        );
+        
+        if (onboardingData.petTypes?.includes('cats')) {
+          choreList.push({ id: 'litter_box', title: '🧹 Clean litter box', room: 'Bathroom', points: 10, difficulty: 'MEDIUM', category: 'pets' });
+        }
+      }
+
+      // Add vehicle chores if they have vehicles
+      if (onboardingData.vehicleSharing && onboardingData.vehicleSharing !== 'none') {
+        choreList.push(
+          { id: 'gas', title: '⛽ Fill up gas', room: 'Vehicle', points: 5, difficulty: 'EASY', category: 'vehicle' },
+          { id: 'car_wash', title: '🚗 Wash car', room: 'Vehicle', points: 10, difficulty: 'MEDIUM', category: 'vehicle' }
+        );
+      }
+
+      // 50/50 split - assign half to user, half to partner
+      const shuffled = choreList.sort(() => 0.5 - Math.random());
+      const myChores = shuffled.slice(0, Math.ceil(shuffled.length / 2));
+      const partnerChores = shuffled.slice(Math.ceil(shuffled.length / 2));
+      
+      setMyDailyChores(myChores);
+      setPartnerChores(partnerChores);
+      setAllChores(choreList);
+      
+      console.log('🎯 Generated daily chores:', { myChores, partnerChores });
+      
+    } catch (error) {
+      console.error('Error generating daily chores:', error);
+    }
+  };
+
   const handleAuthSuccess = (user) => {
     setCurrentUser(user);
     setShowAuth(false);
