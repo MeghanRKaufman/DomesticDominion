@@ -2816,11 +2816,11 @@ function ChoreChampionsApp() {
             </div>
           )}
 
-          {/* All Chores Management */}
+          {/* All Chores Management - Enhanced with Sorting */}
           {activeTab === 'all-chores' && (
             <div>
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold">📋 All Chores</h2>
+                <h2 className="text-3xl font-bold">📋 All Chores Library</h2>
                 <Button 
                   onClick={() => setShowAddChore(true)}
                   className="bg-green-600 hover:bg-green-700"
@@ -2829,67 +2829,162 @@ function ChoreChampionsApp() {
                 </Button>
               </div>
               
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                <div className="mb-6">
-                  <h3 className="text-lg font-bold mb-4">Complete Household Chore Library</h3>
-                  <p className="text-gray-600 mb-4">Every possible chore for every room. Manage, edit, or assign to daily rotation.</p>
-                </div>
-                
-                {allChores.length > 0 ? (
-                  <div className="space-y-6">
-                    {['household', 'pets', 'vehicle'].map(category => {
-                      const categoryChores = allChores.filter(chore => chore.category === category);
-                      if (categoryChores.length === 0) return null;
+              {allChores.length > 0 ? (
+                <div className="bg-white rounded-lg shadow-lg">
+                  {/* Filters and Sorting Controls */}
+                  <div className="p-6 border-b">
+                    <div className="flex flex-wrap items-center gap-4">
+                      <div>
+                        <Label className="text-sm font-medium">Sort by:</Label>
+                        <div className="flex space-x-2 mt-1">
+                          <Button
+                            variant={sortBy === 'room' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => handleSort('room')}
+                          >
+                            🏠 Room {sortBy === 'room' && (sortDirection === 'asc' ? '↑' : '↓')}
+                          </Button>
+                          <Button
+                            variant={sortBy === 'difficulty' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => handleSort('difficulty')}
+                          >
+                            ⚡ Difficulty {sortBy === 'difficulty' && (sortDirection === 'asc' ? '↑' : '↓')}
+                          </Button>
+                          <Button
+                            variant={sortBy === 'points' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => handleSort('points')}
+                          >
+                            💎 Points {sortBy === 'points' && (sortDirection === 'asc' ? '↑' : '↓')}
+                          </Button>
+                          <Button
+                            variant={sortBy === 'name' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => handleSort('name')}
+                          >
+                            📝 Name {sortBy === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
+                          </Button>
+                          <Button
+                            variant={sortBy === 'category' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => handleSort('category')}
+                          >
+                            📂 Category {sortBy === 'category' && (sortDirection === 'asc' ? '↑' : '↓')}
+                          </Button>
+                        </div>
+                      </div>
                       
-                      return (
-                        <div key={category}>
-                          <h4 className="font-bold text-lg mb-3 capitalize text-purple-600">
-                            {category === 'household' && '🏠 Household'}
-                            {category === 'pets' && '🐾 Pet Care'}
-                            {category === 'vehicle' && '🚗 Vehicle'}
-                          </h4>
-                          <div className="grid gap-3">
-                            {categoryChores
-                              .filter(chore => selectedRoom === 'all' || chore.room.toLowerCase().includes(selectedRoom.toLowerCase()))
-                              .map((chore) => (
-                              <div key={chore.id} className="border rounded-lg p-4 flex items-center justify-between">
-                                <div>
-                                  <h5 className="font-bold">{chore.title}</h5>
-                                  <div className="flex items-center space-x-3 text-sm text-gray-600">
-                                    <span>🏠 {chore.room}</span>
-                                    <span className={`px-2 py-1 rounded text-xs ${
-                                      chore.difficulty === 'EASY' ? 'bg-green-100 text-green-800' :
-                                      chore.difficulty === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
-                                      'bg-red-100 text-red-800'
-                                    }`}>
-                                      {chore.difficulty}
-                                    </span>
-                                    <span className="text-purple-600 font-bold">+{chore.points} pts</span>
-                                  </div>
-                                </div>
-                                <div className="flex space-x-2">
-                                  <button className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm">
-                                    Edit
-                                  </button>
-                                  <button className="px-3 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 text-sm">
-                                    Add to Daily
-                                  </button>
-                                </div>
-                              </div>
-                            ))}
+                      <div>
+                        <Label className="text-sm font-medium">Filter by category:</Label>
+                        <select
+                          value={filterBy}
+                          onChange={(e) => setFilterBy(e.target.value)}
+                          className="mt-1 p-2 border rounded-lg text-sm"
+                        >
+                          <option value="all">All Categories</option>
+                          <option value="household">🏠 Household</option>
+                          <option value="pets">🐾 Pet Care</option>
+                          <option value="vehicle">🚗 Vehicle</option>
+                        </select>
+                      </div>
+                      
+                      <div className="text-sm text-gray-500">
+                        Showing {getSortedAndFilteredChores().length} chores
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Chores List */}
+                  <div className="p-6">
+                    <div className="space-y-3">
+                      {getSortedAndFilteredChores().map((chore, index) => (
+                        <div 
+                          key={chore.id} 
+                          className={`border rounded-lg p-4 flex items-center justify-between transition-all hover:shadow-md ${
+                            index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
+                          }`}
+                        >
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2">
+                              <h5 className="font-bold text-lg">{chore.title}</h5>
+                              <Badge 
+                                variant="outline" 
+                                className={
+                                  chore.category === 'household' ? 'border-blue-200 text-blue-700' :
+                                  chore.category === 'pets' ? 'border-green-200 text-green-700' :
+                                  'border-orange-200 text-orange-700'
+                                }
+                              >
+                                {chore.category === 'household' && '🏠'}
+                                {chore.category === 'pets' && '🐾'}
+                                {chore.category === 'vehicle' && '🚗'}
+                                {chore.category}
+                              </Badge>
+                            </div>
+                            
+                            <div className="flex items-center space-x-4 text-sm">
+                              <span className="flex items-center space-x-1">
+                                <span className="text-gray-500">Room:</span>
+                                <span className="font-medium">{chore.room}</span>
+                              </span>
+                              
+                              <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                chore.difficulty === 'EASY' ? 'bg-green-100 text-green-800 border border-green-200' :
+                                chore.difficulty === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' :
+                                'bg-red-100 text-red-800 border border-red-200'
+                              }`}>
+                                {chore.difficulty}
+                              </span>
+                              
+                              <span className="flex items-center space-x-1 text-purple-600 font-bold">
+                                <span>💎</span>
+                                <span>+{chore.points} pts</span>
+                              </span>
+                              
+                              {chore.icon && (
+                                <span className="text-lg">{chore.icon}</span>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="flex space-x-2 ml-4">
+                            <Button 
+                              size="sm"
+                              variant="outline"
+                              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            >
+                              ✏️ Edit
+                            </Button>
+                            <Button 
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700 text-white"
+                            >
+                              ➕ Add to Daily
+                            </Button>
                           </div>
                         </div>
-                      );
-                    })}
+                      ))}
+                    </div>
+                    
+                    {getSortedAndFilteredChores().length === 0 && (
+                      <div className="text-center py-8">
+                        <div className="text-4xl mb-4">🔍</div>
+                        <h3 className="text-xl font-bold mb-2">No Chores Found</h3>
+                        <p className="text-gray-600">Try adjusting your filters or add some custom chores!</p>
+                      </div>
+                    )}
                   </div>
-                ) : (
+                </div>
+              ) : (
+                <div className="bg-white rounded-lg shadow-lg p-6">
                   <div className="text-center py-8">
                     <div className="text-4xl mb-4">📋</div>
                     <h3 className="text-xl font-bold mb-2">No Chores Available</h3>
                     <p className="text-gray-600">Complete onboarding to generate your personalized chore library!</p>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           )}
 
