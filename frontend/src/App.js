@@ -2499,6 +2499,64 @@ function ChoreChampionsApp() {
     setEnhancementData(null);
   };
 
+  // All Chores Sorting and Filtering Functions
+  const getSortedAndFilteredChores = () => {
+    if (!allChores || allChores.length === 0) return [];
+    
+    let filteredChores = [...allChores];
+    
+    // Apply room filter
+    if (selectedRoom !== 'all') {
+      filteredChores = filteredChores.filter(chore => 
+        chore.room.toLowerCase().includes(selectedRoom.toLowerCase())
+      );
+    }
+    
+    // Apply category filter
+    if (filterBy !== 'all') {
+      filteredChores = filteredChores.filter(chore => chore.category === filterBy);
+    }
+    
+    // Apply sorting
+    filteredChores.sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortBy) {
+        case 'room':
+          comparison = a.room.localeCompare(b.room);
+          break;
+        case 'difficulty':
+          const difficultyOrder = { 'EASY': 1, 'MEDIUM': 2, 'HARD': 3 };
+          comparison = (difficultyOrder[a.difficulty] || 0) - (difficultyOrder[b.difficulty] || 0);
+          break;
+        case 'points':
+          comparison = a.points - b.points;
+          break;
+        case 'name':
+          comparison = a.title.localeCompare(b.title);
+          break;
+        case 'category':
+          comparison = a.category.localeCompare(b.category);
+          break;
+        default:
+          comparison = 0;
+      }
+      
+      return sortDirection === 'desc' ? -comparison : comparison;
+    });
+    
+    return filteredChores;
+  };
+
+  const handleSort = (newSortBy) => {
+    if (sortBy === newSortBy) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(newSortBy);
+      setSortDirection('asc');
+    }
+  };
+
   // Show NES Interface if enabled
   if (showNESInterface && currentUser) {
     return (
