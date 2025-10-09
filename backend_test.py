@@ -955,18 +955,40 @@ class BackendTester:
 
     def run_all_tests(self):
         """Run all backend tests"""
-        print("🎮 Starting Enhanced NES-themed Gamified Chore App Backend Tests")
+        print("🎮 Starting Enhanced Chore Champions Backend Tests")
+        print("🌟 Testing: 10-Tier Talent Tree System & Pi Message Integration")
         print("=" * 70)
         print()
         
         # Test basic endpoints first
         self.test_game_constants_endpoint()
-        self.test_talent_nodes_endpoint()
+        
+        # Test NEW Talent Tree System (10-tier)
+        print("🌳 TESTING NEW TALENT TREE SYSTEM")
+        print("-" * 40)
+        self.test_talent_tree_endpoint()
+        
+        # Test existing endpoints
         self.test_quest_templates_endpoint()
         self.test_user_couple_management()
         
         # Setup test data for advanced tests
         if self.setup_test_couple():
+            # Test talent tree premium status
+            self.test_talent_tree_premium_status_endpoint()
+            
+            # Test NEW Pi Message Integration
+            print("\n🤖 TESTING NEW PI MESSAGE INTEGRATION")
+            print("-" * 40)
+            self.test_pi_enhance_message_endpoint()
+            self.test_messages_send_endpoint()
+            self.test_messages_retrieve_endpoint()
+            self.test_messages_daily_status_endpoint()
+            self.test_pi_api_fallback_functionality()
+            
+            # Test existing core features
+            print("\n🏠 TESTING EXISTING CORE FEATURES")
+            print("-" * 40)
             self.test_enhanced_tasks_endpoint()
             self.test_task_takeover_endpoint()
             self.test_couple_questions_endpoint()
@@ -976,7 +998,7 @@ class BackendTester:
             self.test_point_calculation_system()
         
         # Summary
-        print("=" * 70)
+        print("\n" + "=" * 70)
         print("🏆 TEST SUMMARY")
         print("=" * 70)
         
@@ -987,6 +1009,17 @@ class BackendTester:
         print(f"Passed: {passed}")
         print(f"Failed: {total - passed}")
         print(f"Success Rate: {(passed/total)*100:.1f}%")
+        print()
+        
+        # Categorize results
+        talent_tree_tests = [r for r in self.test_results if "talent" in r["test"].lower()]
+        pi_message_tests = [r for r in self.test_results if "pi" in r["test"].lower() or "message" in r["test"].lower()]
+        core_feature_tests = [r for r in self.test_results if r not in talent_tree_tests and r not in pi_message_tests]
+        
+        print("📊 RESULTS BY CATEGORY:")
+        print(f"🌳 Talent Tree System: {sum(1 for t in talent_tree_tests if t['success'])}/{len(talent_tree_tests)} passed")
+        print(f"🤖 Pi Message Integration: {sum(1 for t in pi_message_tests if t['success'])}/{len(pi_message_tests)} passed")
+        print(f"🏠 Core Features: {sum(1 for t in core_feature_tests if t['success'])}/{len(core_feature_tests)} passed")
         print()
         
         # List failed tests
