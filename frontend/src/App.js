@@ -2738,6 +2738,17 @@ function ChoreChampionsApp() {
               </button>
               
               <button
+                onClick={() => setActiveTab('personal-growth')}
+                className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
+                  activeTab === 'personal-growth' 
+                    ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                🌱 Personal Growth
+              </button>
+              
+              <button
                 onClick={() => setActiveTab('teammate')}
                 className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
                   activeTab === 'teammate' 
