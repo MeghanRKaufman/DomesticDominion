@@ -1984,13 +1984,13 @@ async def get_talent_nodes():
     return nodes_list
 
 # Get talent tree nodes (updated for 10-tier system)
-@api_router.get("/api/talent-tree")
+@api_router.get("/talent-tree")
 async def get_talent_tree():
     """Get all talent tree nodes for the new 10-tier system"""
     return {"nodes": TALENT_TREE_NODES}
 
 # Check if user can unlock premium tiers
-@api_router.get("/api/talent-tree/premium-status/{user_id}")
+@api_router.get("/talent-tree/premium-status/{user_id}")
 async def get_premium_status(user_id: str):
     """Check if user has premium access for tiers 6-10"""
     try:
