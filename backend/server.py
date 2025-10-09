@@ -2058,7 +2058,7 @@ async def enhance_message_endpoint(request: MessageRequest):
         raise HTTPException(status_code=500, detail=f"Message enhancement failed: {str(e)}")
 
 # Send message endpoint
-@api_router.post("/api/messages/send")
+@api_router.post("/messages/send")
 async def send_message(request: SendMessageRequest):
     """
     Send a message between partners
