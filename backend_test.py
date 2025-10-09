@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend Testing Suite for Enhanced NES-themed Gamified Chore App
-Tests all new features including enhanced scoring, talent trees, quest templates, and new endpoints
+Backend Testing Suite for Enhanced Chore Champions App
+Tests new features: 10-tier talent tree system, Pi message integration, and enhanced backend functionality
 """
 
 import requests
@@ -10,6 +10,7 @@ import sys
 import os
 from datetime import datetime, timedelta
 import uuid
+import time
 
 # Get backend URL from environment
 BACKEND_URL = "https://chorerpg.preview.emergentagent.com/api"
