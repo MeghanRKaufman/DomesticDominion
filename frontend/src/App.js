@@ -2751,65 +2751,188 @@ function ChoreChampionsApp() {
 
         {/* Main Content Area */}
         <div className="flex-1 p-6">
-          {/* My Chores for Today */}
+          {/* My Quest Log - Enhanced */}
           {activeTab === 'my-chores' && (
             <div>
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold">🎯 My Chores for Today</h2>
-                <div className="text-sm text-gray-600">
-                  {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                <h2 className="text-3xl font-bold">⚔️ My Quest Log</h2>
+                <div className="text-right">
+                  <div className="text-sm text-gray-600">
+                    {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                  </div>
+                  <div className="text-xs text-purple-600 font-medium">
+                    Your personal adventure awaits!
+                  </div>
                 </div>
               </div>
-              
-              {myDailyChores.length > 0 ? (
-                <div className="grid gap-4">
-                  {myDailyChores
-                    .filter(chore => selectedRoom === 'all' || chore.room.toLowerCase().includes(selectedRoom.toLowerCase()))
-                    .map((chore) => (
-                    <div key={chore.id} className="bg-white rounded-lg shadow p-4 flex items-center space-x-4">
-                      <input 
-                        type="checkbox"
-                        className="w-6 h-6 rounded border-2 border-purple-300 text-purple-600 focus:ring-purple-500"
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            handleQuestComplete(chore.points);
-                            // Remove from daily list when completed
-                            setMyDailyChores(prev => prev.filter(c => c.id !== chore.id));
-                          }
-                        }}
-                      />
-                      <div className="flex-1">
-                        <h3 className="font-bold text-lg">{chore.title}</h3>
-                        <div className="flex items-center space-x-4 text-sm text-gray-600">
-                          <span>🏠 {chore.room}</span>
-                          <span className={`px-2 py-1 rounded text-xs ${
-                            chore.difficulty === 'EASY' ? 'bg-green-100 text-green-800' :
-                            chore.difficulty === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
-                            {chore.difficulty}
-                          </span>
-                          <span className="text-purple-600 font-bold">+{chore.points} pts</span>
+
+              {currentUser && myDailyChores.length > 0 ? (
+                <div className="space-y-6">
+                  {/* Today's Quests */}
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 p-6">
+                    <h3 className="text-2xl font-bold mb-4 text-blue-800">🗓️ Today's Daily Quests</h3>
+                    <p className="text-blue-600 mb-4">Your assigned half of the household duties</p>
+                    
+                    <div className="space-y-4">
+                      {myDailyChores
+                        .filter(chore => selectedRoom === 'all' || chore.room.toLowerCase().includes(selectedRoom.toLowerCase()))
+                        .map((chore, index) => (
+                        <div key={chore.id} className={`bg-white rounded-lg shadow-md p-5 border-l-4 transition-all hover:shadow-lg ${
+                          chore.completed 
+                            ? 'border-green-400 bg-green-50' 
+                            : 'border-blue-400'
+                        }`}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
+                                chore.completed 
+                                  ? 'bg-green-200 text-green-800' 
+                                  : 'bg-blue-200 text-blue-800'
+                              }`}>
+                                {chore.completed ? '✓' : index + 1}
+                              </div>
+                              
+                              <div>
+                                <h4 className={`text-xl font-bold ${chore.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+                                  {chore.title}
+                                </h4>
+                                <div className="flex items-center space-x-3 text-sm mt-1">
+                                  <span className="flex items-center space-x-1">
+                                    <span>🏠</span>
+                                    <span className="font-medium">{chore.room}</span>
+                                  </span>
+                                  <Badge className={
+                                    chore.difficulty === 'EASY' ? 'bg-green-100 text-green-800 border-green-200' :
+                                    chore.difficulty === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                                    'bg-red-100 text-red-800 border-red-200'
+                                  }>
+                                    {chore.difficulty}
+                                  </Badge>
+                                  <span className="text-purple-600 font-bold flex items-center space-x-1">
+                                    <span>💎</span>
+                                    <span>+{chore.points} XP</span>
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="flex space-x-2">
+                              {!chore.completed && (
+                                <Button 
+                                  onClick={() => {
+                                    handleQuestComplete(chore.points);
+                                    setMyDailyChores(prev => prev.map(c => 
+                                      c.id === chore.id ? {...c, completed: true} : c
+                                    ));
+                                  }}
+                                  className="bg-green-600 hover:bg-green-700 text-white font-medium"
+                                >
+                                  ⚔️ Complete Quest
+                                </Button>
+                              )}
+                              <Button 
+                                variant="outline"
+                                size="sm"
+                                className="text-gray-600 hover:text-gray-700"
+                              >
+                                Skip (-50% XP)
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          {chore.completed && (
+                            <div className="mt-3 p-3 bg-green-100 rounded-lg border border-green-200">
+                              <div className="flex items-center space-x-2 text-green-800">
+                                <span className="text-xl">🏆</span>
+                                <span className="font-semibold">Quest completed! +{chore.points} XP earned</span>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                      <button className="px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm">
-                        Request Partner Verification
-                      </button>
+                      ))}
                     </div>
-                  ))}
+                  </div>
                   
-                  {myDailyChores.filter(chore => selectedRoom === 'all' || chore.room.toLowerCase().includes(selectedRoom.toLowerCase())).length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      No chores in selected room filter
+                  {/* Upcoming Week Preview */}
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200 p-6">
+                    <h3 className="text-2xl font-bold mb-4 text-purple-800">📅 Upcoming This Week</h3>
+                    <p className="text-purple-600 mb-4">Preview of quests coming up in the next 7 days</p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {['Tomorrow', 'Wednesday', 'Thursday', 'Friday', 'Weekend Specials'].map((day, index) => (
+                        <div key={day} className="bg-white rounded-lg p-4 border border-purple-100">
+                          <h4 className="font-bold text-gray-800 mb-2">{day}</h4>
+                          <div className="space-y-2">
+                            <div className="text-sm text-gray-600 flex items-center space-x-2">
+                              <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
+                              <span>Kitchen cleaning rotation</span>
+                            </div>
+                            <div className="text-sm text-gray-600 flex items-center space-x-2">
+                              <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                              <span>Laundry day prep</span>
+                            </div>
+                            {day === 'Weekend Specials' && (
+                              <div className="text-sm text-gray-600 flex items-center space-x-2">
+                                <span className="w-2 h-2 bg-yellow-400 rounded-full"></span>
+                                <span>Deep clean special quest</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-xs text-purple-600 font-medium mt-2">
+                            +{15 + (index * 5)} XP total
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  )}
+                  </div>
+                  
+                  {/* Quest Statistics */}
+                  <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border-2 border-gray-200 p-6">
+                    <h3 className="text-2xl font-bold mb-4 text-gray-800">📊 Quest Statistics</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-blue-600">
+                          {myDailyChores.filter(c => c.completed).length}
+                        </div>
+                        <div className="text-sm text-gray-600">Completed Today</div>
+                      </div>
+                      
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-green-600">
+                          {myDailyChores.reduce((sum, c) => sum + (c.completed ? c.points : 0), 0)}
+                        </div>
+                        <div className="text-sm text-gray-600">XP Earned Today</div>
+                      </div>
+                      
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-purple-600">
+                          {Math.round((myDailyChores.filter(c => c.completed).length / myDailyChores.length) * 100) || 0}%
+                        </div>
+                        <div className="text-sm text-gray-600">Completion Rate</div>
+                      </div>
+                      
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-orange-600">
+                          {myDailyChores.length - myDailyChores.filter(c => c.completed).length}
+                        </div>
+                        <div className="text-sm text-gray-600">Remaining Quests</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <div className="bg-white rounded-lg shadow-lg p-6">
                   <div className="text-center py-8">
-                    <div className="text-4xl mb-4">🎯</div>
-                    <h3 className="text-xl font-bold mb-2">Your Daily Quest Awaits</h3>
-                    <p className="text-gray-600">Complete onboarding to get your personalized chore assignments!</p>
+                    <div className="text-6xl mb-4">⚔️</div>
+                    <h3 className="text-2xl font-bold mb-2">Your Quest Log Awaits!</h3>
+                    <p className="text-gray-600 mb-4">Complete onboarding to get your personalized daily quests and embark on your household adventure!</p>
+                    <Button 
+                      onClick={() => setShowEnhancedOnboarding(true)}
+                      className="bg-purple-600 hover:bg-purple-700 text-white"
+                    >
+                      🚀 Start Adventure
+                    </Button>
                   </div>
                 </div>
               )}
