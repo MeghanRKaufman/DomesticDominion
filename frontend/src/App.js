@@ -1932,6 +1932,11 @@ function ChoreChampionsApp() {
   const [messages, setMessages] = useState([]);
   const [showPiSettings, setShowPiSettings] = useState(false);
   const [hasDailyMessage, setHasDailyMessage] = useState(false);
+  
+  // All Chores Sorting State
+  const [sortBy, setSortBy] = useState('room');
+  const [sortDirection, setSortDirection] = useState('asc');
+  const [filterBy, setFilterBy] = useState('all');
 
   // Load user from localStorage on app start
   useEffect(() => {
