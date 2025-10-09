@@ -193,6 +193,8 @@ class TalentBranch(str, Enum):
     EFFICIENCY = "Efficiency"
     COUPLE = "Couple"
     GROWTH = "Growth"
+    HOUSEKEEPING = "Housekeeping"
+    COUPLING = "Coupling"
 
 class TaskDifficulty(str, Enum):
     EASY = "EASY"
