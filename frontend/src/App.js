@@ -2656,7 +2656,7 @@ function ChoreChampionsApp() {
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                🎯 My Chores for Today
+                ⚔️ My Quest Log
               </button>
               
               <button
