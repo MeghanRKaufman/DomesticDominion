@@ -2192,6 +2192,7 @@ function ChoreChampionsApp() {
       setAllChores(allPossibleTasks); // Show ALL possible tasks in "All Chores" tab
       
       console.log('🎯 Generated daily chores:', { myChores, partnerChores, totalTasks: allPossibleTasks.length });
+      console.log('📋 All possible tasks set:', allPossibleTasks);
       
     } catch (error) {
       console.error('Error generating daily chores:', error);
