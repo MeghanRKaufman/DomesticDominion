@@ -92,68 +92,127 @@ class BackendTester:
             self.log_test("Game Constants Endpoint", False, "", str(e))
             return False
 
-    def test_talent_nodes_endpoint(self):
-        """Test /api/talent-nodes endpoint returns all 21 talent nodes across 3 branches"""
+    def test_talent_tree_endpoint(self):
+        """Test NEW /api/talent-tree endpoint returns the new 10-tier talent tree nodes"""
         try:
-            response = requests.get(f"{self.base_url}/talent-nodes")
+            response = requests.get(f"{self.base_url}/talent-tree")
             
             if response.status_code != 200:
-                self.log_test("Talent Nodes Endpoint", False,
+                self.log_test("Talent Tree Endpoint", False,
                             f"Status: {response.status_code}", response.text)
                 return False
                 
             data = response.json()
             
-            # Should be a list of talent nodes
-            if not isinstance(data, list):
-                self.log_test("Talent Nodes Endpoint", False,
-                            "Expected list of talent nodes", f"Got: {type(data)}")
+            # Should have nodes key
+            if "nodes" not in data:
+                self.log_test("Talent Tree Endpoint", False,
+                            "Expected 'nodes' key in response", f"Got: {list(data.keys())}")
                 return False
                 
-            # Check for 21 nodes
-            if len(data) < 21:
-                self.log_test("Talent Nodes Endpoint", False,
-                            f"Expected at least 21 nodes, got {len(data)}")
-                return False
-                
-            # Check for 3 branches
-            branches = set()
-            growth_nodes = []
-            couple_nodes = []
-            efficiency_nodes = []
+            nodes = data["nodes"]
             
-            for node in data:
+            # Check for 30 talent nodes (3 branches × 10 tiers)
+            if len(nodes) < 30:
+                self.log_test("Talent Tree Endpoint", False,
+                            f"Expected at least 30 nodes (3 branches × 10 tiers), got {len(nodes)}")
+                return False
+                
+            # Check for 3 branches and 10 tiers
+            branches = set()
+            tiers = set()
+            premium_nodes = 0
+            free_nodes = 0
+            
+            for node_id, node in nodes.items():
                 branch = node.get("branch")
+                tier = node.get("tier")
+                premium = node.get("premium", False)
+                
                 branches.add(branch)
+                tiers.add(tier)
                 
-                # Check required fields
-                required_fields = ["id", "name", "branch", "tier", "cost", "description", "effect"]
+                if premium:
+                    premium_nodes += 1
+                else:
+                    free_nodes += 1
+                
+                # Check required fields for new 10-tier system
+                required_fields = ["id", "name", "branch", "tier", "cost", "description", "effect", "prerequisites", "position", "premium"]
                 for field in required_fields:
-                    if field not in node and field.replace("id", "nodeId") not in node:
-                        self.log_test("Talent Nodes Endpoint", False,
-                                    f"Missing field '{field}' in node", str(node))
+                    if field not in node:
+                        self.log_test("Talent Tree Endpoint", False,
+                                    f"Missing field '{field}' in node {node_id}", str(node))
                         return False
-                
-                # Categorize by branch
-                if "pg_" in node.get("id", "") or "gr_" in node.get("nodeId", ""):
-                    growth_nodes.append(node)
-                elif "us_" in node.get("id", "") or "cou_" in node.get("nodeId", ""):
-                    couple_nodes.append(node)
-                elif "hh_" in node.get("id", "") or "eff_" in node.get("nodeId", ""):
-                    efficiency_nodes.append(node)
-                    
-            expected_branches = {"Growth", "Couple", "Efficiency"}
+                        
+            expected_branches = {"Housekeeping", "Coupling", "Growth"}
+            expected_tiers = set(range(1, 11))  # Tiers 1-10
+            
             if not expected_branches.issubset(branches):
-                self.log_test("Talent Nodes Endpoint", False,
+                self.log_test("Talent Tree Endpoint", False,
                             f"Missing branches. Expected: {expected_branches}, Got: {branches}")
                 return False
                 
-            self.log_test("Talent Nodes Endpoint", True,
-                        f"Found {len(data)} nodes across {len(branches)} branches")
+            if not expected_tiers.issubset(tiers):
+                self.log_test("Talent Tree Endpoint", False,
+                            f"Missing tiers. Expected: {expected_tiers}, Got: {tiers}")
+                return False
+                
+            # Check premium/free distribution (tiers 1-5 free, 6-10 premium)
+            if free_nodes < 15 or premium_nodes < 15:
+                self.log_test("Talent Tree Endpoint", False,
+                            f"Expected ~15 free and ~15 premium nodes, got {free_nodes} free, {premium_nodes} premium")
+                return False
+                
+            self.log_test("Talent Tree Endpoint", True,
+                        f"Found {len(nodes)} nodes across {len(branches)} branches with {len(tiers)} tiers")
             return True
             
         except Exception as e:
-            self.log_test("Talent Nodes Endpoint", False, "", str(e))
+            self.log_test("Talent Tree Endpoint", False, "", str(e))
+            return False
+
+    def test_talent_tree_premium_status_endpoint(self):
+        """Test NEW /api/talent-tree/premium-status/{user_id} endpoint for premium access checking"""
+        if not self.test_user1_id:
+            self.log_test("Talent Tree Premium Status Endpoint", False, "No test user available")
+            return False
+            
+        try:
+            response = requests.get(f"{self.base_url}/talent-tree/premium-status/{self.test_user1_id}")
+            
+            if response.status_code != 200:
+                self.log_test("Talent Tree Premium Status Endpoint", False,
+                            f"Status: {response.status_code}", response.text)
+                return False
+                
+            data = response.json()
+            
+            # Check required fields
+            required_fields = ["has_premium", "max_tier_available", "premium_purchase_url"]
+            for field in required_fields:
+                if field not in data:
+                    self.log_test("Talent Tree Premium Status Endpoint", False,
+                                f"Missing field '{field}' in response", str(data))
+                    return False
+                    
+            # Validate data types and values
+            if not isinstance(data["has_premium"], bool):
+                self.log_test("Talent Tree Premium Status Endpoint", False,
+                            "has_premium should be boolean", f"Got: {type(data['has_premium'])}")
+                return False
+                
+            if data["max_tier_available"] not in [5, 10]:
+                self.log_test("Talent Tree Premium Status Endpoint", False,
+                            "max_tier_available should be 5 or 10", f"Got: {data['max_tier_available']}")
+                return False
+                
+            self.log_test("Talent Tree Premium Status Endpoint", True,
+                        f"Premium status: {data['has_premium']}, Max tier: {data['max_tier_available']}")
+            return True
+            
+        except Exception as e:
+            self.log_test("Talent Tree Premium Status Endpoint", False, "", str(e))
             return False
 
     def test_quest_templates_endpoint(self):
