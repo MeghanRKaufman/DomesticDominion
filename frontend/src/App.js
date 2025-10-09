@@ -1959,7 +1959,7 @@ function ChoreChampionsApp() {
     { shouldReconnect: () => true }
   );
 
-  // Initialize app
+  // Initialize app and populate chores
   useEffect(() => {
     const savedUser = localStorage.getItem('currentUser');
     const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
@@ -1983,6 +1983,9 @@ function ChoreChampionsApp() {
     } else {
       setShowAuth(true);
     }
+    
+    // Always generate a comprehensive chore library for the All Chores tab
+    generateComprehensiveChoreLibrary();
   }, []);
 
   // Load game data
