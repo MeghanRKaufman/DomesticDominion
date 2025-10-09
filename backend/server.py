@@ -2089,7 +2089,7 @@ async def send_message(request: SendMessageRequest):
                 "enhanced": request.enhanced,
                 "timestamp": message_doc["timestamp"].isoformat()
             }
-            await manager.send_message(request.couple_id, notification)
+            await manager.send_to_couple(request.couple_id, notification)
         
         return {"id": message_doc["id"], "status": "sent", "timestamp": message_doc["timestamp"]}
         
