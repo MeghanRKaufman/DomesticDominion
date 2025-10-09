@@ -738,13 +738,19 @@ class Task(BaseModel):
     requires_verification: bool = False
 
 class TalentNode(BaseModel):
-    nodeId: str
+    nodeId: Optional[str] = None  # For backward compatibility
+    id: Optional[str] = None      # New field name
     branch: TalentBranch
     tier: int
-    costTalentPoints: int
-    title: str
+    costTalentPoints: Optional[int] = None  # For backward compatibility
+    cost: Optional[int] = None              # New field name
+    title: Optional[str] = None             # For backward compatibility
+    name: Optional[str] = None              # New field name
     description: str
     effect: Dict[str, Any]
+    prerequisites: Optional[List[str]] = Field(default_factory=list)  # New field
+    position: Optional[Dict[str, int]] = Field(default_factory=dict)  # New field
+    premium: Optional[bool] = False                                   # New field
 
 class TaskCompletion(BaseModel):
     completionId: str = Field(default_factory=lambda: str(uuid.uuid4()))
