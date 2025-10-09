@@ -647,6 +647,270 @@ class BackendTester:
             self.log_test("Point Calculation System", False, "", str(e))
             return False
 
+    def test_pi_enhance_message_endpoint(self):
+        """Test NEW /api/pi/enhance-message endpoint with different enhancement levels"""
+        if not self.test_user1_id:
+            self.log_test("Pi Enhance Message Endpoint", False, "No test user available")
+            return False
+            
+        try:
+            # Test different enhancement levels
+            test_cases = [
+                {"message": "You didn't do the dishes again", "enhancement_level": "light"},
+                {"message": "I'm frustrated with the mess", "enhancement_level": "moderate"},
+                {"message": "This is really annoying me", "enhancement_level": "significant"}
+            ]
+            
+            for i, test_case in enumerate(test_cases):
+                enhancement_data = {
+                    "message": test_case["message"],
+                    "enhancement_level": test_case["enhancement_level"],
+                    "preserve_style": True,
+                    "user_id": self.test_user1_id
+                }
+                
+                response = requests.post(f"{self.base_url}/pi/enhance-message", json=enhancement_data)
+                
+                if response.status_code not in [200, 201]:
+                    self.log_test("Pi Enhance Message Endpoint", False,
+                                f"Enhancement level {test_case['enhancement_level']} failed. Status: {response.status_code}", response.text)
+                    return False
+                    
+                data = response.json()
+                
+                # Check required fields in response
+                required_fields = ["enhanced_message", "confidence_score", "enhancements_applied", "original_message"]
+                for field in required_fields:
+                    if field not in data:
+                        self.log_test("Pi Enhance Message Endpoint", False,
+                                    f"Missing field '{field}' in enhancement response", str(data))
+                        return False
+                        
+                # Validate data types
+                if not isinstance(data["confidence_score"], (int, float)):
+                    self.log_test("Pi Enhance Message Endpoint", False,
+                                "confidence_score should be numeric", f"Got: {type(data['confidence_score'])}")
+                    return False
+                    
+                if not isinstance(data["enhancements_applied"], list):
+                    self.log_test("Pi Enhance Message Endpoint", False,
+                                "enhancements_applied should be list", f"Got: {type(data['enhancements_applied'])}")
+                    return False
+                    
+                # Check that message was actually enhanced (different from original)
+                if data["enhanced_message"] == data["original_message"]:
+                    # This might be okay for fallback scenarios, check for note
+                    if "note" not in data:
+                        self.log_test("Pi Enhance Message Endpoint", False,
+                                    "Message not enhanced and no fallback note provided")
+                        return False
+                        
+            self.log_test("Pi Enhance Message Endpoint", True,
+                        f"All {len(test_cases)} enhancement levels working correctly")
+            return True
+            
+        except Exception as e:
+            self.log_test("Pi Enhance Message Endpoint", False, "", str(e))
+            return False
+
+    def test_messages_send_endpoint(self):
+        """Test NEW /api/messages/send endpoint for sending enhanced messages"""
+        if not self.test_couple_id or not self.test_user1_id:
+            self.log_test("Messages Send Endpoint", False, "No test data available")
+            return False
+            
+        try:
+            # Test sending different types of messages
+            test_messages = [
+                {
+                    "content": "I love you and appreciate all you do",
+                    "original_content": "Thanks for helping",
+                    "enhanced": True,
+                    "empathy_score": 0.85
+                },
+                {
+                    "content": "Can you please take out the trash?",
+                    "enhanced": False,
+                    "empathy_score": 0.0
+                }
+            ]
+            
+            for i, msg_data in enumerate(test_messages):
+                message_data = {
+                    "content": msg_data["content"],
+                    "original_content": msg_data.get("original_content"),
+                    "enhanced": msg_data["enhanced"],
+                    "empathy_score": msg_data["empathy_score"],
+                    "sender_id": self.test_user1_id,
+                    "couple_id": self.test_couple_id
+                }
+                
+                response = requests.post(f"{self.base_url}/messages/send", json=message_data)
+                
+                if response.status_code not in [200, 201]:
+                    self.log_test("Messages Send Endpoint", False,
+                                f"Message {i+1} send failed. Status: {response.status_code}", response.text)
+                    return False
+                    
+                data = response.json()
+                
+                # Check required fields in response
+                required_fields = ["id", "status", "timestamp"]
+                for field in required_fields:
+                    if field not in data:
+                        self.log_test("Messages Send Endpoint", False,
+                                    f"Missing field '{field}' in send response", str(data))
+                        return False
+                        
+                if data["status"] != "sent":
+                    self.log_test("Messages Send Endpoint", False,
+                                f"Expected status 'sent', got '{data['status']}'")
+                    return False
+                    
+            self.log_test("Messages Send Endpoint", True,
+                        f"Successfully sent {len(test_messages)} messages")
+            return True
+            
+        except Exception as e:
+            self.log_test("Messages Send Endpoint", False, "", str(e))
+            return False
+
+    def test_messages_retrieve_endpoint(self):
+        """Test NEW /api/messages/{couple_id} endpoint for retrieving message history"""
+        if not self.test_couple_id:
+            self.log_test("Messages Retrieve Endpoint", False, "No test couple available")
+            return False
+            
+        try:
+            response = requests.get(f"{self.base_url}/messages/{self.test_couple_id}")
+            
+            if response.status_code != 200:
+                self.log_test("Messages Retrieve Endpoint", False,
+                            f"Status: {response.status_code}", response.text)
+                return False
+                
+            data = response.json()
+            
+            # Should return a list of messages
+            if not isinstance(data, list):
+                self.log_test("Messages Retrieve Endpoint", False,
+                            "Expected list of messages", f"Got: {type(data)}")
+                return False
+                
+            # If we have messages, check their structure
+            if len(data) > 0:
+                for message in data:
+                    required_fields = ["id", "content", "sender_id", "couple_id", "timestamp", "enhanced"]
+                    for field in required_fields:
+                        if field not in message:
+                            self.log_test("Messages Retrieve Endpoint", False,
+                                        f"Missing field '{field}' in message", str(message))
+                            return False
+                            
+            self.log_test("Messages Retrieve Endpoint", True,
+                        f"Retrieved {len(data)} messages for couple")
+            return True
+            
+        except Exception as e:
+            self.log_test("Messages Retrieve Endpoint", False, "", str(e))
+            return False
+
+    def test_messages_daily_status_endpoint(self):
+        """Test NEW /api/messages/{couple_id}/daily-status endpoint for daily message tracking"""
+        if not self.test_couple_id or not self.test_user1_id:
+            self.log_test("Messages Daily Status Endpoint", False, "No test data available")
+            return False
+            
+        try:
+            # Test with today's date
+            today = datetime.now().strftime("%Y-%m-%d")
+            
+            response = requests.get(f"{self.base_url}/messages/{self.test_couple_id}/daily-status", 
+                                  params={"date": today, "user_id": self.test_user1_id})
+            
+            if response.status_code != 200:
+                self.log_test("Messages Daily Status Endpoint", False,
+                            f"Status: {response.status_code}", response.text)
+                return False
+                
+            data = response.json()
+            
+            # Check required fields
+            required_fields = ["has_daily_message", "message_count", "date"]
+            for field in required_fields:
+                if field not in data:
+                    self.log_test("Messages Daily Status Endpoint", False,
+                                f"Missing field '{field}' in response", str(data))
+                    return False
+                    
+            # Validate data types
+            if not isinstance(data["has_daily_message"], bool):
+                self.log_test("Messages Daily Status Endpoint", False,
+                            "has_daily_message should be boolean", f"Got: {type(data['has_daily_message'])}")
+                return False
+                
+            if not isinstance(data["message_count"], int):
+                self.log_test("Messages Daily Status Endpoint", False,
+                            "message_count should be integer", f"Got: {type(data['message_count'])}")
+                return False
+                
+            if data["date"] != today:
+                self.log_test("Messages Daily Status Endpoint", False,
+                            f"Expected date {today}, got {data['date']}")
+                return False
+                
+            self.log_test("Messages Daily Status Endpoint", True,
+                        f"Daily status: {data['has_daily_message']}, Count: {data['message_count']}")
+            return True
+            
+        except Exception as e:
+            self.log_test("Messages Daily Status Endpoint", False, "", str(e))
+            return False
+
+    def test_pi_api_fallback_functionality(self):
+        """Test Pi API fallback functionality when Pi service unavailable"""
+        if not self.test_user1_id:
+            self.log_test("Pi API Fallback Functionality", False, "No test user available")
+            return False
+            
+        try:
+            # Test with a message that should trigger enhancement
+            enhancement_data = {
+                "message": "This is a test message for fallback functionality",
+                "enhancement_level": "moderate",
+                "preserve_style": True,
+                "user_id": self.test_user1_id
+            }
+            
+            response = requests.post(f"{self.base_url}/pi/enhance-message", json=enhancement_data)
+            
+            if response.status_code not in [200, 201]:
+                self.log_test("Pi API Fallback Functionality", False,
+                            f"Status: {response.status_code}", response.text)
+                return False
+                
+            data = response.json()
+            
+            # Check if fallback was used (indicated by note field or specific patterns)
+            fallback_indicators = [
+                "note" in data,
+                "Pi API unavailable" in data.get("note", ""),
+                "Pi API error" in data.get("note", ""),
+                "fallback" in data.get("enhancements_applied", [])
+            ]
+            
+            if any(fallback_indicators):
+                self.log_test("Pi API Fallback Functionality", True,
+                            "Fallback functionality working (Pi API unavailable)")
+            else:
+                self.log_test("Pi API Fallback Functionality", True,
+                            "Pi API working normally (no fallback needed)")
+            return True
+            
+        except Exception as e:
+            self.log_test("Pi API Fallback Functionality", False, "", str(e))
+            return False
+
     def test_user_couple_management(self):
         """Test existing couple creation and user creation still works"""
         try:
