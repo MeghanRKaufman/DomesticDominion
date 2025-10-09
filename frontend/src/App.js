@@ -3386,31 +3386,7 @@ function ChoreChampionsApp() {
         onClose={() => setShowEnhancedOnboarding(false)}
       />
       
-      {/* Simple invitation modal for existing players */}
-      {showAuth && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
-            <h2 className="text-2xl font-bold mb-4 text-center">👑 Join Adventure</h2>
-            <p className="mb-4 text-gray-600 text-center">Enter your invitation code to join an existing kingdom!</p>
-            <input 
-              type="text" 
-              placeholder="Enter invitation code"
-              className="w-full p-3 border rounded-lg mb-4"
-            />
-            <div className="flex space-x-3">
-              <button 
-                onClick={() => setShowAuth(false)}
-                className="flex-1 py-2 border rounded-lg"
-              >
-                Cancel
-              </button>
-              <button className="flex-1 py-2 bg-purple-600 text-white rounded-lg">
-                Join Kingdom
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Redundant kingdom join modal removed */}
     </div>
   );
 }
