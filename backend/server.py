@@ -1990,7 +1990,7 @@ async def get_talent_nodes():
 @api_router.get("/talent-tree")
 async def get_talent_tree():
     """Get all talent tree nodes for the new 10-tier system"""
-    return {"nodes": TALENT_TREE_NODES}
+    return {"nodes": NEW_TALENT_TREE_NODES}
 
 # Check if user can unlock premium tiers
 @api_router.get("/talent-tree/premium-status/{user_id}")
