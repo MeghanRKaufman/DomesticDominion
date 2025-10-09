@@ -2027,7 +2027,7 @@ class SendMessageRequest(BaseModel):
     couple_id: str
 
 # Pi message enhancement endpoint
-@api_router.post("/api/pi/enhance-message")
+@api_router.post("/pi/enhance-message")
 async def enhance_message_endpoint(request: MessageRequest):
     """
     Enhance a message using Pi AI for empathetic communication
