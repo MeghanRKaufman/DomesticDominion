@@ -2119,7 +2119,7 @@ async def get_messages(couple_id: str, limit: int = 50):
         raise HTTPException(status_code=500, detail=f"Failed to get messages: {str(e)}")
 
 # Check daily message status
-@api_router.get("/api/messages/{couple_id}/daily-status")
+@api_router.get("/messages/{couple_id}/daily-status")
 async def check_daily_message_status(couple_id: str, date: str, user_id: str):
     """
     Check if user has sent their required daily message
