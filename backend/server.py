@@ -893,8 +893,8 @@ class RespondVerificationRequest(BaseModel):
     verificationId: str
     response: str  # "verify", "decline", "request_proof"
 
-# Talent Tree Node Definitions (exact from specification)
-TALENT_TREE_NODES = {
+# Old 3-tier talent tree (kept for backward compatibility with existing functions)
+OLD_TALENT_TREE_NODES = {
     # EFFICIENCY BRANCH
     "eff_qw1": {
         "nodeId": "eff_qw1",
@@ -1090,6 +1090,9 @@ TALENT_TREE_NODES = {
         "effect": {"type": "conversion_chance", "scope": "growth_to_couple", "chance": 0.10}
     }
 }
+
+# Use the new 10-tier talent tree as the main one
+TALENT_TREE_NODES = NEW_TALENT_TREE_NODES
 
 # Sample Task List (following specification)
 DEFAULT_TASKS = [
