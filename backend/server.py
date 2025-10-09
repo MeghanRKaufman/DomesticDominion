@@ -206,7 +206,7 @@ class QuestType(str, Enum):
 
 # Comprehensive 10-Tier Talent Tree System (Chore Champions)
 # Based on new world map specification with 3 kingdoms/branches
-TALENT_TREE_NODES = {
+NEW_TALENT_TREE_NODES = {
     # ===== HOUSEKEEPING HEROES (Country I: Sanctum of Stewardry) =====
     # Free Tiers 1-5
     # Tier 1: Dustvale - Basic cleaning, dishes, tidying
