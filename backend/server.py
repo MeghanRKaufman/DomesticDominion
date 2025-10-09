@@ -2097,7 +2097,7 @@ async def send_message(request: SendMessageRequest):
         raise HTTPException(status_code=500, detail=f"Failed to send message: {str(e)}")
 
 # Get messages for a couple
-@api_router.get("/api/messages/{couple_id}")
+@api_router.get("/messages/{couple_id}")
 async def get_messages(couple_id: str, limit: int = 50):
     """
     Get recent messages for a couple
