@@ -3189,6 +3189,157 @@ function ChoreChampionsApp() {
             </div>
           )}
 
+          {/* Personal Growth Tasks */}
+          {activeTab === 'personal-growth' && (
+            <div>
+              <h2 className="text-3xl font-bold mb-6">🌱 Personal Growth & Self-Care</h2>
+              
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <div className="mb-6">
+                  <h3 className="text-lg font-bold mb-4">Complete Personal Development Task Library</h3>
+                  <p className="text-gray-600 mb-4">Focus on your wellbeing, growth, and self-improvement.</p>
+                </div>
+                
+                <div className="space-y-6">
+                  {/* Wellness & Health */}
+                  <div>
+                    <h4 className="font-bold text-lg mb-3 text-green-600">💚 Wellness & Health</h4>
+                    <div className="grid gap-3">
+                      {getSortedAndFilteredChores()
+                        .filter(task => task.category === 'personal' && ['meditation', 'exercise', 'drink_water', 'healthy_meal', 'skincare_routine', 'stretch'].includes(task.id))
+                        .map((task, index) => (
+                          <div key={task.id} className={`border rounded-lg p-4 flex items-center justify-between transition-all hover:shadow-md ${
+                            index % 2 === 0 ? 'bg-green-50' : 'bg-white'
+                          }`}>
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-3 mb-2">
+                                <h5 className="font-bold text-lg">{task.title}</h5>
+                                <Badge className={
+                                  task.difficulty === 'EASY' ? 'bg-green-100 text-green-800 border-green-200' :
+                                  task.difficulty === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                                  'bg-red-100 text-red-800 border-red-200'
+                                }>
+                                  {task.difficulty}
+                                </Badge>
+                              </div>
+                              <div className="flex items-center space-x-4 text-sm">
+                                <span className="flex items-center space-x-1">
+                                  <span className="text-gray-500">Room:</span>
+                                  <span className="font-medium">{task.room}</span>
+                                </span>
+                                <span className="flex items-center space-x-1 text-purple-600 font-bold">
+                                  <span>💎</span>
+                                  <span>+{task.points} pts</span>
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex space-x-2 ml-4">
+                              <Button 
+                                size="sm"
+                                className="bg-green-600 hover:bg-green-700 text-white"
+                              >
+                                ➕ Add to Daily
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                  
+                  {/* Mental & Emotional */}
+                  <div>
+                    <h4 className="font-bold text-lg mb-3 text-blue-600">🧠 Mental & Emotional</h4>
+                    <div className="grid gap-3">
+                      {getSortedAndFilteredChores()
+                        .filter(task => task.category === 'personal' && ['journaling', 'read_book', 'gratitude_practice', 'learn_something', 'call_friend'].includes(task.id))
+                        .map((task, index) => (
+                          <div key={task.id} className={`border rounded-lg p-4 flex items-center justify-between transition-all hover:shadow-md ${
+                            index % 2 === 0 ? 'bg-blue-50' : 'bg-white'
+                          }`}>
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-3 mb-2">
+                                <h5 className="font-bold text-lg">{task.title}</h5>
+                                <Badge className={
+                                  task.difficulty === 'EASY' ? 'bg-green-100 text-green-800 border-green-200' :
+                                  task.difficulty === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                                  'bg-red-100 text-red-800 border-red-200'
+                                }>
+                                  {task.difficulty}
+                                </Badge>
+                              </div>
+                              <div className="flex items-center space-x-4 text-sm">
+                                <span className="flex items-center space-x-1">
+                                  <span className="text-gray-500">Room:</span>
+                                  <span className="font-medium">{task.room}</span>
+                                </span>
+                                <span className="flex items-center space-x-1 text-purple-600 font-bold">
+                                  <span>💎</span>
+                                  <span>+{task.points} pts</span>
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex space-x-2 ml-4">
+                              <Button 
+                                size="sm"
+                                className="bg-blue-600 hover:bg-blue-700 text-white"
+                              >
+                                ➕ Add to Daily
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                  
+                  {/* Organization & Environment */}
+                  <div>
+                    <h4 className="font-bold text-lg mb-3 text-purple-600">🏠 Organization & Environment</h4>
+                    <div className="grid gap-3">
+                      {getSortedAndFilteredChores()
+                        .filter(task => task.category === 'personal' && ['declutter_space'].includes(task.id))
+                        .map((task, index) => (
+                          <div key={task.id} className={`border rounded-lg p-4 flex items-center justify-between transition-all hover:shadow-md ${
+                            index % 2 === 0 ? 'bg-purple-50' : 'bg-white'
+                          }`}>
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-3 mb-2">
+                                <h5 className="font-bold text-lg">{task.title}</h5>
+                                <Badge className={
+                                  task.difficulty === 'EASY' ? 'bg-green-100 text-green-800 border-green-200' :
+                                  task.difficulty === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                                  'bg-red-100 text-red-800 border-red-200'
+                                }>
+                                  {task.difficulty}
+                                </Badge>
+                              </div>
+                              <div className="flex items-center space-x-4 text-sm">
+                                <span className="flex items-center space-x-1">
+                                  <span className="text-gray-500">Room:</span>
+                                  <span className="font-medium">{task.room}</span>
+                                </span>
+                                <span className="flex items-center space-x-1 text-purple-600 font-bold">
+                                  <span>💎</span>
+                                  <span>+{task.points} pts</span>
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex space-x-2 ml-4">
+                              <Button 
+                                size="sm"
+                                className="bg-purple-600 hover:bg-purple-700 text-white"
+                              >
+                                ➕ Add to Daily
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* My Teammate */}
           {activeTab === 'teammate' && (
             <div>
