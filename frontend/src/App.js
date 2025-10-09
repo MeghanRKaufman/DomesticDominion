@@ -3643,15 +3643,147 @@ function ChoreChampionsApp() {
             </div>
           )}
 
-          {/* US Activities */}
+          {/* US Activities - Couple Tasks */}
           {activeTab === 'games' && (
             <div>
-              <h2 className="text-3xl font-bold mb-6">🎮 US Activities</h2>
-              <CoupleGamesInterface 
-                currentUser={currentUser}
-                partner={partner}
-                onGameComplete={handleQuestComplete}
-              />
+              <h2 className="text-3xl font-bold mb-6">💕 US Activities & Couple Tasks</h2>
+              
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <div className="mb-6">
+                  <h3 className="text-lg font-bold mb-4">Complete US/Couple Task Library</h3>
+                  <p className="text-gray-600 mb-4">Activities that bring you together and strengthen your partnership.</p>
+                </div>
+                
+                <div className="space-y-6">
+                  {/* Quality Time Tasks */}
+                  <div>
+                    <h4 className="font-bold text-lg mb-3 text-pink-600">💑 Quality Time</h4>
+                    <div className="grid gap-3">
+                      <div className="border rounded-lg p-4 flex items-center justify-between">
+                        <div>
+                          <h5 className="font-bold">🎲 Play a board game together</h5>
+                          <div className="flex items-center space-x-3 text-sm text-gray-600">
+                            <span>🏠 Living Room</span>
+                            <span className="px-2 py-1 rounded text-xs bg-green-100 text-green-800">EASY</span>
+                            <span className="text-purple-600 font-bold">+10 pts each</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="border rounded-lg p-4 flex items-center justify-between">
+                        <div>
+                          <h5 className="font-bold">🍽️ Cook a meal together</h5>
+                          <div className="flex items-center space-x-3 text-sm text-gray-600">
+                            <span>🏠 Kitchen</span>
+                            <span className="px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-800">MEDIUM</span>
+                            <span className="text-purple-600 font-bold">+15 pts each</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="border rounded-lg p-4 flex items-center justify-between">
+                        <div>
+                          <h5 className="font-bold">🎬 Watch a movie/show together</h5>
+                          <div className="flex items-center space-x-3 text-sm text-gray-600">
+                            <span>🏠 Living Room</span>
+                            <span className="px-2 py-1 rounded text-xs bg-green-100 text-green-800">EASY</span>
+                            <span className="text-purple-600 font-bold">+5 pts each</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="border rounded-lg p-4 flex items-center justify-between">
+                        <div>
+                          <h5 className="font-bold">🚶 Take a walk together</h5>
+                          <div className="flex items-center space-x-3 text-sm text-gray-600">
+                            <span>🏠 Outdoors</span>
+                            <span className="px-2 py-1 rounded text-xs bg-green-100 text-green-800">EASY</span>
+                            <span className="text-purple-600 font-bold">+10 pts each</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Communication Tasks */}
+                  <div>
+                    <h4 className="font-bold text-lg mb-3 text-blue-600">💬 Communication & Connection</h4>
+                    <div className="grid gap-3">
+                      <div className="border rounded-lg p-4 flex items-center justify-between">
+                        <div>
+                          <h5 className="font-bold">🤗 Daily check-in conversation</h5>
+                          <div className="flex items-center space-x-3 text-sm text-gray-600">
+                            <span>🏠 Anywhere</span>
+                            <span className="px-2 py-1 rounded text-xs bg-green-100 text-green-800">EASY</span>
+                            <span className="text-purple-600 font-bold">+5 pts each</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="border rounded-lg p-4 flex items-center justify-between">
+                        <div>
+                          <h5 className="font-bold">💌 Write appreciation notes</h5>
+                          <div className="flex items-center space-x-3 text-sm text-gray-600">
+                            <span>🏠 Anywhere</span>
+                            <span className="px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-800">MEDIUM</span>
+                            <span className="text-purple-600 font-bold">+10 pts each</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="border rounded-lg p-4 flex items-center justify-between">
+                        <div>
+                          <h5 className="font-bold">🎯 Plan future goals together</h5>
+                          <div className="flex items-center space-x-3 text-sm text-gray-600">
+                            <span>🏠 Anywhere</span>
+                            <span className="px-2 py-1 rounded text-xs bg-red-100 text-red-800">HARD</span>
+                            <span className="text-purple-600 font-bold">+20 pts each</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Adventure Tasks */}
+                  <div>
+                    <h4 className="font-bold text-lg mb-3 text-green-600">🌟 Adventures & Experiences</h4>
+                    <div className="grid gap-3">
+                      <div className="border rounded-lg p-4 flex items-center justify-between">
+                        <div>
+                          <h5 className="font-bold">🎭 Try something new together</h5>
+                          <div className="flex items-center space-x-3 text-sm text-gray-600">
+                            <span>🏠 Anywhere</span>
+                            <span className="px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-800">MEDIUM</span>
+                            <span className="text-purple-600 font-bold">+15 pts each</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="border rounded-lg p-4 flex items-center justify-between">
+                        <div>
+                          <h5 className="font-bold">📸 Create memories (photo session)</h5>
+                          <div className="flex items-center space-x-3 text-sm text-gray-600">
+                            <span>🏠 Anywhere</span>
+                            <span className="px-2 py-1 rounded text-xs bg-green-100 text-green-800">EASY</span>
+                            <span className="text-purple-600 font-bold">+5 pts each</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="border rounded-lg p-4 flex items-center justify-between">
+                        <div>
+                          <h5 className="font-bold">💆 Give each other massages</h5>
+                          <div className="flex items-center space-x-3 text-sm text-gray-600">
+                            <span>🏠 Bedroom</span>
+                            <span className="px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-800">MEDIUM</span>
+                            <span className="text-purple-600 font-bold">+10 pts each</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
