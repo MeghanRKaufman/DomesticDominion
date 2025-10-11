@@ -3397,12 +3397,12 @@ function ChoreChampionsApp() {
                       </div>
                       
                       <div className="text-sm text-gray-500">
-                        Showing {getSortedAndFilteredChores().length} chores
+                        Showing {getSortedAndFilteredChores().length} quests
                       </div>
                     </div>
                   </div>
                   
-                  {/* Chores List */}
+                  {/* Quests List */}
                   <div className="p-6">
                     <div className="space-y-3">
                       {getSortedAndFilteredChores().map((chore, index) => (
