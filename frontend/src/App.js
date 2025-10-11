@@ -4252,8 +4252,8 @@ function ChoreChampionsApp() {
             </div>
           )}
 
-          {/* US Activities - Couple Tasks */}
-          {activeTab === 'games' && (
+          {/* US Activities removed - covered in All Quests */}
+          {false && activeTab === 'games' && (
             <div>
               <h2 className="text-3xl font-bold mb-6">💕 US Activities & Couple Tasks</h2>
               
