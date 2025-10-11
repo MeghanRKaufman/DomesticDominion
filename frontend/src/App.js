@@ -1990,6 +1990,9 @@ function ChoreChampionsApp() {
     
     // Always generate a comprehensive chore library for the All Chores tab
     generateComprehensiveQuestLibrary();
+    
+    // Generate daily question and Pi suggestion
+    generateDailyQuestionAndSuggestion();
   }, []);
 
   // Load game data
