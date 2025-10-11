@@ -145,6 +145,35 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
   const renderStep3 = () => (
     <div className="space-y-6">
       <div className="text-center">
+        <h2 className="text-3xl font-bold mb-2">👥 Your Partner's Name</h2>
+        <p className="text-gray-600">What should we call your partner in the royal invitation?</p>
+      </div>
+      
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="partnerName">Partner's Name</Label>
+          <Input
+            id="partnerName"
+            type="text"
+            placeholder="Enter your partner's name"
+            value={onboardingData.partnerName || ''}
+            onChange={(e) => updateField('partnerName', e.target.value)}
+            className="text-lg p-4 text-center"
+          />
+        </div>
+        
+        <div className="bg-blue-50 p-4 rounded-lg">
+          <p className="text-sm text-blue-700">
+            💡 <strong>Tip:</strong> This name will appear in your royal invitation and throughout the game when referring to your partner.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderStep4 = () => (
+    <div className="space-y-6">
+      <div className="text-center">
         <h2 className="text-3xl font-bold mb-2">👑 Name Your Kingdom</h2>
         <p className="text-gray-600">What should we call your household adventure?</p>
       </div>
