@@ -3839,10 +3839,8 @@ function ChoreChampionsApp() {
           {activeTab === 'ai-messages' && (
             <div>
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold">💬 Messages</h2>
-                <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1">
-                  ✨ Pi Enhanced
-                </Badge>
+                <h2 className="text-3xl font-bold">🤖 AI Message Helper</h2>
+                <p className="text-gray-600">Transform complaints into loving requests with ChatGPT-5</p>
               </div>
 
               {/* Pi Integration Info */}
