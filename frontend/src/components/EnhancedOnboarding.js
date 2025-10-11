@@ -341,7 +341,7 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
           <div><strong>Invitation Code:</strong> ABC123</div>
           <div className="bg-gray-50 p-4 rounded border">
             <p className="text-sm">
-              "Hey! I just set up our household kingdom '{onboardingData.kingdomName}' on Chore Champions! 
+              "Hey! I just set up our household kingdom '{onboardingData.kingdomName}' on Domestic Dominion! 
               Join me to turn our daily tasks into an epic adventure. Use code: ABC123"
             </p>
           </div>
