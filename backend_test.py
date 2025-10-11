@@ -1236,9 +1236,8 @@ class BackendTester:
                             f"Onboarding creation failed. Status: {response.status_code}", response.text)
                 return False
                 
-            couple_data = response.json()
-            invite_code = couple_data["inviteCode"]
-            couple_id = couple_data["coupleId"]
+            invitation_data = response.json()
+            invite_code = invitation_data["inviteCode"]
             
             # Step 2: Create first user (creator)
             user1_data = {"displayName": onboarding_data["playerName"], "coupleCode": invite_code}
