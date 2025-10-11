@@ -3242,39 +3242,7 @@ function ChoreChampionsApp() {
                     </div>
                   </div>
                   
-                  {/* Upcoming Week Preview */}
-                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200 p-6">
-                    <h3 className="text-2xl font-bold mb-4 text-purple-800">📅 Upcoming This Week</h3>
-                    <p className="text-purple-600 mb-4">Preview of quests coming up in the next 7 days</p>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {['Tomorrow', 'Wednesday', 'Thursday', 'Friday', 'Weekend Specials'].map((day, index) => (
-                        <div key={day} className="bg-white rounded-lg p-4 border border-purple-100">
-                          <h4 className="font-bold text-gray-800 mb-2">{day}</h4>
-                          <div className="space-y-2">
-                            <div className="text-sm text-gray-600 flex items-center space-x-2">
-                              <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
-                              <span>Kitchen cleaning rotation</span>
-                            </div>
-                            <div className="text-sm text-gray-600 flex items-center space-x-2">
-                              <span className="w-2 h-2 bg-green-400 rounded-full"></span>
-                              <span>Laundry day prep</span>
-                            </div>
-                            {day === 'Weekend Specials' && (
-                              <div className="text-sm text-gray-600 flex items-center space-x-2">
-                                <span className="w-2 h-2 bg-yellow-400 rounded-full"></span>
-                                <span>Deep clean special quest</span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="text-xs text-purple-600 font-medium mt-2">
-                            +{15 + (index * 5)} XP total
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  
+                  {/* Removed fake upcoming week preview since daily splits are random */}
                   {/* Quest Statistics */}
                   <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border-2 border-gray-200 p-6">
                     <h3 className="text-2xl font-bold mb-4 text-gray-800">📊 Quest Statistics</h3>
