@@ -3367,7 +3367,9 @@ function ChoreChampionsApp() {
                   {/* Quests List */}
                   <div className="p-6">
                     <div className="space-y-3">
-                      {getSortedAndFilteredChores().map((chore, index) => (
+                      {allChores
+                        .filter(chore => chore.category === questCategory || (questCategory === 'domestic' && (chore.category === 'pets' || chore.category === 'vehicle')))
+                        .map((chore, index) => (
                         <div 
                           key={chore.id} 
                           className={`border rounded-lg p-4 flex items-center justify-between transition-all hover:shadow-md ${
