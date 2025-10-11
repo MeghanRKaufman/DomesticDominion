@@ -3040,7 +3040,7 @@ function ChoreChampionsApp() {
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                📋 All Chores
+                📋 All Quests
               </button>
               
               <button
