@@ -3213,7 +3213,19 @@ function ChoreChampionsApp() {
                             </div>
                           )}
                         </div>
-                      ))}
+                      )) : (
+                        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-6 text-center">
+                          <div className="text-6xl mb-4">⚔️</div>
+                          <h3 className="text-xl font-bold text-yellow-800 mb-2">Quest Assignment in Progress</h3>
+                          <p className="text-yellow-700 mb-4">Your daily quests are being prepared! Please wait a moment or try refreshing.</p>
+                          <Button 
+                            onClick={() => generateDailyChores({}, currentUser)}
+                            className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                          >
+                            🎯 Generate My Quests
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                   
