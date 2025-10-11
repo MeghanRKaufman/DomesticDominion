@@ -1937,6 +1937,10 @@ function ChoreChampionsApp() {
   const [sortBy, setSortBy] = useState('room');
   const [sortDirection, setSortDirection] = useState('asc');
   const [filterBy, setFilterBy] = useState('all');
+  
+  // Daily Question and Pi Suggestions
+  const [dailyQuestion, setDailyQuestion] = useState('');
+  const [piMessageSuggestion, setPiMessageSuggestion] = useState('');
 
   // Load user from localStorage on app start
   useEffect(() => {
