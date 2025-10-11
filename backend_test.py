@@ -13,7 +13,7 @@ import uuid
 import time
 
 # Get backend URL from environment
-BACKEND_URL = "https://chorerpg.preview.emergentagent.com/api"
+BACKEND_URL = "https://quest-kingdom.preview.emergentagent.com/api"
 
 class BackendTester:
     def __init__(self):

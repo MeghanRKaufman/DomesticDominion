@@ -1,78 +1,69 @@
 <analysis>
-The AI engineer's work began by confirming existing architectural details, then shifted to extensive feature development driven by evolving user feedback. Initial efforts involved overhauling the app into an RPG-themed system with gamified tasks and mini-games. Critically, user feedback deprioritized a planned NES pixel-art UI to a skin, redirecting focus to enhancing the original UI.
+The AI engineer successfully transformed a basic MVP into a gamified chore application, Domestic Dominion, for partners. Initial efforts focused on overhauling a multi-step onboarding flow, fixing critical navigation loops, and streamlining user input. Concurrently, a 10-tier talent tree system with three branches was implemented, along with an AI-powered message enhancement feature (Pi API integration).
 
-A significant portion of the trajectory focused on debugging and refining a **multi-step onboarding flow**. This involved fixing persistent navigation loops, redundant inputs, simplifying game difficulty, introducing Kingdom naming with contextual suggestions, and integrating a comprehensive introductory welcome screen. The AI systematically resolved complex state management, duplicate declarations, and modal interaction issues.
-
-The backend now supports an enhanced scoring system and talent tree structure. The onboarding process is functional, inclusive, and aligns with user requests. Currently, the AI is implementing the core daily chore system, including My Chores, All Chores, and My Teammate tabs within the original UI. The next immediate task is to develop the message filtering system for communication features.
+A significant portion of the work involved iterative debugging and refinement based on user feedback. This included fixing issues with empty chore lists, inconsistent variable naming, and broken quest generation post-onboarding. The app was rebranded from Gamified Chore App to Domestic Dominion, and all chore references were changed to quest. The AI also addressed detailed UI/UX requests, such as adding sorting to the All Quests tab, creating distinct quest categories, and enhancing the partner invitation flow. The trajectory concludes with a fix for a partner name input error during onboarding, indicating ongoing refinement of core features.
 </analysis>
 
 <product_requirements>
-The goal is a Gamified Chore App for partners, transforming household tasks into an RPG-like adventure.
-**Core Features:**
-1.  **Gamified Scoring & Leveling:** Tiered points (5/10/20), leveling (100 pts/level, 1.5 TP/5 levels initially, then 1 TP/3 levels), verification bonuses (+5 for partner, +5 each for both).
-2.  **Quest System:** Daily, Weekly, Special quests with Quest Complete button, partner verification, and random checks. Pet/Vehicle categories (5-20 pts) integrated based on user choices.
-3.  **Talent Tree System:** WoW-style 3-tier branching tree (Efficiency, Couple, Growth) with prerequisites and costs. Visuals should be black/white until points are spent. Deeper specs to be provided by the user.
-4.  **Couple Connection Features:** Daily personal connection questions (+5/+10 pts), daily logs/notes with AI tone filtering (anytime option, daily required message), real-life game verification with winner tracking (+5 pts), monthly game shopping.
-5.  **UI/UX:** Focus on the original UI. NES pixel art theme as an optional skin (later development). XP/Level bar, pixel avatars, tabs (Daily Quests, Talent Tree, Logs, Stats, My Chores, All Chores, My Teammate).
-6.  **Enhanced Onboarding:** Welcome intro, choice to start/join, congratulatory message, essential questions (first name, kingdom name with dynamic suggestions, living situation, pets, vehicles, communication preferences), partner invitation.
-7.  **Core Task Management:** Immediate chore split for new users, My Chores for Today tab (assigned half), All Chores tab (all possible chores), My Teammate tab (partner's chores, progress, task takeover option for 3x points).
+The goal is Domestic Dominion, a gamified RPG-like application for partners to manage household tasks as quests.
+**Key Features Implemented/Requested:**
+1.  **Gamified Scoring & Leveling:** Tiered points, leveling (100 pts/level, 1.5 TP/5 levels then 1 TP/3 levels), verification bonuses.
+2.  **Quest System:** Daily, Weekly, Special quests with Quest Complete button, partner verification (15% chance for domestic/self-care, always for team building), and random checks. Pet/Vehicle categories based on user choices.
+3.  **Talent Tree System:** A 10-tier, 3-branch (Housekeeping Heroes, Coupling Questline, Personal Growth Path) World of Warcraft-style tree with major (2-3 pts) and minor (1 pt) nodes, prerequisites, costs. First 5 tiers free, last 5 premium. Visual map concept (Hearthpoint, Sanctum of Stewardry, Heartlands of Concord, Realm of Resonance, Constellation Garden) developed.
+4.  **Couple Connection Features:** Daily personal connection questions, daily logs/notes with AI tone filtering (Pi API integration for sweet and gentle rephrasing), real-life game verification, monthly game shopping.
+5.  **UI/UX:** Focus on original UI (NES pixel art as optional skin). XP/Level bar, pixel avatars, tabs for My Quest Log, All Quests, My Teammate, Talent Tree, Messages, Personal Growth, US Activities. All Quests sortable by Domestic Duties, Self-Care, Team Building.
+6.  **Enhanced Onboarding:** Welcome intro, choice to start/join, congratulatory message, essential questions (first name, *partner name*, kingdom name with dynamic suggestions, living situation, pets, vehicles, communication preferences), partner invitation (By royal decree...). Must not loop back after completion, should immediately generate 50/50 daily quest split + 1 self-care + 1 team-building quest.
+7.  **Core Quest Management:** Immediate 50/50 quest split for new users. My Quest Log (assigned half + 1 self-care/1 team-building + upcoming). All Quests tab (all possible quests, sortable). My Teammate tab (partner's name, their quests, progress, task takeover for 3x points).
 </product_requirements>
 
 <key_technical_concepts>
 -   **Full-Stack Development**: FastAPI (Python) backend, React (JavaScript) frontend.
--   **Database**: MongoDB for persistence, UUIDs for IDs.
--   **Real-time Communication**: Websockets (for updates/notifications).
+-   **Database**: MongoDB for persistence. Uses UUIDs for IDs, not Mongo ObjectIDs.
+-   **AI Integration**: Pi API for message tone filtering via . Emergent LLM Key for general LLM needs.
 -   **Gamification Logic**: Complex points, leveling, and talent tree algorithms.
--   **User Management**: Couple-based authentication, invitation system.
--   **UI/UX Frameworks**: Tailwind CSS, Radix UI.
--   **AI Integration**: Tone filtering for messages.
+-   **UI/UX Frameworks**: Tailwind CSS, Radix UI for components.
+-   **State Management**: React ,  for managing UI and data flow.
 </key_technical_concepts>
 
 <code_architecture>
-The application follows a standard full-stack architecture:
+The application features a standard full-stack setup:
 
 
 
 -   ****:
-    -   **Summary**: Main FastAPI application handling API endpoints and MongoDB interactions.
-    -   **Changes**: Extensively modified for couple management, gamified task assignment, talent tree point calculation, and  serialization fixes. New endpoints added for couple creation/joining and fetching daily tasks. Enhanced point calculation logic, task models, and new models for supporting onboarding data (kingdom name, household preferences) were integrated.
+    -   **Summary**: Main FastAPI application.
+    -   **Changes**: Extensively updated to include a comprehensive 10-tier talent tree structure for three branches (Housekeeping, Coupling, Personal Growth). New FastAPI endpoints were added to support talent tree activation and a  endpoint integrated with a (mocked/fallback) Pi API. The application title was updated to Domestic Dominion.  was installed and imported for external API calls. Old talent tree nodes were removed and replaced.
 -   ****:
-    -   **Summary**: Main React component managing state, authentication, and UI rendering.
-    -   **Changes**: Received significant refactoring. Authentication and modal logic were extensively debugged and refined to fix navigation loops and redundant inputs, streamlining the initial user flow. The  was integrated as a skin but its display logic was removed.  is now a central component. New state variables (, , , , , , , , ) added for onboarding.  added to load user from . The main UI structure was adapted to support My Chores for Today, All Chores, and My Teammate tabs.
+    -   **Summary**: Main React component.
+    -   **Changes**: Received significant refactoring for state management, authentication, and UI rendering. The Join Adventure modal was removed. New tabs (Talent Tree, Messages, Personal Growth) were added to the navigation. The  constant was updated to reflect the new 10-tier structure. All Quests tab was enhanced with sorting by Domestic Duties, Self-Care, and Team Building categories. My Chores for Today renamed to My Quest Log with today's quests and upcoming tasks.  function was rewritten to produce a 50/50 split (plus 1 self-care/1 team-building quest) and triggered immediately after onboarding. Daily question and Pi message suggestions were added. Extensive chore to quest replacements were made.
 -   ****:
-    -   **Summary**: Global styles for the frontend.
-    -   **Changes**: Updated with enhanced styling and NES pixel art theme additions (though NES UI is now deprioritized).
+    -   **Summary**: Global styles.
+    -   **Changes**: Minor updates, including new styling for the welcome screen to match the Domestic Dominion theme.
 -   ****:
-    -   **Summary**: A multi-step component for initial user setup.
-    -   **Changes**: Iterated multiple times to implement a welcome intro, player name input, kingdom naming (with dynamic, realistic suggestions and explanations), living situation, pet/vehicle ownership questions, communication preferences, and a summary/partner invitation step. It now has 7 functional steps with proper state management and navigation.
+    -   **Summary**: Multi-step user setup.
+    -   **Changes**: The flow was updated to include a step for . The total number of steps and navigation logic were adjusted accordingly. The partner invitation message was updated with the By royal decree... copy, incorporating the . The initial  state was corrected to include  to prevent input errors.
 </code_architecture>
 
 <pending_tasks>
--   Implement the visual World of Warcraft-style talent tree (with user-provided deeper specs) in the original UI.
--   Develop the anytime message filtering system and the required daily filtered message.
--   Integrate board games as a US task, including winner tracking and monthly game shopping activity.
--   Refine the notification system for real-time interactions.
+-   Implement the visual World of Warcraft-style talent tree (with user-provided deeper specs) for the frontend UI. (Though UI elements are present, the interactive visual tree is not fully implemented).
+-   Refine the notification system for real-time interactions, especially regarding partner verification and task takeovers.
+-   Backend logic for premium (tiers 6-10) talent tree unlocks is likely still mocked.
 </pending_tasks>
 
 <current_work>
-The AI engineer has just completed a major overhaul and stabilization of the **Enhanced Onboarding & Game Setup (Phase 1)**. This involved fixing multiple persistent navigation loops, removing redundant inputs (e.g., asking for name twice, difficulty selection), and refining the onboarding content. The onboarding now features:
-1.  A clear, inclusive welcome intro ().
-2.  Player first name input ().
-3.  Kingdom naming with dynamic suggestions and explanation ().
-4.  Living situation preference ().
-5.  Pet ownership details ().
-6.  Vehicle ownership details ().
-7.  A summary and partner invitation step ().
-This entire flow is robust and navigates correctly.
+Immediately prior to this summary, the AI engineer successfully addressed a critical bug reported by the user: When I start to enter my partners name there is error. This was diagnosed as a missing  field in the initial  state within . The AI added  to the  initial state.
 
-Following this, the AI has started working on **Phase 2.1: Daily Game Mechanics**. This includes:
--   **Chore Assignment System**: Implementing logic to assign a user's half of daily chores based on their onboarding selections (pets, cars, living situation).
--   **My Chores for Today tab**: Updating  to display the dynamically generated assigned chores.
--   **All Chores tab**: Updating  to display every possible chore available in the system.
--   **My Teammate tab**: Updating  to show the partner's assigned chores, their progress, and allow a task takeover option.
-The backend () has been updated with chore generation functionality and new models for tasks. The current focus is to continue building out these UI tabs and chore generation logic.
+The current state of the application, Domestic Dominion, is as follows:
+-   **Onboarding:** Fully functional 9-step flow including partner name input, kingdom naming, living situation, pets, vehicles, and communication preferences. It correctly transitions to the main app after completion without looping back.
+-   **Branding:** The app is fully rebranded to Domestic Dominion with a castle theme and custom welcome copy. All chore terminology has been replaced with quest.
+-   **Talent Tree:** The backend has a complete 10-tier, 3-branch talent tree structure. The frontend has a Talent Tree tab and the updated  data structure.
+-   **Quest Management:** The  function in  has been rewritten to assign a 50/50 daily quest split, including one self-care and one team-building quest. The My Quest Log displays these assigned quests.
+-   **All Quests Tab:** Now features categories (Domestic Duties, Self-Care, Team Building) and basic sorting functionality (though full UI for sorting options is not explicitly detailed).
+-   **My Teammate Tab:** Designed to show partner's name and their quests, with a task takeover option.
+-   **Pi API Integration:** Backend endpoints are set up for AI message enhancement, and  is installed. The Emergent LLM key is integrated for use with LLMs, but a specific Pi API integration remains uncertain regarding Emergent's direct support.
+-   **Daily Engagement:** Random Question of the Day and Pi-suggested messages are integrated into the Quest Log interface.
 </current_work>
 
 <optional_next_step>
-Start implementing the message filtering system for Phase 2.2 by adding a Messages tab.
+Ensure that quests (daily split, self-care, team building) are actually displayed correctly on the main page after onboarding.
 </optional_next_step>
