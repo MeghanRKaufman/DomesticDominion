@@ -1370,9 +1370,11 @@ class BackendTester:
             self.test_task_takeover_endpoint()
             self.test_couple_questions_endpoint()
             self.test_couple_question_answer_endpoint()
-            self.test_daily_logs_endpoint()
             self.test_verification_response_endpoint()
             self.test_point_calculation_system()
+            
+            # Test daily logs after ensuring we have user data
+            self.test_daily_logs_endpoint()
         
         # Summary
         print("\n" + "=" * 70)
