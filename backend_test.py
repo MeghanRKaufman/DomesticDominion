@@ -1341,19 +1341,7 @@ class BackendTester:
             self.test_talent_tree_premium_status_endpoint()
             
             # Ensure we have user IDs for tests that need them
-            if not self.test_user1_id or not self.test_user2_id:
-                # Create test users if not already created
-                user1_data = {"displayName": "TestUser1", "coupleCode": self.test_invite_code}
-                response = requests.post(f"{self.base_url}/users", json=user1_data)
-                if response.status_code == 200:
-                    user1 = response.json()
-                    self.test_user1_id = user1["userId"]
-                    
-                user2_data = {"displayName": "TestUser2", "coupleCode": self.test_invite_code}
-                response = requests.post(f"{self.base_url}/users", json=user2_data)
-                if response.status_code == 200:
-                    user2 = response.json()
-                    self.test_user2_id = user2["userId"]
+            # The setup_test_couple method should have already created these
             
             # Test NEW Pi Message Integration
             print("\n🤖 TESTING PI MESSAGE INTEGRATION")
