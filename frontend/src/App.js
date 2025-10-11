@@ -3150,7 +3150,7 @@ function ChoreChampionsApp() {
                 </div>
               </div>
 
-              {currentUser && myDailyChores.length > 0 ? (
+              {currentUser ? (
                 <div className="space-y-6">
                   {/* Today's Quests */}
                   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 p-6">
