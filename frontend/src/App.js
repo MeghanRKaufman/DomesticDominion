@@ -3363,7 +3363,9 @@ function ChoreChampionsApp() {
                           className="mt-1 p-2 border rounded-lg text-sm"
                         >
                           <option value="all">All Categories</option>
-                          <option value="household">🏠 Household</option>
+                          <option value="domestic">🏠 Domestic Duties</option>
+                          <option value="self-care">🌱 Self-Care</option>
+                          <option value="team-building">💕 Team Building</option>
                           <option value="pets">🐾 Pet Care</option>
                           <option value="vehicle">🚗 Vehicle</option>
                         </select>
