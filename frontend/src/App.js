@@ -3881,9 +3881,9 @@ function ChoreChampionsApp() {
                           value={enhancementLevel}
                           onChange={(e) => setEnhancementLevel(e.target.value)}
                         >
-                          <option value="light">Light</option>
-                          <option value="moderate">Moderate</option>
-                          <option value="significant">Significant</option>
+                          <option value="gentle">Gentle & Soft</option>
+                          <option value="supportive">Supportive & Encouraging</option>
+                          <option value="encouraging">Enthusiastic & Motivating</option>
                         </select>
                       </div>
                       
