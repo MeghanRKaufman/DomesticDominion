@@ -3323,16 +3323,16 @@ function ChoreChampionsApp() {
             </div>
           )}
 
-          {/* All Chores Management - Enhanced with Sorting */}
+          {/* All Quests Management - Enhanced with Sorting */}
           {activeTab === 'all-chores' && (
             <div>
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold">📋 All Chores Library</h2>
+                <h2 className="text-3xl font-bold">📋 All Quests Library</h2>
                 <Button 
                   onClick={() => setShowAddChore(true)}
                   className="bg-green-600 hover:bg-green-700"
                 >
-                  ➕ Add Custom Chore
+                  ➕ Add Custom Quest
                 </Button>
               </div>
               
