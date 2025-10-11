@@ -4452,6 +4452,22 @@ function ChoreChampionsApp() {
         onClose={() => setShowEnhancedOnboarding(false)}
       />
       
+          {/* End of Main Content Area */}
+          </div>
+        
+        {/* End of flex container for desktop sidebar + main content */}
+        </div>
+      
+      {/* End of main interface */}
+      </div>
+
+      {/* Enhanced Onboarding */}
+      <EnhancedOnboarding 
+        isOpen={showEnhancedOnboarding} 
+        onComplete={handleEnhancedOnboardingComplete}
+        onClose={() => setShowEnhancedOnboarding(false)}
+      />
+      
       {/* Redundant kingdom join modal removed */}
     </div>
   );
