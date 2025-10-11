@@ -2977,8 +2977,8 @@ function ChoreChampionsApp() {
                 <div className="text-sm">Talent Points</div>
               </div>
               
-              <Badge className="bg-white/20 text-white text-lg px-3 py-1">
-                Party: {currentUser.coupleId}
+              <Badge className="bg-white/20 text-white text-sm md:text-lg px-2 md:px-3 py-1">
+                Party: {partner?.displayName || currentUser.partnerName || 'Solo'}
               </Badge>
               
               <Button 
