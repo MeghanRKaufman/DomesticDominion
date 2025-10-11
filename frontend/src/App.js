@@ -2993,9 +2993,9 @@ function ChoreChampionsApp() {
       </div>
 
       {/* Main Clean Interface */}
-      <div className="flex max-w-7xl mx-auto">
-        {/* Side Navigation */}
-        <div className="w-64 bg-white shadow-lg min-h-screen">
+      <div className="flex flex-col md:flex-row max-w-7xl mx-auto">
+        {/* Side Navigation - Hidden on mobile, full width on mobile when shown */}
+        <div className="w-full md:w-64 bg-white shadow-lg min-h-screen md:min-h-auto order-2 md:order-1">
           <div className="p-4">
             <h3 className="text-lg font-bold mb-4 text-gray-800">📋 Navigation</h3>
             
