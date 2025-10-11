@@ -158,7 +158,7 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
             type="text"
             placeholder="Enter your partner's name"
             value={onboardingData.partnerName || ''}
-            onChange={(e) => updateField('partnerName', e.target.value)}
+            onChange={(e) => handleInputChange('partnerName', e.target.value)}
             className="text-lg p-4 text-center"
           />
         </div>
