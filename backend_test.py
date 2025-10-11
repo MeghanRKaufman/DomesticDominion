@@ -1181,7 +1181,7 @@ class BackendTester:
                 }
             }
             
-            response = requests.post(f"{self.base_url}/couples/enhanced-create", json=test_data)
+            response = requests.post(f"{self.base_url}/couples/create-enhanced", json=test_data)
             
             if response.status_code not in [200, 201]:
                 self.log_test("Partner Name Input Fix", False,
