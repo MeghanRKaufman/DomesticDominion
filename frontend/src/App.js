@@ -4161,10 +4161,10 @@ function ChoreChampionsApp() {
 
               {/* Mastery Achievement Section */}
               <div className="mt-8 bg-gradient-to-r from-gray-900 via-purple-900 to-indigo-900 rounded-xl p-6 text-white">
-                <h3 className="text-2xl font-bold mb-4 text-center">🌟 Hidden Mastery Region: The Constellation Garden</h3>
+                <h3 className="text-2xl font-bold mb-4 text-center">🌟 Hidden Mastery Region: The Royal Constellation Chamber</h3>
                 <p className="text-center text-gray-300 mb-4">
-                  Unlock this shared space when both partners reach Tier 10 in any tree. 
-                  Here you can meet, relax, and send emotional gifts to strengthen your bond.
+                  Unlock this sacred chamber when both rulers reach Tier 10 in any talent tree. 
+                  Here you can meet, strategize, and bestow royal gifts to strengthen your dominion.
                 </p>
                 <div className="flex justify-center space-x-4">
                   <Badge className="bg-white/20 text-white px-4 py-2">
