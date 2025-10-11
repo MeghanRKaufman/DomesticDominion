@@ -3328,69 +3328,39 @@ function ChoreChampionsApp() {
               
               {allChores.length > 0 ? (
                 <div className="bg-white rounded-lg shadow-lg">
-                  {/* Filters and Sorting Controls */}
-                  <div className="p-6 border-b">
-                    <div className="flex flex-wrap items-center gap-4">
-                      <div>
-                        <Label className="text-sm font-medium">Sort by:</Label>
-                        <div className="flex space-x-2 mt-1">
-                          <Button
-                            variant={sortBy === 'room' ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => handleSort('room')}
-                          >
-                            🏠 Room {sortBy === 'room' && (sortDirection === 'asc' ? '↑' : '↓')}
-                          </Button>
-                          <Button
-                            variant={sortBy === 'difficulty' ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => handleSort('difficulty')}
-                          >
-                            ⚡ Difficulty {sortBy === 'difficulty' && (sortDirection === 'asc' ? '↑' : '↓')}
-                          </Button>
-                          <Button
-                            variant={sortBy === 'points' ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => handleSort('points')}
-                          >
-                            💎 Points {sortBy === 'points' && (sortDirection === 'asc' ? '↑' : '↓')}
-                          </Button>
-                          <Button
-                            variant={sortBy === 'name' ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => handleSort('name')}
-                          >
-                            📝 Name {sortBy === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
-                          </Button>
-                          <Button
-                            variant={sortBy === 'category' ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => handleSort('category')}
-                          >
-                            📂 Category {sortBy === 'category' && (sortDirection === 'asc' ? '↑' : '↓')}
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <Label className="text-sm font-medium">Filter by category:</Label>
-                        <select
-                          value={filterBy}
-                          onChange={(e) => setFilterBy(e.target.value)}
-                          className="mt-1 p-2 border rounded-lg text-sm"
-                        >
-                          <option value="all">All Categories</option>
-                          <option value="domestic">🏠 Domestic Duties</option>
-                          <option value="self-care">🌱 Self-Care</option>
-                          <option value="team-building">💕 Team Building</option>
-                          <option value="pets">🐾 Pet Care</option>
-                          <option value="vehicle">🚗 Vehicle</option>
-                        </select>
-                      </div>
-                      
-                      <div className="text-sm text-gray-500">
-                        Showing {getSortedAndFilteredChores().length} quests
-                      </div>
+                  {/* Three Category Tabs */}
+                  <div className="border-b">
+                    <div className="flex space-x-0">
+                      <button
+                        onClick={() => setQuestCategory('domestic')}
+                        className={`flex-1 py-4 px-6 text-center font-medium border-b-2 transition-colors ${
+                          questCategory === 'domestic'
+                            ? 'border-blue-500 text-blue-600 bg-blue-50'
+                            : 'border-transparent text-gray-600 hover:text-gray-800'
+                        }`}
+                      >
+                        🏠 Domestic Duties
+                      </button>
+                      <button
+                        onClick={() => setQuestCategory('self-care')}
+                        className={`flex-1 py-4 px-6 text-center font-medium border-b-2 transition-colors ${
+                          questCategory === 'self-care'
+                            ? 'border-green-500 text-green-600 bg-green-50'
+                            : 'border-transparent text-gray-600 hover:text-gray-800'
+                        }`}
+                      >
+                        🌱 Self-Care
+                      </button>
+                      <button
+                        onClick={() => setQuestCategory('team-building')}
+                        className={`flex-1 py-4 px-6 text-center font-medium border-b-2 transition-colors ${
+                          questCategory === 'team-building'
+                            ? 'border-pink-500 text-pink-600 bg-pink-50'
+                            : 'border-transparent text-gray-600 hover:text-gray-800'
+                        }`}
+                      >
+                        💕 Team Building
+                      </button>
                     </div>
                   </div>
                   
