@@ -102,7 +102,7 @@ async def enhance_message_with_pi(message: str, enhancement_level: str = "modera
         }
 
 # Create the main app
-app = FastAPI(title="Gamified Chore & Relationship App", version="3.0.0")
+app = FastAPI(title="Domestic Dominion - Kingdom Management RPG", version="3.0.0")
 api_router = APIRouter(prefix="/api")
 
 # Enhanced Game Constants (New NES-themed specification)
