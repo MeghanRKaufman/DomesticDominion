@@ -2069,6 +2069,87 @@ async def enhance_message_endpoint(request: MessageRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Message enhancement failed: {str(e)}")
 
+@app.post("/api/ai/enhance_message")
+async def enhance_message(request: dict):
+    """Enhance message with ChatGPT-5 (replacing Pi API)"""
+    try:
+        message_text = request.get('message', '')
+        enhancement_level = request.get('level', 'gentle')  # gentle, supportive, encouraging
+        
+        if not message_text.strip():
+            return JSONResponse(
+                status_code=400, 
+                content={"error": "Message text is required"}
+            )
+        
+        # Get the Emergent LLM key
+        emergent_llm_key = os.environ.get('EMERGENT_LLM_KEY')
+        
+        if not emergent_llm_key:
+            # Fallback if no key available
+            suggestions = [
+                f"Hey love, I was wondering if you might have a moment to help with: {message_text}",
+                f"When you get a chance, could you possibly help with this? {message_text} No rush! 💕",
+                f"I'd really appreciate your help with: {message_text} ✨"
+            ]
+            return {
+                "enhanced_message": random.choice(suggestions),
+                "original_message": message_text,
+                "enhancement_level": enhancement_level,
+                "api_used": "fallback"
+            }
+        
+        # Create ChatGPT-5 client
+        chat = LlmChat(
+            api_key=emergent_llm_key,
+            session_id=f"message_enhancement_{random.randint(1000, 9999)}",
+            system_message=f"""You are a relationship communication expert. 
+            
+Your job is to rewrite messages between romantic partners in a {enhancement_level}, positive, and loving way while maintaining the core request/meaning.
+
+Guidelines:
+- Keep the same essential message/request
+- Remove any complainy, nagging, or annoyed tone
+- Add warmth, appreciation, and love
+- Be specific to the request, don't be too generic
+- Use natural language, not overly flowery
+- Include light emojis if appropriate (1-2 max)
+
+Enhancement level '{enhancement_level}' means:
+- gentle: Soft, understanding, patient tone
+- supportive: Encouraging, team-oriented, belief in partner
+- encouraging: Enthusiastic, motivating, "we can do this" energy"""
+        ).with_model("openai", "gpt-5")
+        
+        # Create user message
+        user_message = UserMessage(
+            text=f"Original message: '{message_text}'\n\nPlease rewrite this message to be more {enhancement_level} and positive while keeping the core request. Only return the rewritten message, nothing else."
+        )
+        
+        # Send message to ChatGPT-5
+        response = await chat.send_message(user_message)
+        
+        return {
+            "enhanced_message": response.strip(),
+            "original_message": message_text,
+            "enhancement_level": enhancement_level,
+            "api_used": "chatgpt-5"
+        }
+        
+    except Exception as e:
+        # Fallback on any error
+        suggestions = [
+            f"Hey love, I was wondering if you might have a moment to help with: {message_text}",
+            f"When you get a chance, could you possibly help with this? {message_text} No rush! 💕",
+            f"I'd really appreciate your help with: {message_text} ✨"
+        ]
+        return {
+            "enhanced_message": random.choice(suggestions),
+            "original_message": message_text,
+            "enhancement_level": enhancement_level,
+            "api_used": "fallback_error",
+            "error": str(e)
+        }
 # Send message endpoint
 @api_router.post("/messages/send")
 async def send_message(request: SendMessageRequest):
