@@ -206,7 +206,7 @@ class QuestType(str, Enum):
     WEEKLY = "WEEKLY" 
     SPECIAL = "SPECIAL"
 
-# Comprehensive 10-Tier Talent Tree System (Chore Champions)
+# Comprehensive 10-Tier Talent Tree System (Domestic Dominion)
 # Based on new world map specification with 3 kingdoms/branches
 NEW_TALENT_TREE_NODES = {
     # ===== HOUSEKEEPING HEROES (Country I: Sanctum of Stewardry) =====
