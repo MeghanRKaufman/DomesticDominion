@@ -3843,19 +3843,16 @@ function ChoreChampionsApp() {
                 <p className="text-gray-600">Transform complaints into loving requests with ChatGPT-5</p>
               </div>
 
-              {/* Pi Integration Info */}
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-l-4 border-purple-400 p-4 mb-6">
+              {/* ChatGPT-5 Integration Info */}
+              <div className="bg-gradient-to-r from-blue-50 to-green-50 border-l-4 border-blue-400 p-4 mb-6">
                 <div className="flex items-center">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-purple-800">🤖 Pi AI Message Enhancement</h3>
-                    <p className="text-purple-700">Your messages are enhanced for empathetic communication using Pi AI to help build stronger connections.</p>
+                    <h3 className="text-lg font-semibold text-blue-800">🚀 ChatGPT-5 Message Enhancement</h3>
+                    <p className="text-blue-700">Transform complaints into loving requests. Write your honest thoughts and let AI help you communicate with love and appreciation.</p>
                   </div>
-                  <Button 
-                    onClick={() => setShowPiSettings(true)}
-                    className="bg-purple-600 hover:bg-purple-700 text-white ml-4"
-                  >
-                    ⚙️ Pi Settings
-                  </Button>
+                  <div className="text-green-600 font-semibold">
+                    ✅ Active
+                  </div>
                 </div>
               </div>
 
