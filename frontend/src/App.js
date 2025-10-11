@@ -1942,6 +1942,7 @@ function ChoreChampionsApp() {
   // Daily Question and Pi Suggestions
   const [dailyQuestion, setDailyQuestion] = useState('');
   const [piMessageSuggestion, setPiMessageSuggestion] = useState('');
+  const [reflectionAnswer, setReflectionAnswer] = useState('');
 
   // Load user from localStorage on app start
   useEffect(() => {
