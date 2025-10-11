@@ -1985,7 +1985,7 @@ function ChoreChampionsApp() {
     }
     
     // Always generate a comprehensive chore library for the All Chores tab
-    generateComprehensiveChoreLibrary();
+    generateComprehensiveQuestLibrary();
   }, []);
 
   // Load game data
