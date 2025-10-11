@@ -3124,10 +3124,108 @@ function ChoreChampionsApp() {
               </div>
             </div>
           )}
-        </div>
+          </div>
 
-        {/* Main Content Area */}
-        <div className="flex-1 p-6">
+          {/* Mobile Navigation Overlay */}
+          {mobileMenuOpen && (
+            <div className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+              <div className="bg-white w-64 h-full shadow-lg">
+                <div className="p-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-bold text-gray-800">🗺️ Quest Areas</h3>
+                    <button 
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => {setActiveTab('my-chores'); setMobileMenuOpen(false);}}
+                      className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
+                        activeTab === 'my-chores' 
+                          ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+                          : 'text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      ⚔️ My Quest Log
+                    </button>
+                    
+                    <button
+                      onClick={() => {setActiveTab('all-chores'); setMobileMenuOpen(false);}}
+                      className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
+                        activeTab === 'all-chores' 
+                          ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+                          : 'text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      📋 All Quests
+                    </button>
+                    
+                    <button
+                      onClick={() => {setActiveTab('personal-growth'); setMobileMenuOpen(false);}}
+                      className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
+                        activeTab === 'personal-growth' 
+                          ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+                          : 'text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      🌱 Personal Growth
+                    </button>
+                    
+                    <button
+                      onClick={() => {setActiveTab('teammate'); setMobileMenuOpen(false);}}
+                      className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
+                        activeTab === 'teammate' 
+                          ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+                          : 'text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      👥 {currentUser?.partnerName ? `${currentUser.partnerName}` : 'My Ally'}
+                    </button>
+                    
+                    <button
+                      onClick={() => {setActiveTab('talent-tree'); setMobileMenuOpen(false);}}
+                      className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
+                        activeTab === 'talent-tree' 
+                          ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+                          : 'text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      🌳 Talent Tree
+                    </button>
+                    
+                    <button
+                      onClick={() => {setActiveTab('messages'); setMobileMenuOpen(false);}}
+                      className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
+                        activeTab === 'messages' 
+                          ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+                          : 'text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      💬 Messages
+                    </button>
+                    
+                    <button
+                      onClick={() => {setActiveTab('games'); setMobileMenuOpen(false);}}
+                      className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
+                        activeTab === 'games' 
+                          ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+                          : 'text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      🎮 US Activities
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Main Content Area */}
+          <div className="flex-1 p-4 md:p-6 bg-gray-50 min-h-screen">
           {/* My Quest Log - Enhanced */}
           {activeTab === 'my-chores' && (
             <div>
