@@ -3163,7 +3163,7 @@ function ChoreChampionsApp() {
                           : 'text-gray-600 hover:bg-gray-100'
                       }`}
                     >
-                      👥 {currentUser?.partnerName ? `${currentUser.partnerName}` : 'My Ally'}
+                      👥 {partner?.displayName || currentUser?.partnerName || 'My Ally'}
                     </button>
                     
                     <button
