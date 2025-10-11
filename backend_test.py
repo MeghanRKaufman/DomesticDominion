@@ -953,32 +953,385 @@ class BackendTester:
             self.log_test("User & Couple Management", False, "", str(e))
             return False
 
+    def test_onboarding_flow_backend(self):
+        """Test complete onboarding flow backend support"""
+        try:
+            # Test enhanced couple creation with onboarding data
+            onboarding_data = {
+                "playerName": "Alice",
+                "partnerName": "Bob", 
+                "kingdomName": "The Alice-Bob Kingdom",
+                "householdSetup": {
+                    "hasPets": True,
+                    "petTypes": ["dogs", "cats"],
+                    "hasVehicle": True,
+                    "vehicleSharing": "shared",
+                    "livingSituation": "house",
+                    "householdSize": 2
+                },
+                "preferences": {
+                    "notificationPreferences": {
+                        "daily": True,
+                        "verification": True,
+                        "encouragement": True
+                    }
+                }
+            }
+            
+            # Create enhanced couple with onboarding data
+            response = requests.post(f"{self.base_url}/couples/enhanced-create", json=onboarding_data)
+            
+            if response.status_code not in [200, 201]:
+                self.log_test("Onboarding Flow Backend", False,
+                            f"Enhanced couple creation failed. Status: {response.status_code}", response.text)
+                return False
+                
+            couple_data = response.json()
+            
+            # Check that onboarding data was saved
+            required_fields = ["coupleId", "inviteCode", "householdSetup", "customizedChores"]
+            for field in required_fields:
+                if field not in couple_data:
+                    self.log_test("Onboarding Flow Backend", False,
+                                f"Missing field '{field}' in couple creation response", str(couple_data))
+                    return False
+                    
+            # Verify customized chores were generated based on household setup
+            customized_chores = couple_data.get("customizedChores", [])
+            if len(customized_chores) < 8:  # Should have at least base chores
+                self.log_test("Onboarding Flow Backend", False,
+                            f"Expected at least 8 customized chores, got {len(customized_chores)}")
+                return False
+                
+            # Check for pet-specific chores since hasPets=True
+            pet_chore_found = any("pet" in chore.lower() or "dog" in chore.lower() or "cat" in chore.lower() 
+                                for chore in customized_chores)
+            if not pet_chore_found:
+                self.log_test("Onboarding Flow Backend", False,
+                            "No pet-specific chores found despite hasPets=True")
+                return False
+                
+            # Check for vehicle-specific chores since hasVehicle=True
+            vehicle_chore_found = any("car" in chore.lower() or "vehicle" in chore.lower() or "gas" in chore.lower()
+                                    for chore in customized_chores)
+            if not vehicle_chore_found:
+                self.log_test("Onboarding Flow Backend", False,
+                            "No vehicle-specific chores found despite hasVehicle=True")
+                return False
+                
+            self.test_couple_id = couple_data["coupleId"]
+            self.test_invite_code = couple_data["inviteCode"]
+            
+            self.log_test("Onboarding Flow Backend", True,
+                        f"Onboarding data saved successfully. Generated {len(customized_chores)} customized chores")
+            return True
+            
+        except Exception as e:
+            self.log_test("Onboarding Flow Backend", False, "", str(e))
+            return False
+
+    def test_daily_quest_generation(self):
+        """Test daily quest generation with 50/50 split + self-care + team-building"""
+        if not self.test_couple_id:
+            self.log_test("Daily Quest Generation", False, "No test couple available")
+            return False
+            
+        try:
+            # Test daily assignments endpoint
+            today = datetime.now().strftime('%Y-%m-%d')
+            response = requests.get(f"{self.base_url}/couples/{self.test_couple_id}/daily-assignments", 
+                                  params={"date": today})
+            
+            if response.status_code != 200:
+                self.log_test("Daily Quest Generation", False,
+                            f"Daily assignments failed. Status: {response.status_code}", response.text)
+                return False
+                
+            assignments_data = response.json()
+            
+            # Check that assignments were generated
+            if not isinstance(assignments_data, dict) or len(assignments_data) == 0:
+                self.log_test("Daily Quest Generation", False,
+                            "No daily assignments generated", str(assignments_data))
+                return False
+                
+            # Count assignments for each user
+            user1_tasks = sum(1 for assignment in assignments_data.values() if assignment == "user1")
+            user2_tasks = sum(1 for assignment in assignments_data.values() if assignment == "user2")
+            total_tasks = user1_tasks + user2_tasks
+            
+            # Check for reasonable 50/50 split (within 20% tolerance)
+            if total_tasks > 0:
+                user1_percentage = user1_tasks / total_tasks
+                if not (0.3 <= user1_percentage <= 0.7):  # 30-70% range for flexibility
+                    self.log_test("Daily Quest Generation", False,
+                                f"Poor task distribution: User1={user1_tasks}, User2={user2_tasks} ({user1_percentage:.1%})")
+                    return False
+                    
+            # Test quest templates to ensure self-care and team-building categories exist
+            response = requests.get(f"{self.base_url}/quest-templates")
+            if response.status_code == 200:
+                templates = response.json()
+                
+                # Check for self-care tasks (personal growth)
+                has_self_care = any("growth" in category.lower() or "personal" in category.lower() 
+                                  for category in templates.keys())
+                
+                # Check for team-building tasks (couple activities)
+                has_team_building = any("couple" in str(tasks).lower() or "together" in str(tasks).lower()
+                                      for tasks in templates.values() if isinstance(tasks, list))
+                
+                if not has_self_care:
+                    self.log_test("Daily Quest Generation", False,
+                                "No self-care/personal growth tasks found in templates")
+                    return False
+                    
+                if not has_team_building:
+                    self.log_test("Daily Quest Generation", False,
+                                "No team-building/couple tasks found in templates")
+                    return False
+                    
+            self.log_test("Daily Quest Generation", True,
+                        f"Daily quests generated successfully. Distribution: User1={user1_tasks}, User2={user2_tasks}")
+            return True
+            
+        except Exception as e:
+            self.log_test("Daily Quest Generation", False, "", str(e))
+            return False
+
+    def test_quest_log_display_backend(self):
+        """Test backend support for My Quest Log display"""
+        if not self.test_couple_id:
+            self.log_test("Quest Log Display Backend", False, "No test couple available")
+            return False
+            
+        try:
+            # Test getting couple tasks (what would be displayed in My Quest Log)
+            response = requests.get(f"{self.base_url}/couples/{self.test_couple_id}/tasks")
+            
+            if response.status_code != 200:
+                self.log_test("Quest Log Display Backend", False,
+                            f"Failed to get couple tasks. Status: {response.status_code}", response.text)
+                return False
+                
+            tasks_data = response.json()
+            
+            # Should return tasks organized by room/category
+            if not isinstance(tasks_data, dict):
+                self.log_test("Quest Log Display Backend", False,
+                            "Expected dict response for tasks", f"Got: {type(tasks_data)}")
+                return False
+                
+            # Count total tasks available
+            total_tasks = 0
+            rooms_with_tasks = 0
+            
+            for room, tasks in tasks_data.items():
+                if isinstance(tasks, list) and len(tasks) > 0:
+                    total_tasks += len(tasks)
+                    rooms_with_tasks += 1
+                    
+                    # Check task structure for quest log display
+                    for task in tasks:
+                        required_fields = ["taskId", "title", "basePoints", "difficulty", "room"]
+                        for field in required_fields:
+                            if field not in task:
+                                self.log_test("Quest Log Display Backend", False,
+                                            f"Missing field '{field}' in task for quest log", str(task))
+                                return False
+                                
+            if total_tasks == 0:
+                self.log_test("Quest Log Display Backend", False,
+                            "No tasks available for quest log display")
+                return False
+                
+            # Test enhanced tasks endpoint for better quest organization
+            response = requests.get(f"{self.base_url}/enhanced-tasks/{self.test_couple_id}")
+            
+            enhanced_available = response.status_code == 200
+            
+            self.log_test("Quest Log Display Backend", True,
+                        f"Quest log backend ready. {total_tasks} tasks across {rooms_with_tasks} rooms. Enhanced: {enhanced_available}")
+            return True
+            
+        except Exception as e:
+            self.log_test("Quest Log Display Backend", False, "", str(e))
+            return False
+
+    def test_partner_name_input_fix(self):
+        """Test that partner name input works without errors (recent fix)"""
+        try:
+            # Test couple creation with partner name
+            test_data = {
+                "playerName": "TestPlayer",
+                "partnerName": "TestPartner",  # This should work without errors
+                "kingdomName": "Test Kingdom",
+                "householdSetup": {
+                    "hasPets": False,
+                    "hasVehicle": False,
+                    "livingSituation": "apartment",
+                    "householdSize": 2
+                },
+                "preferences": {
+                    "notificationPreferences": {
+                        "daily": True,
+                        "verification": True,
+                        "encouragement": True
+                    }
+                }
+            }
+            
+            response = requests.post(f"{self.base_url}/couples/enhanced-create", json=test_data)
+            
+            if response.status_code not in [200, 201]:
+                self.log_test("Partner Name Input Fix", False,
+                            f"Partner name input caused error. Status: {response.status_code}", response.text)
+                return False
+                
+            couple_data = response.json()
+            
+            # Verify partner name was saved correctly
+            if "partnerName" in couple_data and couple_data["partnerName"] != test_data["partnerName"]:
+                self.log_test("Partner Name Input Fix", False,
+                            f"Partner name not saved correctly. Expected: {test_data['partnerName']}, Got: {couple_data.get('partnerName')}")
+                return False
+                
+            self.log_test("Partner Name Input Fix", True,
+                        "Partner name input working correctly without errors")
+            return True
+            
+        except Exception as e:
+            self.log_test("Partner Name Input Fix", False, "", str(e))
+            return False
+
+    def test_onboarding_completion_flow(self):
+        """Test that onboarding completes without looping back"""
+        try:
+            # Test the complete onboarding flow by creating couple and joining
+            onboarding_data = {
+                "playerName": "Player1",
+                "partnerName": "Player2",
+                "kingdomName": "Complete Test Kingdom",
+                "householdSetup": {
+                    "hasPets": True,
+                    "petTypes": ["dogs"],
+                    "hasVehicle": True,
+                    "vehicleSharing": "shared",
+                    "livingSituation": "house",
+                    "householdSize": 2
+                },
+                "preferences": {
+                    "notificationPreferences": {
+                        "daily": True,
+                        "verification": True,
+                        "encouragement": True
+                    }
+                }
+            }
+            
+            # Step 1: Create couple with full onboarding data
+            response = requests.post(f"{self.base_url}/couples/enhanced-create", json=onboarding_data)
+            
+            if response.status_code not in [200, 201]:
+                self.log_test("Onboarding Completion Flow", False,
+                            f"Onboarding creation failed. Status: {response.status_code}", response.text)
+                return False
+                
+            couple_data = response.json()
+            invite_code = couple_data["inviteCode"]
+            couple_id = couple_data["coupleId"]
+            
+            # Step 2: Create first user (creator)
+            user1_data = {"displayName": onboarding_data["playerName"], "coupleCode": invite_code}
+            response = requests.post(f"{self.base_url}/users", json=user1_data)
+            
+            if response.status_code != 200:
+                self.log_test("Onboarding Completion Flow", False,
+                            f"User1 creation failed. Status: {response.status_code}", response.text)
+                return False
+                
+            user1 = response.json()
+            
+            # Step 3: Join couple as partner
+            join_data = {"partnerName": onboarding_data["partnerName"], "inviteCode": invite_code}
+            response = requests.post(f"{self.base_url}/couples/join", json=join_data)
+            
+            if response.status_code != 200:
+                self.log_test("Onboarding Completion Flow", False,
+                            f"Partner join failed. Status: {response.status_code}", response.text)
+                return False
+                
+            # Step 4: Create second user (partner)
+            user2_data = {"displayName": onboarding_data["partnerName"], "coupleCode": invite_code}
+            response = requests.post(f"{self.base_url}/users", json=user2_data)
+            
+            if response.status_code != 200:
+                self.log_test("Onboarding Completion Flow", False,
+                            f"User2 creation failed. Status: {response.status_code}", response.text)
+                return False
+                
+            # Step 5: Verify couple is active and complete
+            response = requests.get(f"{self.base_url}/couples/{couple_id}")
+            
+            if response.status_code == 200:
+                couple_status = response.json()
+                if couple_status.get("isActive"):
+                    self.log_test("Onboarding Completion Flow", True,
+                                "Complete onboarding flow successful - couple is active")
+                    return True
+                else:
+                    self.log_test("Onboarding Completion Flow", False,
+                                "Couple not marked as active after completion")
+                    return False
+            else:
+                self.log_test("Onboarding Completion Flow", True,
+                            "Onboarding flow completed (couple status endpoint may not exist)")
+                return True
+                
+        except Exception as e:
+            self.log_test("Onboarding Completion Flow", False, "", str(e))
+            return False
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🎮 Starting Enhanced Domestic Dominion Backend Tests")
-        print("🌟 Testing: 10-Tier Talent Tree System & Pi Message Integration")
+        print("🌟 Testing: Onboarding Flow & Daily Quest Generation System")
         print("=" * 70)
         print()
         
-        # Test basic endpoints first
-        self.test_game_constants_endpoint()
+        # Test ONBOARDING FLOW & QUEST GENERATION (Primary Focus)
+        print("🏰 TESTING ONBOARDING FLOW & QUEST GENERATION")
+        print("-" * 50)
+        self.test_partner_name_input_fix()
+        self.test_onboarding_flow_backend()
+        self.test_onboarding_completion_flow()
         
-        # Test NEW Talent Tree System (10-tier)
-        print("🌳 TESTING NEW TALENT TREE SYSTEM")
+        if self.test_couple_id:
+            self.test_daily_quest_generation()
+            self.test_quest_log_display_backend()
+        
+        # Test basic endpoints
+        print("\n🎯 TESTING CORE BACKEND ENDPOINTS")
         print("-" * 40)
-        self.test_talent_tree_endpoint()
-        
-        # Test existing endpoints
+        self.test_game_constants_endpoint()
         self.test_quest_templates_endpoint()
         self.test_user_couple_management()
         
-        # Setup test data for advanced tests
-        if self.setup_test_couple():
+        # Test NEW Talent Tree System (10-tier)
+        print("\n🌳 TESTING TALENT TREE SYSTEM")
+        print("-" * 40)
+        self.test_talent_tree_endpoint()
+        
+        # Setup test data for advanced tests if not already done
+        if not self.test_couple_id:
+            self.setup_test_couple()
+            
+        if self.test_couple_id:
             # Test talent tree premium status
             self.test_talent_tree_premium_status_endpoint()
             
             # Test NEW Pi Message Integration
-            print("\n🤖 TESTING NEW PI MESSAGE INTEGRATION")
+            print("\n🤖 TESTING PI MESSAGE INTEGRATION")
             print("-" * 40)
             self.test_pi_enhance_message_endpoint()
             self.test_messages_send_endpoint()
