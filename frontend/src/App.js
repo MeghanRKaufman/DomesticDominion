@@ -2972,7 +2972,7 @@ function ChoreChampionsApp() {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-4xl font-bold drop-shadow-lg">🏆 Chore Champions</h1>
+              <h1 className="text-4xl font-bold drop-shadow-lg">🏰 Domestic Dominion</h1>
               <p className="text-purple-100 text-lg">Hero: {currentUser.displayName}</p>
               {partner && <p className="text-purple-200">Party: {partner.displayName}</p>}
             </div>
