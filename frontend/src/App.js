@@ -3137,7 +3137,8 @@ function ChoreChampionsApp() {
                     <p className="text-blue-600 mb-4">Your assigned half of the household duties</p>
                     
                     <div className="space-y-4">
-                      {myDailyChores
+                      {myDailyChores && myDailyChores.length > 0 ? 
+                        myDailyChores
                         .filter(chore => selectedRoom === 'all' || chore.room.toLowerCase().includes(selectedRoom.toLowerCase()))
                         .map((chore, index) => (
                         <div key={chore.id} className={`bg-white rounded-lg shadow-md p-5 border-l-4 transition-all hover:shadow-lg ${
