@@ -454,7 +454,7 @@ function OnboardingModal({ isOpen, onComplete }) {
   
   const steps = [
     {
-      title: "Welcome to Chore Champions! 🏆",
+      title: "Welcome to Domestic Dominion! 🏰",
       content: "Transform your household chores into an epic RPG adventure for you and your partner!",
       image: "🎮"
     },
