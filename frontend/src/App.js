@@ -1981,6 +1981,14 @@ function ChoreChampionsApp() {
             setShowOnboarding(true);
           }
           loadGameData(user);
+          
+          // Generate daily quests for existing users who don't have them
+          setTimeout(() => {
+            if (myDailyChores.length === 0) {
+              console.log('🎯 Auto-generating daily quests for existing user...');
+              generateDailyChores({}, user);
+            }
+          }, 1000);
         } else {
           setShowAuth(true);
         }
