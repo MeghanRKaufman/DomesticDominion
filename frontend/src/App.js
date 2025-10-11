@@ -3686,7 +3686,7 @@ function ChoreChampionsApp() {
 
                   {/* Partner's Today's Chores */}
                   <div className="bg-white rounded-lg shadow-lg p-6">
-                    <h3 className="text-lg font-bold mb-4">🎯 {partner.displayName}'s Chores for Today</h3>
+                    <h3 className="text-lg font-bold mb-4">🎯 {partner.displayName}'s Quests for Today</h3>
                     
                     {partnerChores.length > 0 ? (
                       <div className="space-y-3">
