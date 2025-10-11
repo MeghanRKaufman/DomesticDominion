@@ -2785,11 +2785,9 @@ function ChoreChampionsApp() {
     
     setIsEnhancing(true);
     try {
-      const response = await axios.post(`${API}/pi/enhance-message`, {
+      const response = await axios.post(`${API}/ai/enhance_message`, {
         message: messageText,
-        enhancement_level: enhancementLevel,
-        preserve_style: preserveStyle,
-        user_id: currentUser.userId
+        level: enhancementLevel
       });
       
       setEnhancedMessage(response.data.enhanced_message);
