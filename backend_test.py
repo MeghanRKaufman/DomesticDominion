@@ -1249,6 +1249,7 @@ class BackendTester:
                 return False
                 
             user1 = response.json()
+            couple_id = user1.get("coupleId")
             
             # Step 3: Join couple as partner
             join_data = {"partnerName": onboarding_data["partnerName"], "inviteCode": invite_code}
