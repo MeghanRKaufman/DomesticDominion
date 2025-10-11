@@ -3467,7 +3467,7 @@ function ChoreChampionsApp() {
                               size="sm"
                               className="bg-green-600 hover:bg-green-700 text-white"
                             >
-                              ➕ Add to Daily
+                              ➕ Add to Quest Log
                             </Button>
                           </div>
                         </div>
