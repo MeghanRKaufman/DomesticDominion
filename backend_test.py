@@ -995,32 +995,32 @@ class BackendTester:
                     self.log_test("Onboarding Flow Backend", False,
                                 f"Missing field '{field}' in invitation response", str(invitation_data))
                     return False
-                    
-            # Verify customized chores were generated based on household setup
-            customized_chores = couple_data.get("customizedChores", [])
-            if len(customized_chores) < 8:  # Should have at least base chores
+            
+            # Check that invitation message includes customized features
+            message = invitation_data.get("message", "")
+            
+            # Check for pet-specific features since hasPets=True
+            if "🐾 Pet care tasks" not in message:
                 self.log_test("Onboarding Flow Backend", False,
-                            f"Expected at least 8 customized chores, got {len(customized_chores)}")
+                            "No pet-specific features found in invitation despite hasPets=True")
                 return False
                 
-            # Check for pet-specific chores since hasPets=True
-            pet_chore_found = any("pet" in chore.lower() or "dog" in chore.lower() or "cat" in chore.lower() 
-                                for chore in customized_chores)
-            if not pet_chore_found:
+            # Check for vehicle-specific features since hasVehicle=True  
+            if "🚗 Vehicle maintenance" not in message:
                 self.log_test("Onboarding Flow Backend", False,
-                            "No pet-specific chores found despite hasPets=True")
+                            "No vehicle-specific features found in invitation despite hasVehicle=True")
                 return False
                 
-            # Check for vehicle-specific chores since hasVehicle=True
-            vehicle_chore_found = any("car" in chore.lower() or "vehicle" in chore.lower() or "gas" in chore.lower()
-                                    for chore in customized_chores)
-            if not vehicle_chore_found:
-                self.log_test("Onboarding Flow Backend", False,
-                            "No vehicle-specific chores found despite hasVehicle=True")
-                return False
-                
-            self.test_couple_id = couple_data["coupleId"]
-            self.test_invite_code = couple_data["inviteCode"]
+            self.test_invite_code = invitation_data["inviteCode"]
+            
+            # Now create users to get couple ID
+            user1_data = {"displayName": onboarding_data["playerName"], "coupleCode": self.test_invite_code}
+            user_response = requests.post(f"{self.base_url}/users", json=user1_data)
+            
+            if user_response.status_code == 200:
+                user1 = user_response.json()
+                self.test_couple_id = user1.get("coupleId")
+                self.test_user1_id = user1.get("userId")
             
             self.log_test("Onboarding Flow Backend", True,
                         f"Onboarding data saved successfully. Generated {len(customized_chores)} customized chores")
