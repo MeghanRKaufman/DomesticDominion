@@ -3312,11 +3312,11 @@ function ChoreChampionsApp() {
             </div>
           )}
 
-          {/* All Quests Management - Enhanced with Sorting */}
+          {/* All Quests Management - Tabbed Categories */}
           {activeTab === 'all-chores' && (
             <div>
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold">📋 All Quests Library</h2>
+                <h2 className="text-3xl font-bold">📋 All Quests</h2>
                 <Button 
                   onClick={() => setShowAddChore(true)}
                   className="bg-green-600 hover:bg-green-700"
