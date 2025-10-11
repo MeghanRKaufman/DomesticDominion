@@ -245,7 +245,7 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
     </div>
   );
 
-  const renderStep5 = () => (
+  const renderStep6 = () => (
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-3xl font-bold mb-2">🐾 Do You Have Pets?</h2>
