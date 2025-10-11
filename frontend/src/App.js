@@ -3569,8 +3569,8 @@ function ChoreChampionsApp() {
             </div>
           )}
 
-          {/* Personal Growth Tasks */}
-          {activeTab === 'personal-growth' && (
+          {/* Personal Growth & US Activities removed - covered in All Quests */}
+          {false && activeTab === 'personal-growth' && (
             <div>
               <h2 className="text-3xl font-bold mb-6">🌱 Personal Growth & Self-Care</h2>
               
