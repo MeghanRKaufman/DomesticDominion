@@ -34,7 +34,7 @@ const MAX_NET_CHORE_SHIFT = 0.07;
 const VERIFICATION_WINDOW = 30; // minutes
 const VERIFY_PROB = 0.10; // 10% random verification
 
-// New 10-Tier Talent Tree System (Chore Champions)
+// New 10-Tier Talent Tree System (Domestic Dominion)
 const TALENT_TREE_NODES = {
   // ===== HOUSEKEEPING HEROES (Country I: Sanctum of Stewardry) =====
   // Free Tiers 1-5
