@@ -530,8 +530,8 @@ class BackendTester:
         try:
             # Submit a daily log
             log_data = {
-                "userId": self.test_user1_id,
-                "partnerId": self.test_user2_id,
+                "userId": user1_id,
+                "partnerId": user2_id,
                 "message": "Test daily log message"
             }
             response = requests.post(f"{self.base_url}/daily-logs", json=log_data)
