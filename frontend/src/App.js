@@ -2378,122 +2378,54 @@ function ChoreChampionsApp() {
     console.log('🚗 Vehicle Tasks:', comprehensiveChoreList.filter(c => c.category === 'vehicle').length);
   };
 
+  // Generate 50/50 daily quest split as requested
   const generateDailyChores = async (onboardingData, user) => {
     try {
-      // COMPREHENSIVE TASK LIBRARY - All possible tasks organized by category
-      let allPossibleTasks = [
-        // ===== HOUSEHOLD CHORES =====
-        // Kitchen Tasks
-        { id: 'dishes', title: '🍽️ Do the dishes', room: 'Kitchen', points: 10, difficulty: 'MEDIUM', category: 'domestic' },
-        { id: 'counter_wipe', title: '🧽 Wipe counters', room: 'Kitchen', points: 5, difficulty: 'EASY', category: 'domestic' },
-        { id: 'trash', title: '🗑️ Take out trash', room: 'Kitchen', points: 5, difficulty: 'EASY', category: 'domestic' },
-        { id: 'sweep_kitchen', title: '🧹 Sweep kitchen floor', room: 'Kitchen', points: 10, difficulty: 'MEDIUM', category: 'domestic' },
-        { id: 'mop_kitchen', title: '🧽 Mop kitchen floor', room: 'Kitchen', points: 15, difficulty: 'MEDIUM', category: 'domestic' },
-        { id: 'clean_stove', title: '🔥 Clean stovetop', room: 'Kitchen', points: 15, difficulty: 'MEDIUM', category: 'domestic' },
-        { id: 'clean_microwave', title: '📟 Clean microwave', room: 'Kitchen', points: 10, difficulty: 'EASY', category: 'domestic' },
-        { id: 'clean_fridge', title: '❄️ Clean out refrigerator', room: 'Kitchen', points: 20, difficulty: 'HARD', category: 'domestic' },
-        { id: 'organize_pantry', title: '📦 Organize pantry', room: 'Kitchen', points: 15, difficulty: 'MEDIUM', category: 'domestic' },
-        
-        // Living Room Tasks
-        { id: 'vacuum_living', title: '🌪️ Vacuum living room', room: 'Living Room', points: 15, difficulty: 'MEDIUM', category: 'domestic' },
-        { id: 'dust_surfaces', title: '🧽 Dust surfaces', room: 'Living Room', points: 10, difficulty: 'EASY', category: 'domestic' },
-        { id: 'organize_clutter', title: '📦 Organize clutter', room: 'Living Room', points: 10, difficulty: 'MEDIUM', category: 'domestic' },
-        { id: 'clean_windows', title: '🪟 Clean windows', room: 'Living Room', points: 15, difficulty: 'MEDIUM', category: 'domestic' },
-        { id: 'vacuum_couch', title: '🛋️ Vacuum couch cushions', room: 'Living Room', points: 10, difficulty: 'EASY', category: 'domestic' },
-        
-        // Bathroom Tasks
-        { id: 'clean_toilet', title: '🚽 Clean toilet', room: 'Bathroom', points: 15, difficulty: 'HARD', category: 'domestic' },
-        { id: 'clean_shower', title: '🛁 Clean shower/bathtub', room: 'Bathroom', points: 20, difficulty: 'HARD', category: 'domestic' },
-        { id: 'clean_sink', title: '🚿 Clean bathroom sink', room: 'Bathroom', points: 10, difficulty: 'MEDIUM', category: 'domestic' },
-        { id: 'mop_bathroom', title: '🧽 Mop bathroom floor', room: 'Bathroom', points: 10, difficulty: 'MEDIUM', category: 'domestic' },
-        { id: 'clean_mirror', title: '🪞 Clean bathroom mirror', room: 'Bathroom', points: 5, difficulty: 'EASY', category: 'domestic' },
-        { id: 'restock_supplies', title: '🧴 Restock bathroom supplies', room: 'Bathroom', points: 5, difficulty: 'EASY', category: 'domestic' },
-        
-        // Bedroom Tasks  
-        { id: 'make_bed', title: '🛏️ Make the bed', room: 'Bedroom', points: 5, difficulty: 'EASY', category: 'domestic' },
-        { id: 'laundry', title: '👕 Do laundry', room: 'Bedroom', points: 15, difficulty: 'MEDIUM', category: 'domestic' },
-        { id: 'fold_clothes', title: '👔 Fold and put away clothes', room: 'Bedroom', points: 10, difficulty: 'MEDIUM', category: 'domestic' },
-        { id: 'vacuum_bedroom', title: '🌪️ Vacuum bedroom', room: 'Bedroom', points: 10, difficulty: 'MEDIUM', category: 'domestic' },
-        { id: 'organize_closet', title: '👗 Organize closet', room: 'Bedroom', points: 20, difficulty: 'HARD', category: 'domestic' },
-        
-        // General Household
-        { id: 'change_sheets', title: '🛏️ Change bed sheets', room: 'Bedroom', points: 15, difficulty: 'MEDIUM', category: 'domestic' },
-        { id: 'water_plants', title: '🪴 Water plants', room: 'Living Room', points: 5, difficulty: 'EASY', category: 'domestic' },
-        { id: 'dust_electronics', title: '📺 Dust electronics', room: 'Living Room', points: 10, difficulty: 'EASY', category: 'domestic' },
-        { id: 'organize_mail', title: '📬 Organize mail/bills', room: 'Living Room', points: 10, difficulty: 'MEDIUM', category: 'domestic' },
-        
-        // ===== US/COUPLE TASKS =====
-        { id: 'board_game', title: '🎲 Play a board game together', room: 'Living Room', points: 10, difficulty: 'EASY', category: 'team-building' },
-        { id: 'cook_together', title: '🍽️ Cook a meal together', room: 'Kitchen', points: 15, difficulty: 'MEDIUM', category: 'team-building' },
-        { id: 'movie_night', title: '🎬 Watch a movie together', room: 'Living Room', points: 5, difficulty: 'EASY', category: 'team-building' },
-        { id: 'walk_together', title: '🚶 Take a walk together', room: 'Outdoors', points: 10, difficulty: 'EASY', category: 'team-building' },
-        { id: 'daily_checkin', title: '🤗 Daily check-in conversation', room: 'Anywhere', points: 5, difficulty: 'EASY', category: 'team-building' },
-        { id: 'appreciation_notes', title: '💌 Write appreciation notes', room: 'Anywhere', points: 10, difficulty: 'MEDIUM', category: 'team-building' },
-        { id: 'plan_goals', title: '🎯 Plan future goals together', room: 'Anywhere', points: 20, difficulty: 'HARD', category: 'team-building' },
-        { id: 'try_new_activity', title: '🎭 Try something new together', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'team-building' },
-        { id: 'photo_session', title: '📸 Create memories (photos)', room: 'Anywhere', points: 5, difficulty: 'EASY', category: 'team-building' },
-        { id: 'massage_exchange', title: '💆 Give each other massages', room: 'Bedroom', points: 10, difficulty: 'MEDIUM', category: 'team-building' },
-        
-        // ===== PERSONAL GROWTH TASKS =====
-        { id: 'meditation', title: '🧘 Meditate for 10 minutes', room: 'Bedroom', points: 10, difficulty: 'MEDIUM', category: 'self-care' },
-        { id: 'journaling', title: '📝 Write in journal', room: 'Bedroom', points: 10, difficulty: 'MEDIUM', category: 'self-care' },
-        { id: 'exercise', title: '💪 Exercise/workout', room: 'Living Room', points: 15, difficulty: 'MEDIUM', category: 'self-care' },
-        { id: 'read_book', title: '📚 Read for 30 minutes', room: 'Bedroom', points: 10, difficulty: 'EASY', category: 'self-care' },
-        { id: 'drink_water', title: '💧 Drink 8 glasses of water', room: 'Kitchen', points: 5, difficulty: 'EASY', category: 'self-care' },
-        { id: 'healthy_meal', title: '🥗 Prepare a healthy meal', room: 'Kitchen', points: 15, difficulty: 'MEDIUM', category: 'self-care' },
-        { id: 'skincare_routine', title: '🧴 Complete skincare routine', room: 'Bathroom', points: 5, difficulty: 'EASY', category: 'self-care' },
-        { id: 'stretch', title: '🤸 Stretch for 15 minutes', room: 'Living Room', points: 10, difficulty: 'EASY', category: 'self-care' },
-        { id: 'gratitude_practice', title: '🙏 Practice gratitude (3 things)', room: 'Anywhere', points: 5, difficulty: 'EASY', category: 'self-care' },
-        { id: 'learn_something', title: '🎓 Learn something new', room: 'Living Room', points: 15, difficulty: 'MEDIUM', category: 'self-care' },
-        { id: 'declutter_space', title: '🧹 Declutter personal space', room: 'Bedroom', points: 10, difficulty: 'MEDIUM', category: 'self-care' },
-        { id: 'call_friend', title: '📞 Call a friend or family', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'self-care' }
-      ];
-
-      // Add pet-specific tasks if they have pets
-      if (onboardingData.hasPets) {
-        allPossibleTasks.push(
-          { id: 'feed_pets', title: '🍖 Feed pets', room: 'Kitchen', points: 5, difficulty: 'EASY', category: 'pets' },
-          { id: 'walk_pets', title: '🐕 Walk pets', room: 'Outdoors', points: 10, difficulty: 'MEDIUM', category: 'pets' },
-          { id: 'groom_pets', title: '✂️ Groom pets', room: 'Bathroom', points: 15, difficulty: 'MEDIUM', category: 'pets' },
-          { id: 'clean_pet_area', title: '🧽 Clean pet sleeping area', room: 'Living Room', points: 10, difficulty: 'MEDIUM', category: 'pets' }
-        );
-        
-        if (onboardingData.petTypes?.includes('cats')) {
-          allPossibleTasks.push({ id: 'litter_box', title: '🧹 Clean litter box', room: 'Bathroom', points: 10, difficulty: 'MEDIUM', category: 'pets' });
-        }
+      console.log('🎯 Generating daily 50/50 quest split...');
+      
+      // Get domestic quests from comprehensive library
+      const domesticQuests = allChores.filter(q => q.category === 'domestic' || q.category === 'pets' || q.category === 'vehicle');
+      const selfCareQuests = allChores.filter(q => q.category === 'self-care');
+      const teamBuildingQuests = allChores.filter(q => q.category === 'team-building');
+      
+      // Select 8-10 domestic quests for 50/50 split
+      const selectedDomesticQuests = domesticQuests.sort(() => 0.5 - Math.random()).slice(0, 10);
+      
+      // Add verification chance (15% for domestic and self-care)
+      const addVerificationChance = (quest) => ({
+        ...quest,
+        requiresVerification: Math.random() < 0.15,
+        completed: false
+      });
+      
+      // 50/50 split of domestic quests
+      const myDomesticQuests = selectedDomesticQuests.slice(0, 5).map(addVerificationChance);
+      const partnerDomesticQuests = selectedDomesticQuests.slice(5, 10).map(addVerificationChance);
+      
+      // Add 1 self-care quest for each
+      const mySelfCareQuest = selfCareQuests.sort(() => 0.5 - Math.random())[0];
+      const partnerSelfCareQuest = selfCareQuests.sort(() => 0.5 - Math.random())[1];
+      
+      if (mySelfCareQuest) myDomesticQuests.push(addVerificationChance(mySelfCareQuest));
+      if (partnerSelfCareQuest) partnerDomesticQuests.push(addVerificationChance(partnerSelfCareQuest));
+      
+      // Add 1 team building quest (requires both parties)
+      const sharedTeamQuest = teamBuildingQuests.sort(() => 0.5 - Math.random())[0];
+      if (sharedTeamQuest) {
+        const teamQuest = { ...sharedTeamQuest, requiresBothPartners: true, completed: false };
+        myDomesticQuests.push(teamQuest);
+        partnerDomesticQuests.push(teamQuest); // Same quest for both
       }
-
-      // Add vehicle tasks if they have vehicles
-      if (onboardingData.vehicleSharing && onboardingData.vehicleSharing !== 'none') {
-        allPossibleTasks.push(
-          { id: 'gas_fillup', title: '⛽ Fill up gas tank', room: 'Vehicle', points: 5, difficulty: 'EASY', category: 'vehicle' },
-          { id: 'car_wash', title: '🚗 Wash car exterior', room: 'Vehicle', points: 15, difficulty: 'MEDIUM', category: 'vehicle' },
-          { id: 'vacuum_car', title: '🌪️ Vacuum car interior', room: 'Vehicle', points: 10, difficulty: 'MEDIUM', category: 'vehicle' },
-          { id: 'check_oil', title: '🛢️ Check oil levels', room: 'Vehicle', points: 5, difficulty: 'EASY', category: 'vehicle' }
-        );
-      }
-
-      // Filter for today's assignment (household + personal + some US tasks)
-      const householdTasks = allPossibleTasks.filter(task => task.category === 'household' || task.category === 'pets' || task.category === 'vehicle');
-      const usTasks = allPossibleTasks.filter(task => task.category === 'us').slice(0, 3); // Add 3 US tasks
-      const personalTasks = allPossibleTasks.filter(task => task.category === 'personal').slice(0, 4); // Add 4 personal tasks
       
-      const todaysPool = [...householdTasks, ...usTasks, ...personalTasks];
-
-      // 50/50 split - assign half to user, half to partner
-      const shuffled = todaysPool.sort(() => 0.5 - Math.random());
-      const myChores = shuffled.slice(0, Math.ceil(shuffled.length / 2));
-      const partnerChores = shuffled.slice(Math.ceil(shuffled.length / 2));
+      setMyDailyChores(myDomesticQuests);
+      setPartnerChores(partnerDomesticQuests);
       
-      setMyDailyChores(myChores);
-      setPartnerChores(partnerChores);
-      setAllChores(allPossibleTasks); // Show ALL possible tasks in "All Chores" tab
-      
-      console.log('🎯 Generated daily chores:', { myChores, partnerChores, totalTasks: allPossibleTasks.length });
-      console.log('📋 All possible tasks set:', allPossibleTasks);
+      console.log('✅ Daily quest assignment complete!');
+      console.log('👤 My quests:', myDomesticQuests.length);
+      console.log('👥 Partner quests:', partnerDomesticQuests.length);
       
     } catch (error) {
-      console.error('Error generating daily chores:', error);
+      console.error('❌ Error generating daily quests:', error);
     }
   };
 
