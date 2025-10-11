@@ -3835,8 +3835,8 @@ function ChoreChampionsApp() {
             </div>
           )}
 
-          {/* Messages - Pi Enhanced Communication */}
-          {activeTab === 'messages' && (
+          {/* AI Messages Tab - ChatGPT-5 Enhanced Communication */}
+          {activeTab === 'ai-messages' && (
             <div>
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-3xl font-bold">💬 Messages</h2>
