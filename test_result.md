@@ -323,6 +323,12 @@ frontend:
       - working: true
         agent: "testing"
         comment: "✅ TESTED: Enhanced onboarding flow working perfectly. All 8 steps complete successfully: Congratulations → Name → Kingdom → Living Situation → Pets → Vehicles → Summary → Invitation. User can input name, kingdom name, select living preferences, and complete full onboarding to reach main app interface."
+      - working: false
+        agent: "user"
+        comment: "❌ USER REPORTED: Still errors when inputting partner name during onboarding"
+      - working: true
+        agent: "main"
+        comment: "✅ FIXED: Partner name input error resolved. Issue was in step 3 where onChange handler was calling undefined 'updateField' function instead of 'handleInputChange'. Fixed and verified working with test - partner name input now accepts input correctly."
 
   - task: "Core Navigation & Tab System"
     implemented: true
