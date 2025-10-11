@@ -2087,7 +2087,7 @@ function ChoreChampionsApp() {
   const generateComprehensiveQuestLibrary = () => {
     const comprehensiveChoreList = [
       // ===== DOMESTIC DUTIES ===== (Household management and maintenance)
-      { id: 'dishes', title: '🍽️ Do the dishes', room: 'Kitchen', points: 10, difficulty: 'MEDIUM', category: 'household' },
+      { id: 'dishes', title: '🍽️ Do the dishes', room: 'Kitchen', points: 10, difficulty: 'MEDIUM', category: 'domestic' },
       { id: 'counter_wipe', title: '🧽 Wipe counters', room: 'Kitchen', points: 5, difficulty: 'EASY', category: 'household' },
       { id: 'trash', title: '🗑️ Take out trash', room: 'Kitchen', points: 5, difficulty: 'EASY', category: 'household' },
       { id: 'sweep_kitchen', title: '🧹 Sweep kitchen floor', room: 'Kitchen', points: 10, difficulty: 'MEDIUM', category: 'household' },
@@ -2384,7 +2384,7 @@ function ChoreChampionsApp() {
       let allPossibleTasks = [
         // ===== HOUSEHOLD CHORES =====
         // Kitchen Tasks
-        { id: 'dishes', title: '🍽️ Do the dishes', room: 'Kitchen', points: 10, difficulty: 'MEDIUM', category: 'household' },
+        { id: 'dishes', title: '🍽️ Do the dishes', room: 'Kitchen', points: 10, difficulty: 'MEDIUM', category: 'domestic' },
         { id: 'counter_wipe', title: '🧽 Wipe counters', room: 'Kitchen', points: 5, difficulty: 'EASY', category: 'household' },
         { id: 'trash', title: '🗑️ Take out trash', room: 'Kitchen', points: 5, difficulty: 'EASY', category: 'household' },
         { id: 'sweep_kitchen', title: '🧹 Sweep kitchen floor', room: 'Kitchen', points: 10, difficulty: 'MEDIUM', category: 'household' },
