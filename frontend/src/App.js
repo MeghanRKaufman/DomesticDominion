@@ -2508,9 +2508,10 @@ function ChoreChampionsApp() {
     setLoading(true);
     
     try {
-      // Create enhanced couple with onboarding data  
+      // Create enhanced couple with onboarding data including partner name
       const response = await axios.post(`${API}/couples/create-enhanced`, {
         playerName: onboardingData.playerName, // Using actual player name
+        partnerName: onboardingData.partnerName,
         householdSetup: {
           hasPets: onboardingData.hasPets,
           petTypes: onboardingData.petTypes,
@@ -2529,9 +2530,10 @@ function ChoreChampionsApp() {
         }
       });
       
-      // Create user account with the name from onboarding
+      // Create user account with the name from onboarding including partner name
       const userResponse = await axios.post(`${API}/users`, {
         displayName: onboardingData.playerName,
+        partnerName: onboardingData.partnerName,
         coupleCode: response.data.inviteCode
       });
       
@@ -2546,8 +2548,11 @@ function ChoreChampionsApp() {
       // Load game data for the new user
       await loadGameData(userResponse.data);
       
-      // Generate daily chores based on onboarding
+      // Generate daily quests immediately based on onboarding
       await generateDailyChores(onboardingData, userResponse.data);
+      
+      // Close onboarding and go straight to main app
+      setShowOnboarding(false);
       
     } catch (error) {
       console.error('Error creating enhanced adventure:', error);
