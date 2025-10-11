@@ -2949,9 +2949,11 @@ function ChoreChampionsApp() {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-4xl font-bold drop-shadow-lg">🏰 Domestic Dominion</h1>
-              <p className="text-purple-100 text-lg">Hero: {currentUser.displayName}</p>
-              {partner && <p className="text-purple-200">Party: {partner.displayName}</p>}
+              <h1 className="text-2xl md:text-4xl font-bold drop-shadow-lg">🏰 Domestic Dominion</h1>
+              <p className="text-purple-100 text-sm md:text-lg">Hero: {currentUser.displayName}</p>
+              <p className="text-purple-200 text-sm md:text-base">
+                Partner: {partner?.displayName || currentUser.partnerName || 'Awaiting Partner'}
+              </p>
             </div>
             
             <div className="flex items-center space-x-6">
