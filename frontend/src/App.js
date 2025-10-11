@@ -1937,6 +1937,7 @@ function ChoreChampionsApp() {
   const [sortBy, setSortBy] = useState('room');
   const [sortDirection, setSortDirection] = useState('asc');
   const [filterBy, setFilterBy] = useState('all');
+  const [questCategory, setQuestCategory] = useState('domestic');
   
   // Daily Question and Pi Suggestions
   const [dailyQuestion, setDailyQuestion] = useState('');
