@@ -986,14 +986,14 @@ class BackendTester:
                             f"Enhanced couple creation failed. Status: {response.status_code}", response.text)
                 return False
                 
-            couple_data = response.json()
+            invitation_data = response.json()
             
-            # Check that onboarding data was saved
-            required_fields = ["coupleId", "inviteCode", "householdSetup", "customizedChores"]
+            # Check that invitation was created
+            required_fields = ["inviteCode", "message", "theme", "creatorName"]
             for field in required_fields:
-                if field not in couple_data:
+                if field not in invitation_data:
                     self.log_test("Onboarding Flow Backend", False,
-                                f"Missing field '{field}' in couple creation response", str(couple_data))
+                                f"Missing field '{field}' in invitation response", str(invitation_data))
                     return False
                     
             # Verify customized chores were generated based on household setup
