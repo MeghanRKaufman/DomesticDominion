@@ -1039,8 +1039,7 @@ class BackendTester:
         try:
             # Test daily assignments endpoint
             today = datetime.now().strftime('%Y-%m-%d')
-            response = requests.get(f"{self.base_url}/couples/{self.test_couple_id}/daily-assignments", 
-                                  params={"date": today})
+            response = requests.get(f"{self.base_url}/couples/{self.test_couple_id}/assignments/{today}")
             
             if response.status_code != 200:
                 self.log_test("Daily Quest Generation", False,
