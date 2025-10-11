@@ -2018,6 +2018,13 @@ function ChoreChampionsApp() {
       if (user.partnerId) {
         const partnerResponse = await axios.get(`${API}/users/${user.partnerId}`);
         setPartner(partnerResponse.data);
+      } else if (user.partnerName) {
+        // Use partner name from onboarding data if no partner user exists yet
+        setPartner({
+          displayName: user.partnerName,
+          userId: null,
+          isPlaceholder: true
+        });
       }
     } catch (error) {
       console.error('Error loading game data:', error);
