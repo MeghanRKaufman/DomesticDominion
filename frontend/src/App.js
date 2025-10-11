@@ -3037,17 +3037,6 @@ function ChoreChampionsApp() {
               </button>
               
               <button
-                onClick={() => setActiveTab('personal-growth')}
-                className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
-                  activeTab === 'personal-growth' 
-                    ? 'bg-blue-100 text-blue-800 border border-blue-200' 
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                🌱 Personal Growth
-              </button>
-              
-              <button
                 onClick={() => setActiveTab('teammate')}
                 className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
                   activeTab === 'teammate' 
@@ -3055,7 +3044,7 @@ function ChoreChampionsApp() {
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                👥 {currentUser?.partnerName ? `${currentUser.partnerName}` : 'My Ally'}
+                👥 My Teammate
               </button>
               
               <button
@@ -3070,25 +3059,14 @@ function ChoreChampionsApp() {
               </button>
               
               <button
-                onClick={() => setActiveTab('messages')}
+                onClick={() => setActiveTab('ai-messages')}
                 className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
-                  activeTab === 'messages' 
+                  activeTab === 'ai-messages' 
                     ? 'bg-blue-100 text-blue-800 border border-blue-200' 
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                💬 Messages
-              </button>
-              
-              <button
-                onClick={() => setActiveTab('games')}
-                className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
-                  activeTab === 'games' 
-                    ? 'bg-blue-100 text-blue-800 border border-blue-200' 
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                🎮 US Activities
+                🤖 AI Messages
               </button>
             </div>
           </div>
