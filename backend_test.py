@@ -955,7 +955,7 @@ class BackendTester:
 
     def run_all_tests(self):
         """Run all backend tests"""
-        print("🎮 Starting Enhanced Chore Champions Backend Tests")
+        print("🎮 Starting Enhanced Domestic Dominion Backend Tests")
         print("🌟 Testing: 10-Tier Talent Tree System & Pi Message Integration")
         print("=" * 70)
         print()
