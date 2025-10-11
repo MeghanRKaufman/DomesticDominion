@@ -3213,7 +3213,45 @@ function ChoreChampionsApp() {
                     </div>
                   </div>
                   
-                  {/* Removed fake upcoming week preview since daily splits are random */}
+                  {/* Daily Connection Features */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Question of the Day */}
+                    <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl border-2 border-yellow-200 p-6">
+                      <h3 className="text-xl font-bold mb-3 text-yellow-800">💭 Daily Reflection</h3>
+                      <p className="text-gray-700 mb-4 italic">"{dailyQuestion}"</p>
+                      <Button 
+                        size="sm"
+                        onClick={() => generateDailyQuestionAndSuggestion()}
+                        className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                      >
+                        🔄 New Question
+                      </Button>
+                    </div>
+                    
+                    {/* Pi Message Suggestion */}
+                    <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl border-2 border-pink-200 p-6">
+                      <h3 className="text-xl font-bold mb-3 text-pink-800">💌 Message Your Ally</h3>
+                      <div className="bg-white p-4 rounded-lg border mb-4">
+                        <p className="text-gray-700 italic">"{piMessageSuggestion}"</p>
+                        <p className="text-xs text-purple-600 mt-2">✨ Pi-enhanced for gentle communication</p>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button 
+                          size="sm"
+                          className="bg-pink-600 hover:bg-pink-700 text-white flex-1"
+                        >
+                          📤 Send to {currentUser?.partnerName || 'Partner'}
+                        </Button>
+                        <Button 
+                          size="sm"
+                          variant="outline"
+                          onClick={() => generateDailyQuestionAndSuggestion()}
+                        >
+                          🔄
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                   {/* Quest Statistics */}
                   <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border-2 border-gray-200 p-6">
                     <h3 className="text-2xl font-bold mb-4 text-gray-800">📊 Quest Statistics</h3>
