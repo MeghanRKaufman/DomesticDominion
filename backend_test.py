@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Backend Testing Suite for Enhanced Chore Champions App
+Backend Testing Suite for Enhanced Domestic Dominion App
 Tests new features: 10-tier talent tree system, Pi message integration, and enhanced backend functionality
 """
 
