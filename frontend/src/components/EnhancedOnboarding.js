@@ -375,7 +375,7 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
                 You are hereby invited to enter the world of Domestic Dominion — where everyday deeds become quests, and teamwork turns routine into triumph.
               </p>
               <p className="text-gray-700">
-                Your partner awaits your arrival at the gates of your shared kingdom. Together, you shall rise through the ranks, earn your titles, and craft a life of love and legacy.
+                {onboardingData.playerName} awaits your arrival at the gates of your shared kingdom '{onboardingData.kingdomName}'. Together, you shall rise through the ranks, earn your titles, and craft a life of love and legacy.
               </p>
               <p className="font-bold text-lg text-purple-800">🏆 Do you accept this quest, Champion?</p>
               <div className="bg-white p-3 rounded border mt-4">
