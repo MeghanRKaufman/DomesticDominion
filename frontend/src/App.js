@@ -1925,7 +1925,7 @@ function ChoreChampionsApp() {
   const [messageText, setMessageText] = useState('');
   const [enhancedMessage, setEnhancedMessage] = useState('');
   const [enhancementData, setEnhancementData] = useState(null);
-  const [enhancementLevel, setEnhancementLevel] = useState('moderate');
+  const [enhancementLevel, setEnhancementLevel] = useState('gentle');
   const [preserveStyle, setPreserveStyle] = useState(true);
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [isSending, setIsSending] = useState(false);
