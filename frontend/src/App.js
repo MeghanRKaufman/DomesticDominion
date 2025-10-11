@@ -2713,7 +2713,7 @@ function ChoreChampionsApp() {
 
   if (!currentUser) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-600 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 flex items-center justify-center p-4">
         {showEnhancedOnboarding ? (
           <EnhancedOnboarding 
             isOpen={showEnhancedOnboarding} 
@@ -2722,20 +2722,27 @@ function ChoreChampionsApp() {
           />
         ) : (
           // Clean Welcome Screen
-          <div className="text-center max-w-2xl mx-auto p-8">
-            <div className="animate-bounce mb-6">
-              <div className="text-8xl mb-4">🏆</div>
-            </div>
-            <h1 className="text-6xl font-bold mb-6 text-white drop-shadow-lg">
-              Chore Champions
-            </h1>
-            
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 mb-8 text-white">
-              <p className="text-xl mb-6 leading-relaxed">
-                Hi! Welcome to Chore Champions! This is where you can turn your kingdom (your household) into a great treasure of your life by turning the things you have to do every day anyway into an adventure!
+          <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 max-w-lg w-full text-center border border-white/20 shadow-2xl">
+            <div className="text-6xl mb-6">🏰</div>
+            <h1 className="text-4xl font-bold text-white mb-6">Domestic Dominion</h1>
+            <p className="text-gray-100 mb-4 leading-relaxed">
+              🏰 Welcome to Domestic Dominion!
+            </p>
+            <div className="text-gray-200 mb-8 leading-relaxed text-left space-y-4">
+              <p>
+                Hi there, and welcome to Domestic Dominion — where your home becomes your kingdom and your everyday chores become epic quests for glory!
               </p>
-              <p className="text-lg mb-6">
-                Perfect for couples who find household duties and chores miserable, or just want something that they can both do together while being totally productive. If you're a gamer, like to play games or board games, or if you like to be competitive in a positive way - this would be a great game for you too!
+              <p>
+                Why just clean, cook, or organize when you can embark on an adventure together? Here, every small task helps you build your realm, earn rewards, and strengthen your bond — all while conquering the real world one quest at a time.
+              </p>
+              <p>
+                If you're into challenges, board games, dares, have a competitive streak, and love leveling up in life, this is the perfect game for you. Domestic Dominion transforms ordinary duties into exciting duels and shared victories that make teamwork actually fun.
+              </p>
+              <p>
+                So grab your partner, claim your quests, and start ruling your household like the champions you are.
+              </p>
+              <p className="font-semibold text-yellow-200">
+                Your dominion awaits — let the adventure begin!
               </p>
             </div>
             
