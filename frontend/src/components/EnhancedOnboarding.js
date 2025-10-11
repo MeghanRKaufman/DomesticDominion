@@ -329,32 +329,41 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
   const renderInvitation = () => (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-3xl font-bold mb-2">🎉 Kingdom Created!</h2>
-        <p className="text-gray-600">Time to invite your partner to join the adventure</p>
+        <h2 className="text-3xl font-bold mb-2">🏰 Royal Decree Prepared!</h2>
+        <p className="text-gray-600">Summon your partner to join your dominion</p>
       </div>
       
       <Card>
         <CardHeader>
-          <CardTitle>📨 Invite Your Partner</CardTitle>
+          <CardTitle>📜 Royal Partner Summons</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div><strong>Invitation Code:</strong> ABC123</div>
-          <div className="bg-gray-50 p-4 rounded border">
-            <p className="text-sm">
-              "Hey! I just set up our household kingdom '{onboardingData.kingdomName}' on Domestic Dominion! 
-              Join me to turn our daily tasks into an epic adventure. Use code: ABC123"
-            </p>
+          <div><strong>Royal Invitation Code:</strong> ABC123</div>
+          <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-lg border-2 border-purple-200">
+            <div className="text-center space-y-3">
+              <p className="font-bold text-purple-800">By royal decree and the will of partnership,</p>
+              <p className="text-gray-700">
+                You are hereby invited to enter the world of Domestic Dominion — where everyday deeds become quests, and teamwork turns routine into triumph.
+              </p>
+              <p className="text-gray-700">
+                Your partner awaits your arrival at the gates of your shared kingdom. Together, you shall rise through the ranks, earn your titles, and craft a life of love and legacy.
+              </p>
+              <p className="font-bold text-lg text-purple-800">🏆 Do you accept this quest, Champion?</p>
+              <div className="bg-white p-3 rounded border mt-4">
+                <p className="text-sm font-mono">Invitation Code: ABC123</p>
+              </div>
+            </div>
           </div>
-          <Button className="w-full">📋 Copy Invitation Message</Button>
+          <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white">📋 Copy Royal Decree</Button>
         </CardContent>
       </Card>
 
       <div className="bg-gradient-to-r from-purple-100 to-blue-100 p-6 rounded-lg text-center">
-        <h3 className="text-xl font-bold mb-2">🎮 Next Steps:</h3>
+        <h3 className="text-xl font-bold mb-2">🎭 Next Steps:</h3>
         <ol className="text-left space-y-2 text-sm">
-          <li>1. Share the invitation code with your partner</li>
+          <li>1. Share the royal decree with your partner</li>
           <li>2. They can join using "I was invited to an adventure"</li>
-          <li>3. Once they join, you'll both start your quest together!</li>
+          <li>3. Once they accept, you'll both rule your dominion together!</li>
         </ol>
       </div>
     </div>
