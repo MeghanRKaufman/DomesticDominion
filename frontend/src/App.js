@@ -455,7 +455,7 @@ function OnboardingModal({ isOpen, onComplete }) {
   const steps = [
     {
       title: "Welcome to Domestic Dominion! 🏰",
-      content: "Transform your household chores into an epic RPG adventure for you and your partner!",
+      content: "Transform your household tasks into epic quests for you and your partner!",
       image: "🎮"
     },
     {
