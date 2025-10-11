@@ -466,7 +466,7 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
             
             <Button
               onClick={nextStep}
-              disabled={(step === 2 && !onboardingData.playerName?.trim()) || (step === 3 && !onboardingData.kingdomName?.trim())}
+              disabled={(step === 2 && !onboardingData.playerName?.trim()) || (step === 3 && !onboardingData.partnerName?.trim()) || (step === 4 && !onboardingData.kingdomName?.trim())}
               className="bg-gradient-to-r from-purple-600 to-blue-600 text-white"
             >
               {step === totalSteps ? '🚀 Start Playing!' : step === totalSteps - 1 ? 'Create Kingdom!' : 'Next →'}
