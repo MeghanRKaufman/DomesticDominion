@@ -1230,7 +1230,7 @@ class BackendTester:
             }
             
             # Step 1: Create couple with full onboarding data
-            response = requests.post(f"{self.base_url}/couples/enhanced-create", json=onboarding_data)
+            response = requests.post(f"{self.base_url}/couples/create-enhanced", json=onboarding_data)
             
             if response.status_code not in [200, 201]:
                 self.log_test("Onboarding Completion Flow", False,
