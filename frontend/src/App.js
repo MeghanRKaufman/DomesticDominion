@@ -2993,10 +2993,22 @@ function ChoreChampionsApp() {
         </div>
       </div>
 
-      {/* Main Clean Interface */}
-      <div className="flex flex-col md:flex-row max-w-7xl mx-auto">
-        {/* Side Navigation - Hidden on mobile, full width on mobile when shown */}
-        <div className="w-full md:w-64 bg-white shadow-lg min-h-screen md:min-h-auto order-2 md:order-1">
+      {/* Main Interface - Proper Layout */}
+      <div className="min-h-screen">
+        {/* Mobile Navigation Toggle */}
+        <div className="md:hidden bg-white border-b px-4 py-2">
+          <button 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="flex items-center space-x-2 text-gray-700"
+          >
+            <span className="text-xl">☰</span>
+            <span>Menu</span>
+          </button>
+        </div>
+
+        <div className="flex">
+          {/* Desktop Sidebar */}
+          <div className="hidden md:block w-64 bg-white shadow-lg min-h-screen border-r">
           <div className="p-4">
             <h3 className="text-lg font-bold mb-4 text-gray-800">🗺️ Quest Areas</h3>
             
