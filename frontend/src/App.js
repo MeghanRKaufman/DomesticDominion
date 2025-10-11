@@ -3231,17 +3231,44 @@ function ChoreChampionsApp() {
                   
                   {/* Daily Connection Features */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Question of the Day */}
+                    {/* Daily Reflection - Interactive Question */}
                     <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl border-2 border-yellow-200 p-6">
                       <h3 className="text-xl font-bold mb-3 text-yellow-800">💭 Daily Reflection</h3>
                       <p className="text-gray-700 mb-4 italic">"{dailyQuestion}"</p>
-                      <Button 
-                        size="sm"
-                        onClick={() => generateDailyQuestionAndSuggestion()}
-                        className="bg-yellow-600 hover:bg-yellow-700 text-white"
-                      >
-                        🔄 New Question
-                      </Button>
+                      <p className="text-xs text-yellow-600 mb-3">🎯 Answer thoughtfully to earn 5 XP</p>
+                      
+                      <textarea 
+                        className="w-full p-3 border border-yellow-300 rounded-lg mb-3 text-sm"
+                        rows="3"
+                        placeholder="Share your honest reflection here..."
+                        value={reflectionAnswer}
+                        onChange={(e) => setReflectionAnswer(e.target.value)}
+                      />
+                      
+                      <div className="flex space-x-2">
+                        <Button 
+                          size="sm"
+                          onClick={() => {
+                            if (reflectionAnswer.trim()) {
+                              handleQuestComplete(5);
+                              setReflectionAnswer('');
+                              setCelebrationMessage('💭 Daily reflection complete! +5 XP');
+                              setTimeout(() => setCelebrationMessage(''), 3000);
+                            }
+                          }}
+                          disabled={!reflectionAnswer.trim()}
+                          className="bg-yellow-600 hover:bg-yellow-700 text-white flex-1"
+                        >
+                          ✅ Submit Reflection (+5 XP)
+                        </Button>
+                        <Button 
+                          size="sm"
+                          variant="outline"
+                          onClick={() => generateDailyQuestionAndSuggestion()}
+                        >
+                          🔄
+                        </Button>
+                      </div>
                     </div>
                     
                     {/* Pi Message Suggestion */}
