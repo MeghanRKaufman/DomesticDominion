@@ -3477,8 +3477,8 @@ function ChoreChampionsApp() {
                     {getSortedAndFilteredChores().length === 0 && (
                       <div className="text-center py-8">
                         <div className="text-4xl mb-4">🔍</div>
-                        <h3 className="text-xl font-bold mb-2">No Chores Found</h3>
-                        <p className="text-gray-600">Try adjusting your filters or add some custom chores!</p>
+                        <h3 className="text-xl font-bold mb-2">No Quests Found</h3>
+                        <p className="text-gray-600">Try adjusting your filters or add some custom quests!</p>
                       </div>
                     )}
                   </div>
