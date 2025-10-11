@@ -2087,6 +2087,38 @@ function ChoreChampionsApp() {
     }
   };
 
+  // Daily Questions and Pi Message Suggestions
+  const generateDailyQuestionAndSuggestion = () => {
+    const questions = [
+      "What's one thing your partner did recently that made you smile?",
+      "How can you make your partner feel more appreciated today?", 
+      "What's a small way you could surprise your partner this week?",
+      "What's your favorite memory with your partner from this month?",
+      "How has your partner supported you recently?",
+      "What's one thing you're grateful for about your living space?",
+      "What household task could you turn into quality time together?",
+      "What's one way you've grown as a partner recently?",
+      "How can you better support your partner's goals today?",
+      "What's something you love about your daily routine together?"
+    ];
+    
+    const piSuggestions = [
+      "I've been thinking about how much I appreciate having you as my teammate in keeping our home running smoothly.",
+      "Thank you for being so patient with me as we work together to create the life we both want.",
+      "I love how we're turning everyday tasks into opportunities to support each other.",
+      "You make even the mundane household stuff feel more meaningful just by being my partner in it.",
+      "I'm grateful for how we're building something beautiful together, one small task at a time.",
+      "Thank you for choosing to create this life with me - it means everything.",
+      "I love how we're learning to be better teammates every day.",
+      "You make our home feel like the best place in the world to be.",
+      "I appreciate how thoughtful you are about the little things that make our house a home.",
+      "Thank you for being willing to grow and learn alongside me in this adventure we call life."
+    ];
+    
+    setDailyQuestion(questions[Math.floor(Math.random() * questions.length)]);
+    setPiMessageSuggestion(piSuggestions[Math.floor(Math.random() * piSuggestions.length)]);
+  };
+
   // Generate comprehensive quest library with 250+ amazing tasks
   const generateComprehensiveQuestLibrary = () => {
     const comprehensiveChoreList = [
