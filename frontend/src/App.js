@@ -4462,12 +4462,6 @@ function ChoreChampionsApp() {
       </div>
 
       {/* Enhanced Onboarding */}
-      <EnhancedOnboarding 
-        isOpen={showEnhancedOnboarding} 
-        onComplete={handleEnhancedOnboardingComplete}
-        onClose={() => setShowEnhancedOnboarding(false)}
-      />
-      
       {/* Redundant kingdom join modal removed */}
     </div>
   );
