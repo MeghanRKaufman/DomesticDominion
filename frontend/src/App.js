@@ -2481,7 +2481,7 @@ function ChoreChampionsApp() {
       await loadGameData(userResponse.data);
       
       // Generate daily quests immediately based on onboarding
-      await generateDailyChores(onboardingData, userResponse.data);
+      generateDailyChores(onboardingData, userResponse.data);
       
       // Close onboarding and go straight to main app
       setShowOnboarding(false);
