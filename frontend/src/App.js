@@ -3945,7 +3945,7 @@ function ChoreChampionsApp() {
           {activeTab === 'talent-tree' && (
             <div>
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold">🌳 Talent Tree - Chore Champions</h2>
+                <h2 className="text-3xl font-bold">🌳 Talent Tree - Domestic Dominion</h2>
                 <div className="flex items-center space-x-4">
                   <div className="text-right">
                     <div className="text-sm text-gray-600">Available Talent Points</div>
