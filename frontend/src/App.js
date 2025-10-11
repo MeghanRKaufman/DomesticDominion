@@ -3282,13 +3282,13 @@ function ChoreChampionsApp() {
                 <div className="bg-white rounded-lg shadow-lg p-6">
                   <div className="text-center py-8">
                     <div className="text-6xl mb-4">⚔️</div>
-                    <h3 className="text-2xl font-bold mb-2">Your Quest Log Awaits!</h3>
-                    <p className="text-gray-600 mb-4">Complete onboarding to get your personalized daily quests and embark on your household adventure!</p>
+                    <h3 className="text-2xl font-bold mb-2">Generating Your Daily Quests...</h3>
+                    <p className="text-gray-600 mb-4">Please wait while we assign your 50% of today's royal duties!</p>
                     <Button 
-                      onClick={() => setShowEnhancedOnboarding(true)}
+                      onClick={() => generateDailyChores(currentUser, currentUser)}
                       className="bg-purple-600 hover:bg-purple-700 text-white"
                     >
-                      🚀 Start Adventure
+                      🎲 Generate My Quests
                     </Button>
                   </div>
                 </div>
