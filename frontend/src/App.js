@@ -2086,7 +2086,7 @@ function ChoreChampionsApp() {
   // Generate comprehensive quest library with 250+ amazing tasks
   const generateComprehensiveQuestLibrary = () => {
     const comprehensiveChoreList = [
-      // ===== HOUSEHOLD CHORES ===== (Basic household maintenance)
+      // ===== DOMESTIC DUTIES ===== (Household management and maintenance)
       { id: 'dishes', title: '🍽️ Do the dishes', room: 'Kitchen', points: 10, difficulty: 'MEDIUM', category: 'household' },
       { id: 'counter_wipe', title: '🧽 Wipe counters', room: 'Kitchen', points: 5, difficulty: 'EASY', category: 'household' },
       { id: 'trash', title: '🗑️ Take out trash', room: 'Kitchen', points: 5, difficulty: 'EASY', category: 'household' },
