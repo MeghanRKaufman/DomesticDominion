@@ -2370,7 +2370,7 @@ function ChoreChampionsApp() {
     ];
 
     setAllChores(comprehensiveChoreList);
-    console.log('📚 COMPREHENSIVE CHORE LIBRARY LOADED:', comprehensiveChoreList.length, 'total tasks!');
+    console.log('📚 COMPREHENSIVE QUEST LIBRARY LOADED:', comprehensiveChoreList.length, 'total tasks!');
     console.log('🏠 Household:', comprehensiveChoreList.filter(c => c.category === 'household').length);
     console.log('💞 US Quests:', comprehensiveChoreList.filter(c => c.category === 'us').length);
     console.log('🌱 Personal Growth:', comprehensiveChoreList.filter(c => c.category === 'personal').length);
