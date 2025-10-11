@@ -3294,7 +3294,14 @@ function ChoreChampionsApp() {
                     <h3 className="text-2xl font-bold mb-2">Generating Your Daily Quests...</h3>
                     <p className="text-gray-600 mb-4">Please wait while we assign your 50% of today's royal duties!</p>
                     <Button 
-                      onClick={() => generateDailyChores(currentUser, currentUser)}
+                      onClick={() => {
+                        console.log('🎲 Manually generating quests...');
+                        const mockOnboarding = {
+                          hasPets: currentUser.hasPets || false,
+                          vehicleSharing: currentUser.vehicleSharing || 'none'
+                        };
+                        generateDailyChores(mockOnboarding, currentUser);
+                      }}
                       className="bg-purple-600 hover:bg-purple-700 text-white"
                     >
                       🎲 Generate My Quests
