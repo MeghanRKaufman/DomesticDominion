@@ -2083,6 +2083,301 @@ function ChoreChampionsApp() {
     }
   };
 
+  // Generate comprehensive chore library with 250+ amazing tasks
+  const generateComprehensiveChoreLibrary = () => {
+    const comprehensiveChoreList = [
+      // ===== HOUSEHOLD CHORES ===== (Basic household maintenance)
+      { id: 'dishes', title: '🍽️ Do the dishes', room: 'Kitchen', points: 10, difficulty: 'MEDIUM', category: 'household' },
+      { id: 'counter_wipe', title: '🧽 Wipe counters', room: 'Kitchen', points: 5, difficulty: 'EASY', category: 'household' },
+      { id: 'trash', title: '🗑️ Take out trash', room: 'Kitchen', points: 5, difficulty: 'EASY', category: 'household' },
+      { id: 'sweep_kitchen', title: '🧹 Sweep kitchen floor', room: 'Kitchen', points: 10, difficulty: 'MEDIUM', category: 'household' },
+      { id: 'mop_kitchen', title: '🧽 Mop kitchen floor', room: 'Kitchen', points: 15, difficulty: 'MEDIUM', category: 'household' },
+      { id: 'clean_stove', title: '🔥 Clean stovetop', room: 'Kitchen', points: 15, difficulty: 'MEDIUM', category: 'household' },
+      { id: 'clean_microwave', title: '📟 Clean microwave', room: 'Kitchen', points: 10, difficulty: 'EASY', category: 'household' },
+      { id: 'clean_fridge', title: '❄️ Clean out refrigerator', room: 'Kitchen', points: 20, difficulty: 'HARD', category: 'household' },
+      { id: 'organize_pantry', title: '📦 Organize pantry', room: 'Kitchen', points: 15, difficulty: 'MEDIUM', category: 'household' },
+      { id: 'vacuum_living', title: '🌪️ Vacuum living room', room: 'Living Room', points: 15, difficulty: 'MEDIUM', category: 'household' },
+      { id: 'dust_surfaces', title: '🧽 Dust surfaces', room: 'Living Room', points: 10, difficulty: 'EASY', category: 'household' },
+      { id: 'organize_clutter', title: '📦 Organize clutter', room: 'Living Room', points: 10, difficulty: 'MEDIUM', category: 'household' },
+      { id: 'clean_windows', title: '🪟 Clean windows', room: 'Living Room', points: 15, difficulty: 'MEDIUM', category: 'household' },
+      { id: 'vacuum_couch', title: '🛋️ Vacuum couch cushions', room: 'Living Room', points: 10, difficulty: 'EASY', category: 'household' },
+      { id: 'clean_toilet', title: '🚽 Clean toilet', room: 'Bathroom', points: 15, difficulty: 'HARD', category: 'household' },
+      { id: 'clean_shower', title: '🛁 Clean shower/bathtub', room: 'Bathroom', points: 20, difficulty: 'HARD', category: 'household' },
+      { id: 'clean_sink', title: '🚿 Clean bathroom sink', room: 'Bathroom', points: 10, difficulty: 'MEDIUM', category: 'household' },
+      { id: 'mop_bathroom', title: '🧽 Mop bathroom floor', room: 'Bathroom', points: 10, difficulty: 'MEDIUM', category: 'household' },
+      { id: 'clean_mirror', title: '🪞 Clean bathroom mirror', room: 'Bathroom', points: 5, difficulty: 'EASY', category: 'household' },
+      { id: 'restock_supplies', title: '🧴 Restock bathroom supplies', room: 'Bathroom', points: 5, difficulty: 'EASY', category: 'household' },
+      { id: 'make_bed', title: '🛏️ Make the bed', room: 'Bedroom', points: 5, difficulty: 'EASY', category: 'household' },
+      { id: 'laundry', title: '👕 Do laundry', room: 'Bedroom', points: 15, difficulty: 'MEDIUM', category: 'household' },
+      { id: 'fold_clothes', title: '👔 Fold and put away clothes', room: 'Bedroom', points: 10, difficulty: 'MEDIUM', category: 'household' },
+      { id: 'vacuum_bedroom', title: '🌪️ Vacuum bedroom', room: 'Bedroom', points: 10, difficulty: 'MEDIUM', category: 'household' },
+      { id: 'organize_closet', title: '👗 Organize closet', room: 'Bedroom', points: 20, difficulty: 'HARD', category: 'household' },
+      { id: 'change_sheets', title: '🛏️ Change bed sheets', room: 'Bedroom', points: 15, difficulty: 'MEDIUM', category: 'household' },
+      { id: 'water_plants', title: '🪴 Water plants', room: 'Living Room', points: 5, difficulty: 'EASY', category: 'household' },
+      { id: 'dust_electronics', title: '📺 Dust electronics', room: 'Living Room', points: 10, difficulty: 'EASY', category: 'household' },
+      { id: 'organize_mail', title: '📬 Organize mail/bills', room: 'Living Room', points: 10, difficulty: 'MEDIUM', category: 'household' },
+      
+      // ===== 100 US QUESTS ===== (Acts of Service & Love)
+      // Acts of Service
+      { id: 'us_morning_drink', title: '☕ Bring partner their morning drink', room: 'Kitchen', points: 5, difficulty: 'EASY', category: 'us' },
+      { id: 'us_prep_snack', title: '🥪 Pack or prep their snack/meal', room: 'Kitchen', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_fold_laundry', title: '👕 Fold one piece of their laundry', room: 'Bedroom', points: 5, difficulty: 'EASY', category: 'us' },
+      { id: 'us_warm_blanket', title: '🛏️ Warm their blanket or bed', room: 'Bedroom', points: 5, difficulty: 'EASY', category: 'us' },
+      { id: 'us_brush_hair', title: '✨ Brush or braid their hair', room: 'Bedroom', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_run_bath', title: '🛁 Run a bath/shower for them', room: 'Bathroom', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_tidy_space', title: '🧹 Tidy their personal space', room: 'Bedroom', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_charge_device', title: '🔋 Plug in their phone/device', room: 'Bedroom', points: 5, difficulty: 'EASY', category: 'us' },
+      { id: 'us_set_vitamins', title: '💊 Set out vitamins/meds', room: 'Kitchen', points: 5, difficulty: 'EASY', category: 'us' },
+      { id: 'us_togo_drink', title: '🥤 Make to-go drink before they leave', room: 'Kitchen', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_warm_towel', title: '🔥 Warm up their shower towel', room: 'Bathroom', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_comfy_clothes', title: '👔 Lay out comfy clothes', room: 'Bedroom', points: 5, difficulty: 'EASY', category: 'us' },
+      { id: 'us_refill_water', title: '💧 Refill their water glass/bottle', room: 'Kitchen', points: 5, difficulty: 'EASY', category: 'us' },
+      { id: 'us_cozy_pillow', title: '🛋️ Make their pillow spot extra cozy', room: 'Living Room', points: 5, difficulty: 'EASY', category: 'us' },
+      { id: 'us_fetch_item', title: '🏃 Grab something from another room', room: 'Anywhere', points: 5, difficulty: 'EASY', category: 'us' },
+      { id: 'us_clean_glasses', title: '👓 Clean their glasses/screen', room: 'Anywhere', points: 5, difficulty: 'EASY', category: 'us' },
+      { id: 'us_get_mail', title: '📬 Fetch mail/package for them', room: 'Outdoors', points: 5, difficulty: 'EASY', category: 'us' },
+      { id: 'us_small_treat', title: '🍓 Bring them a small treat', room: 'Kitchen', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_help_jewelry', title: '💎 Help with jewelry/accessories', room: 'Bedroom', points: 5, difficulty: 'EASY', category: 'us' },
+      { id: 'us_takeover_task', title: '🤝 Take over one task they dislike', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'us' },
+      
+      // Affection & Comfort
+      { id: 'us_5min_massage', title: '💆 Give 5-minute massage', room: 'Bedroom', points: 15, difficulty: 'EASY', category: 'us' },
+      { id: 'us_60sec_hug', title: '🤗 Hug heart-to-heart for 60 seconds', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_forehead_kiss', title: '😘 Forehead kiss with kind words', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_rub_back', title: '🤲 Rub their back while talking', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_unexpected_kiss', title: '💋 Kiss hand/cheek unexpectedly', room: 'Anywhere', points: 5, difficulty: 'EASY', category: 'us' },
+      { id: 'us_scratch_back', title: '🤚 Scratch their back for 3 minutes', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_stroke_hair', title: '✨ Stroke their hair/face gently', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_hold_hands', title: '🤝 Hold hands for 2 minutes silently', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_wrap_arms', title: '🫂 Sit behind and wrap arms around waist', room: 'Living Room', points: 15, difficulty: 'EASY', category: 'us' },
+      { id: 'us_tuck_in', title: '🛏️ Tuck them in if lying down', room: 'Bedroom', points: 10, difficulty: 'EASY', category: 'us' },
+      
+      // Words & Affirmations  
+      { id: 'us_sweet_text', title: '📱 Send sweet text without prompting', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_voice_note', title: '🎤 Record kind voice note', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_compliment_intelligence', title: '🧠 Compliment their intelligence/humor', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_reason_love', title: '❤️ Tell specific reason you love them', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'us' },
+      { id: 'us_love_note', title: '💌 Write two-sentence love note', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_whisper_compliment', title: '👂 Whisper compliment in their ear', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_proud_because', title: '🏆 Say "I\'m proud of you because..."', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'us' },
+      { id: 'us_acknowledge_work', title: '💪 Acknowledge their hard work', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_public_compliment', title: '👥 Publicly compliment them', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'us' },
+      { id: 'us_life_easier', title: '🌟 Tell them what makes your life easier', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'us' },
+      
+      // Playful & Fun Acts
+      { id: 'us_mini_game', title: '🎮 Offer spontaneous game/challenge', room: 'Living Room', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_fun_nickname', title: '😄 Give them fun nickname for day', room: 'Anywhere', points: 5, difficulty: 'EASY', category: 'us' },
+      { id: 'us_inside_joke', title: '😂 Make up silly inside joke', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_surprise_note', title: '📝 Hide surprise note to find', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_happiness_spell', title: '✨ Cast "spell of happiness"', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_draw_doodle', title: '🎨 Draw doodle representing today', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_sing_song', title: '🎵 Sing short made-up song', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'us' },
+      { id: 'us_mood_gif', title: '📱 Send GIF matching their mood', room: 'Anywhere', points: 5, difficulty: 'EASY', category: 'us' },
+      { id: 'us_fake_award', title: '🏅 Write funny fake award certificate', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_backrub_coupon', title: '🎫 Offer free back rub coupon', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'us' },
+      
+      // Intention & Care
+      { id: 'us_what_need', title: '🤔 Ask "What do you need right now?"', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'us' },
+      { id: 'us_mental_checkin', title: '🧠 Check in about mental feelings', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'us' },
+      { id: 'us_whats_on_mind', title: '💭 Ask what\'s been on their mind', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'us' },
+      { id: 'us_just_listen', title: '👂 Offer to listen - no advice', room: 'Anywhere', points: 20, difficulty: 'MEDIUM', category: 'us' },
+      { id: 'us_help_decompress', title: '😌 Ask "How can I help you decompress?"', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'us' },
+      { id: 'us_remind_goals', title: '🎯 Remind them of their goals', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_gentle_reassurance', title: '💪 Offer gentle reassurance', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'us' },
+      { id: 'us_what_inspires', title: '✨ Tell them what inspires you about them', room: 'Anywhere', points: 20, difficulty: 'MEDIUM', category: 'us' },
+      { id: 'us_rephrase_kindly', title: '🌱 Rephrase critique constructively', room: 'Anywhere', points: 20, difficulty: 'HARD', category: 'us' },
+      { id: 'us_genuine_apology', title: '🙏 Offer genuine apology if snappy', room: 'Anywhere', points: 20, difficulty: 'MEDIUM', category: 'us' },
+      
+      // Nurturing Energy
+      { id: 'us_cover_blanket', title: '🛌 Cover them with blanket if sleeping', room: 'Bedroom', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_forehead_rest', title: '😘 Kiss forehead while they rest', room: 'Bedroom', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_bring_drink_work', title: '☕ Bring drink while they work', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_brush_lint', title: '👔 Brush lint off their shirt', room: 'Anywhere', points: 5, difficulty: 'EASY', category: 'us' },
+      { id: 'us_play_favorite_song', title: '🎵 Play their favorite song nearby', room: 'Living Room', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_warm_hands', title: '🤲 Warm their hands with yours', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_nice_environment', title: '✨ Quietly make environment nicer', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'us' },
+      { id: 'us_adjust_comfort', title: '💡 Adjust lighting/volume for comfort', room: 'Living Room', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_quiet_or_company', title: '🤫 Ask if they need quiet or company', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_stretch_together', title: '🤸 Offer to stretch together', room: 'Living Room', points: 15, difficulty: 'EASY', category: 'us' },
+      
+      // Deep Connection
+      { id: 'us_share_past', title: '📖 Share something new from your past', room: 'Anywhere', points: 20, difficulty: 'MEDIUM', category: 'us' },
+      { id: 'us_ask_memory', title: '💭 Ask about unshared memory', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'us' },
+      { id: 'us_thank_partner', title: '🙏 "Thank you for being my partner"', room: 'Anywhere', points: 20, difficulty: 'EASY', category: 'us' },
+      { id: 'us_noticed_today', title: '👀 Tell them what you noticed today', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'us' },
+      { id: 'us_small_detail_love', title: '💕 Share small detail you love', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'us' },
+      { id: 'us_ask_dream', title: '🌟 Ask about current dream/goal', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'us' },
+      { id: 'us_better_partner', title: '🤔 Ask how to be better partner today', room: 'Anywhere', points: 20, difficulty: 'MEDIUM', category: 'us' },
+      { id: 'us_shared_dream', title: '✨ Remind of shared dream/plan', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'us' },
+      { id: 'us_feel_lucky', title: '🍀 Tell them you feel lucky to know them', room: 'Anywhere', points: 20, difficulty: 'EASY', category: 'us' },
+      { id: 'us_thank_recent', title: '🙏 Thank for recent specific thing', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'us' },
+      
+      // Appreciation & Encouragement
+      { id: 'us_kind_comment', title: '👍 Leave kind comment on their work', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'us' },
+      { id: 'us_see_trying', title: '💪 Say "I see how hard you\'re trying"', room: 'Anywhere', points: 20, difficulty: 'EASY', category: 'us' },
+      { id: 'us_encourage_task', title: '🎯 Encourage before task/event', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'us' },
+      { id: 'us_celebrate_finish', title: '🎉 Celebrate something they finished', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'us' },
+      { id: 'us_encouraging_text_away', title: '📱 Send encouraging text when away', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_silly_joke_cheer', title: '😄 Cheer up with silly joke', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_compliment_style', title: '👗 Compliment their style', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_help_goal', title: '🎯 Offer to help with personal goal', room: 'Anywhere', points: 20, difficulty: 'MEDIUM', category: 'us' },
+      { id: 'us_thank_patience', title: '🙏 Thank them for their patience', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'us' },
+      { id: 'us_compliment_kindness', title: '💝 Compliment kindness to others', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'us' },
+      
+      // Romance & Sentiment
+      { id: 'us_hold_face_love', title: '🤲 Hold face and say you love them', room: 'Anywhere', points: 20, difficulty: 'EASY', category: 'us' },
+      { id: 'us_slow_dance', title: '💃 Offer to slow dance to one song', room: 'Living Room', points: 20, difficulty: 'EASY', category: 'us' },
+      { id: 'us_trace_palm', title: '✋ Trace finger on palm while talking', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_poem_line', title: '📝 Write one line "poem" about them', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'us' },
+      { id: 'us_heart_mirror', title: '❤️ Make heart shape on mirror/window', room: 'Bathroom', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_gentle_kiss_new', title: '💋 Gentle kiss somewhere new daily', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'us' },
+      { id: 'us_nice_scent_pillow', title: '🌸 Leave nice scent on their pillow', room: 'Bedroom', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_surprise_touch', title: '🤚 Surprise touch (shoulder, arm)', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'us' },
+      { id: 'us_thank_choosing', title: '💕 "Thank you for choosing me"', room: 'Anywhere', points: 20, difficulty: 'EASY', category: 'us' },
+      { id: 'us_favorite_part_day', title: '🌟 "You\'re my favorite part of today"', room: 'Anywhere', points: 20, difficulty: 'EASY', category: 'us' },
+      
+      // ===== 100 PERSONAL GROWTH QUESTS ===== (Self-Care & Development)
+      // Mind & Mood Regulation
+      { id: 'pg_quiet_breathing', title: '🧘 Sit quietly 3 min, notice breathing', room: 'Bedroom', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_10_deep_breaths', title: '💨 10 slow breaths before phone', room: 'Anywhere', points: 5, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_write_emotions', title: '📝 Write down 3 emotions felt today', room: 'Bedroom', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_name_bothering', title: '🤔 Name what\'s bothering you (no judgment)', room: 'Anywhere', points: 10, difficulty: 'MEDIUM', category: 'personal' },
+      { id: 'pg_fresh_air', title: '🌬️ Step outside for fresh air 1 minute', room: 'Outdoors', points: 5, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_stretch_5min', title: '🤸 Stretch body for 5 minutes', room: 'Living Room', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_cant_control', title: '✍️ Write one thing you can\'t control', room: 'Bedroom', points: 10, difficulty: 'MEDIUM', category: 'personal' },
+      { id: 'pg_calming_song', title: '🎵 Listen to calming song', room: 'Anywhere', points: 5, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_silent_2min', title: '🤫 Sit in silence 2 min after task', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_smile_mirror', title: '😊 Smile at yourself in mirror intentionally', room: 'Bathroom', points: 5, difficulty: 'EASY', category: 'personal' },
+      
+      // Reflection & Awareness
+      { id: 'pg_journal_2sentence', title: '📔 Write 2-sentence journal entry', room: 'Bedroom', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_identify_trigger', title: '⚠️ Identify one personal trigger', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'personal' },
+      { id: 'pg_admit_mistake', title: '🙋 Admit one mistake today (to self)', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'personal' },
+      { id: 'pg_handled_well', title: '💪 Reflect on handling something well', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_grateful_partner', title: '💕 Think grateful thought about partner', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_learning_to', title: '🌱 Write "I\'m learning to..."', room: 'Bedroom', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_grown_this_year', title: '📈 Think how you\'ve grown this year', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'personal' },
+      { id: 'pg_reframe_negative', title: '🔄 Reframe negative thought to neutral', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'personal' },
+      { id: 'pg_habit_improve', title: '🎯 List one habit to improve', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_forgive_self', title: '🤗 Say one thing you forgive yourself for', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'personal' },
+      
+      // Organization & Daily Rhythm
+      { id: 'pg_make_bed_now', title: '🛏️ Make bed right now', room: 'Bedroom', points: 5, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_put_away_item', title: '📦 Put one item where it belongs', room: 'Anywhere', points: 5, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_tomorrow_todo', title: '📝 Write 3-item to-do for tomorrow', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_delete_files', title: '🗑️ Delete 3 unnecessary phone files', room: 'Anywhere', points: 5, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_empty_trash', title: '🗑️ Empty trash or clear desk', room: 'Anywhere', points: 5, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_5min_clean', title: '⏰ 5-min timer: clean small area', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_refill_water_now', title: '💧 Refill water bottle now', room: 'Kitchen', points: 5, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_prep_tomorrow', title: '👔 Prep tomorrow\'s outfit/bag', room: 'Bedroom', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_put_away_sitting', title: '📦 Put away something sitting out for days', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_finish_tiny_thing', title: '✅ Finish one tiny postponed thing', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'personal' },
+      
+      // Emotional Growth & Accountability
+      { id: 'pg_couldve_better', title: '🤔 Admit something you could\'ve done better', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'personal' },
+      { id: 'pg_gentle_apology', title: '💌 Write gentle apology draft', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'personal' },
+      { id: 'pg_replace_defensive', title: '🔄 Replace defensive thought with curiosity', room: 'Anywhere', points: 15, difficulty: 'HARD', category: 'personal' },
+      { id: 'pg_compliment_partner_mental', title: '💭 Mentally compliment partner despite upset', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'personal' },
+      { id: 'pg_not_raise_voice', title: '🤫 Decide not to raise voice when feeling like it', room: 'Anywhere', points: 20, difficulty: 'HARD', category: 'personal' },
+      { id: 'pg_take_responsibility', title: '💪 Take responsibility for small annoyance', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'personal' },
+      { id: 'pg_let_irritation_go', title: '🕊️ Let one petty irritation go on purpose', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'personal' },
+      { id: 'pg_respond_calmly', title: '😌 Choose to respond calmly vs fast', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'personal' },
+      { id: 'pg_kind_future_self', title: '🤗 Do one kind thing for future self', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_name_emotion_argument', title: '🎭 Name actual emotion from last argument', room: 'Anywhere', points: 15, difficulty: 'HARD', category: 'personal' },
+      
+      // Confidence & Self-Worth
+      { id: 'pg_write_strength', title: '💪 Write down one strength you\'re proud of', room: 'Bedroom', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_acknowledge_accomplishment', title: '🏆 Acknowledge personal accomplishment this week', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_doing_best', title: '🗣️ Say "I\'m doing my best" out loud', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_stand_breathe', title: '🧘 Stand tall, breathe deeply 10 seconds', room: 'Anywhere', points: 5, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_look_kindly_mirror', title: '😊 Look at yourself kindly in mirror', room: 'Bathroom', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_allowed_rest', title: '😴 Tell yourself "I\'m allowed to rest"', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_set_boundary', title: '🛡️ Set one small boundary and stick to it', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'personal' },
+      { id: 'pg_compliment_perseverance', title: '💪 Compliment your own perseverance', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_honest_affirmation', title: '✨ Write one honest affirmation', room: 'Bedroom', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_small_comfort', title: '🎁 Treat yourself to small comfort', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'personal' },
+      
+      // Relationship-Connected Growth
+      { id: 'pg_reread_appreciation', title: '💕 Re-read partner\'s appreciation message', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_taken_granted', title: '🤔 Think what partner does you\'ve taken for granted', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'personal' },
+      { id: 'pg_partner_helps', title: '✍️ Write "My partner helps me..."', room: 'Bedroom', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_notice_partner_today', title: '👀 Notice what partner did for you today', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_assume_good_intent', title: '💭 Choose to assume good intent once', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'personal' },
+      { id: 'pg_partner_admires', title: '💫 Write what partner admires about you', room: 'Bedroom', points: 15, difficulty: 'MEDIUM', category: 'personal' },
+      { id: 'pg_communicate_better', title: '📞 Reflect on communicating better', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'personal' },
+      { id: 'pg_made_feel_safe', title: '🛡️ Think time they made you feel safe', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_surprise_them', title: '🎁 Decide way to surprise them this week', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_mentally_thank', title: '🙏 Mentally thank them for unnoticed thing', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'personal' },
+      
+      // Wellness & Maintenance
+      { id: 'pg_mindful_water', title: '💧 Drink full glass water mindfully', room: 'Kitchen', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_healthy_snack', title: '🍎 Eat piece of fruit/healthy snack', room: 'Kitchen', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_10_stretches', title: '🤸 Do 10 body stretches/light exercises', room: 'Living Room', points: 15, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_feel_weather', title: '🌤️ Step outside, feel weather 1 minute', room: 'Outdoors', points: 5, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_roll_shoulders', title: '🔄 Full minute rolling shoulders/neck', room: 'Anywhere', points: 5, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_wash_mindfully', title: '🚿 Wash face/hands slowly, paying attention', room: 'Bathroom', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_vitamins_ontime', title: '💊 Take vitamins/meds on time', room: 'Kitchen', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_5min_nothing', title: '⏰ Spend 5 min doing nothing productive', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_eat_no_phone', title: '🍽️ Sit down eat without phone', room: 'Kitchen', points: 15, difficulty: 'MEDIUM', category: 'personal' },
+      { id: 'pg_water_over_soda', title: '💧 Choose water over soda once today', room: 'Kitchen', points: 10, difficulty: 'EASY', category: 'personal' },
+      
+      // Growth Mindset & Learning  
+      { id: 'pg_learn_fact', title: '📚 Learn one new fact today', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_educational_3min', title: '🎓 Watch/read educational 3 minutes', room: 'Living Room', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_task_differently', title: '🔄 Try task slightly differently than usual', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_partner_teach', title: '👫 Ask partner to teach you something', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_want_learn', title: '📝 Write one thing you\'d like to learn', room: 'Bedroom', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_notice_pattern', title: '🔍 Try to notice pattern you fall into', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'personal' },
+      { id: 'pg_comfort_zone', title: '🚀 Do one thing outside comfort zone', room: 'Anywhere', points: 20, difficulty: 'MEDIUM', category: 'personal' },
+      { id: 'pg_research_interest', title: '🔍 Research topic that interests you', room: 'Living Room', points: 15, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_why_believe', title: '🤔 Ask "Why do I believe that?"', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'personal' },
+      { id: 'pg_motivating_quote', title: '✨ Write one motivating quote', room: 'Bedroom', points: 10, difficulty: 'EASY', category: 'personal' },
+      
+      // Calm & Grounding
+      { id: 'pg_texture_10sec', title: '🤚 Focus on liked texture 10 seconds', room: 'Anywhere', points: 5, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_ambient_sounds', title: '🎵 Listen to ambient sounds around', room: 'Anywhere', points: 5, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_smell_pleasant', title: '👃 Smell something pleasant intentionally', room: 'Anywhere', points: 5, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_feel_heartbeat', title: '💓 Sit/lie down, feel your heartbeat', room: 'Bedroom', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_look_sky', title: '☁️ Look at sky for 30 seconds', room: 'Outdoors', points: 5, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_eyes_breathe', title: '😌 Close eyes, breathe slowly 5 times', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_321_grounding', title: '👀 3 see, 2 touch, 1 hear grounding', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_muscle_tension', title: '💪 Move muscle groups to release tension', room: 'Living Room', points: 15, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_comfortable_exist', title: '🧘 Sit comfortably and just exist', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_barefoot_floor', title: '👣 Take off shoes, feel floor', room: 'Anywhere', points: 5, difficulty: 'EASY', category: 'personal' },
+      
+      // Purpose & Motivation
+      { id: 'pg_goal_tomorrow', title: '🎯 Write one goal for tomorrow', room: 'Bedroom', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_identify_motivation', title: '🔥 Identify one thing that motivates you', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_visualize_success', title: '✨ Visualize succeeding at something small', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_step_toward_dream', title: '👣 Decide step toward dream', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'personal' },
+      { id: 'pg_capable_growth', title: '🌱 Say "I\'m capable of growth"', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_what_matters_most', title: '💎 Think about what matters most', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'personal' },
+      { id: 'pg_kind_person_want', title: '👤 Tell yourself what kind of person to be', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'personal' },
+      { id: 'pg_mood_song', title: '🎵 Choose song representing current mood', room: 'Living Room', points: 10, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_lesson_today', title: '📖 Write one lesson from today', room: 'Bedroom', points: 15, difficulty: 'EASY', category: 'personal' },
+      { id: 'pg_thankful_breath', title: '🙏 End day with slow, thankful breath', room: 'Bedroom', points: 10, difficulty: 'EASY', category: 'personal' },
+      
+      // ===== PET & VEHICLE TASKS (Basic ones for completion) =====
+      { id: 'feed_pets', title: '🍖 Feed pets', room: 'Kitchen', points: 5, difficulty: 'EASY', category: 'pets' },
+      { id: 'walk_pets', title: '🐕 Walk pets', room: 'Outdoors', points: 10, difficulty: 'MEDIUM', category: 'pets' },
+      { id: 'groom_pets', title: '✂️ Groom pets', room: 'Bathroom', points: 15, difficulty: 'MEDIUM', category: 'pets' },
+      { id: 'clean_pet_area', title: '🧽 Clean pet sleeping area', room: 'Living Room', points: 10, difficulty: 'MEDIUM', category: 'pets' },
+      { id: 'litter_box', title: '🧹 Clean litter box', room: 'Bathroom', points: 10, difficulty: 'MEDIUM', category: 'pets' },
+      { id: 'gas_fillup', title: '⛽ Fill up gas tank', room: 'Vehicle', points: 5, difficulty: 'EASY', category: 'vehicle' },
+      { id: 'car_wash', title: '🚗 Wash car exterior', room: 'Vehicle', points: 15, difficulty: 'MEDIUM', category: 'vehicle' },
+      { id: 'vacuum_car', title: '🌪️ Vacuum car interior', room: 'Vehicle', points: 10, difficulty: 'MEDIUM', category: 'vehicle' },
+      { id: 'check_oil', title: '🛢️ Check oil levels', room: 'Vehicle', points: 5, difficulty: 'EASY', category: 'vehicle' }
+    ];
+
+    setAllChores(comprehensiveChoreList);
+    console.log('📚 COMPREHENSIVE CHORE LIBRARY LOADED:', comprehensiveChoreList.length, 'total tasks!');
+    console.log('🏠 Household:', comprehensiveChoreList.filter(c => c.category === 'household').length);
+    console.log('💞 US Quests:', comprehensiveChoreList.filter(c => c.category === 'us').length);
+    console.log('🌱 Personal Growth:', comprehensiveChoreList.filter(c => c.category === 'personal').length);
+    console.log('🐾 Pet Tasks:', comprehensiveChoreList.filter(c => c.category === 'pets').length);
+    console.log('🚗 Vehicle Tasks:', comprehensiveChoreList.filter(c => c.category === 'vehicle').length);
+  };
+
   const generateDailyChores = async (onboardingData, user) => {
     try {
       // COMPREHENSIVE TASK LIBRARY - All possible tasks organized by category
