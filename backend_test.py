@@ -1023,7 +1023,7 @@ class BackendTester:
                 self.test_user1_id = user1.get("userId")
             
             self.log_test("Onboarding Flow Backend", True,
-                        f"Onboarding data saved successfully. Generated {len(customized_chores)} customized chores")
+                        f"Enhanced onboarding successful. Invitation created with customized features")
             return True
             
         except Exception as e:
