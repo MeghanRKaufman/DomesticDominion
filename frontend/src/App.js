@@ -2956,25 +2956,25 @@ function ChoreChampionsApp() {
               </p>
             </div>
             
-            <div className="flex items-center space-x-6">
-              {/* Level Display */}
-              <div className="text-center bg-white/20 rounded-lg p-3">
-                <div className="text-2xl font-bold">Level {currentUser.level}</div>
-                <div className="w-32">
-                  <Progress value={levelProgress} className="h-2 bg-purple-300" />
+            <div className="flex items-center space-x-2 md:space-x-6">
+              {/* Level Display - Compact on mobile */}
+              <div className="text-center bg-white/20 rounded-lg p-2 md:p-3">
+                <div className="text-lg md:text-2xl font-bold">Level {currentUser.level}</div>
+                <div className="w-16 md:w-32">
+                  <Progress value={levelProgress} className="h-1 md:h-2 bg-purple-300" />
                 </div>
-                <div className="text-sm opacity-90">{currentUser.points % LEVEL_UP_POINTS}/{LEVEL_UP_POINTS} XP</div>
+                <div className="text-xs md:text-sm opacity-90">{currentUser.points % LEVEL_UP_POINTS}/{LEVEL_UP_POINTS} XP</div>
               </div>
               
-              {/* Stats */}
+              {/* Stats - Compact on mobile */}
               <div className="text-center">
-                <div className="text-3xl font-bold">💎 {currentUser.points}</div>
-                <div className="text-sm">Total XP</div>
+                <div className="text-xl md:text-3xl font-bold">💎 {currentUser.points}</div>
+                <div className="text-xs md:text-sm">Total XP</div>
               </div>
               
               <div className="text-center">
-                <div className="text-3xl font-bold">⭐ {currentUser.talentPoints}</div>
-                <div className="text-sm">Talent Points</div>
+                <div className="text-xl md:text-3xl font-bold">⭐ {currentUser.talentPoints}</div>
+                <div className="text-xs md:text-sm">Talent Points</div>
               </div>
               
               <Badge className="bg-white/20 text-white text-sm md:text-lg px-2 md:px-3 py-1">
