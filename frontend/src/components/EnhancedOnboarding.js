@@ -10,6 +10,7 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
   const [onboardingData, setOnboardingData] = useState({
     // Personal Info
     playerName: '',
+    partnerName: '',
     
     // Kingdom Info
     kingdomName: '',
