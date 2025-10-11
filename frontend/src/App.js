@@ -3488,7 +3488,7 @@ function ChoreChampionsApp() {
                   <div className="text-center py-8">
                     <div className="text-4xl mb-4">📋</div>
                     <h3 className="text-xl font-bold mb-2">No Chores Available</h3>
-                    <p className="text-gray-600">Complete onboarding to generate your personalized chore library!</p>
+                    <p className="text-gray-600">Complete onboarding to generate your personalized quest library!</p>
                   </div>
                 </div>
               )}
