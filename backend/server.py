@@ -828,6 +828,8 @@ class CompleteTaskRequest(BaseModel):
     userId: str
     notes: Optional[str] = None
     photo: Optional[str] = None
+    bonusPoints: Optional[int] = None
+    verificationData: Optional[Dict[str, Any]] = None
 
 class SubmitTalentBuildRequest(BaseModel):
     userId: str
