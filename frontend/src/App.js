@@ -1943,6 +1943,7 @@ function ChoreChampionsApp() {
   const [dailyQuestion, setDailyQuestion] = useState('');
   const [piMessageSuggestion, setPiMessageSuggestion] = useState('');
   const [reflectionAnswer, setReflectionAnswer] = useState('');
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Load user from localStorage on app start
