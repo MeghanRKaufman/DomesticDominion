@@ -2155,6 +2155,23 @@ function ChoreChampionsApp() {
     setPiMessageSuggestion(piSuggestions[Math.floor(Math.random() * piSuggestions.length)]);
   };
 
+  // Shared Kingdom Board Helper Functions
+  const toggleShoppingItem = (index) => {
+    setSharedShoppingList(prev => 
+      prev.map((item, i) => 
+        i === index ? { ...item, completed: !item.completed } : item
+      )
+    );
+  };
+
+  const toggleTodoItem = (index) => {
+    setSharedTodoList(prev => 
+      prev.map((item, i) => 
+        i === index ? { ...item, completed: !item.completed } : item
+      )
+    );
+  };
+
   // Generate comprehensive quest library with 250+ amazing tasks
   const generateComprehensiveQuestLibrary = () => {
     const comprehensiveChoreList = [
