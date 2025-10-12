@@ -1959,6 +1959,20 @@ function ChoreChampionsApp() {
     { task: 'Plan next kingdom adventure', completed: false }
   ]);
   const [newTodoItem, setNewTodoItem] = useState('');
+  
+  // Shared Kingdom Board State
+  const [sharedShoppingList, setSharedShoppingList] = useState([
+    { name: 'Royal bread supplies', completed: false },
+    { name: 'Dragon-slaying detergent', completed: true },
+    { name: 'Enchanted vegetables', completed: false }
+  ]);
+  const [newShoppingItem, setNewShoppingItem] = useState('');
+  const [sharedTodoList, setSharedTodoList] = useState([
+    { task: 'Defend the castle walls (vacuum)', completed: false },
+    { task: 'Organize the royal treasury', completed: true },
+    { task: 'Plan next kingdom adventure', completed: false }
+  ]);
+  const [newTodoItem, setNewTodoItem] = useState('');
 
   // Load user from localStorage on app start
   useEffect(() => {
