@@ -3214,7 +3214,7 @@ function ChoreChampionsApp() {
                 <div className="space-y-6">
                   {/* Today's Quests */}
                   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 p-6">
-                    <h3 className="text-2xl font-bold mb-4 text-blue-800">🗓️ Today's Daily Quests</h3>
+                    <h3 className="text-2xl font-bold mb-4 text-blue-800">🗓️ Today's Quests</h3>
                     <p className="text-blue-600 mb-4">Your assigned half of the household duties</p>
                     
                     <div className="space-y-4">
