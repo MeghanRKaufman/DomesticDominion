@@ -3393,27 +3393,89 @@ function ChoreChampionsApp() {
                       </div>
                     </div>
                     
-                    {/* Pi Message Suggestion */}
-                    <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl border-2 border-pink-200 p-6">
-                      <h3 className="text-xl font-bold mb-3 text-pink-800">💌 Message Your Ally</h3>
-                      <div className="bg-white p-4 rounded-lg border mb-4">
-                        <p className="text-gray-700 italic">"{piMessageSuggestion}"</p>
-                        <p className="text-xs text-purple-600 mt-2">✨ Pi-enhanced for gentle communication</p>
+                    {/* Shared Kingdom Quest Board */}
+                    <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border-2 border-emerald-200 p-6">
+                      <h3 className="text-xl font-bold mb-3 text-emerald-800">📜 Shared Kingdom Board</h3>
+                      <p className="text-emerald-600 mb-4">Quest supplies & royal to-do scrolls</p>
+                      
+                      {/* Shopping List Section */}
+                      <div className="mb-4">
+                        <h4 className="font-semibold text-emerald-700 mb-2">🛒 Royal Supply List</h4>
+                        <div className="space-y-2">
+                          {sharedShoppingList.map((item, index) => (
+                            <div key={index} className="flex items-center space-x-2 p-2 bg-white rounded border">
+                              <input 
+                                type="checkbox" 
+                                checked={item.completed}
+                                onChange={() => toggleShoppingItem(index)}
+                                className="text-emerald-600"
+                              />
+                              <span className={item.completed ? 'line-through text-gray-500' : ''}>{item.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        <div className="flex space-x-2 mt-2">
+                          <input 
+                            type="text"
+                            placeholder="Add royal supplies..."
+                            value={newShoppingItem}
+                            onChange={(e) => setNewShoppingItem(e.target.value)}
+                            className="flex-1 p-2 border rounded"
+                          />
+                          <Button 
+                            size="sm"
+                            onClick={() => {
+                              if (newShoppingItem.trim()) {
+                                setSharedShoppingList([...sharedShoppingList, { name: newShoppingItem, completed: false }]);
+                                setNewShoppingItem('');
+                              }
+                            }}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                          >
+                            📝 Add
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex space-x-2">
-                        <Button 
-                          size="sm"
-                          className="bg-pink-600 hover:bg-pink-700 text-white flex-1"
-                        >
-                          📤 Send to {currentUser?.partnerName || 'Partner'}
-                        </Button>
-                        <Button 
-                          size="sm"
-                          variant="outline"
-                          onClick={() => generateDailyQuestionAndSuggestion()}
-                        >
-                          🔄
-                        </Button>
+                      
+                      {/* To-Do List Section */}
+                      <div>
+                        <h4 className="font-semibold text-emerald-700 mb-2">⚔️ Royal Decree Tasks</h4>
+                        <div className="space-y-2">
+                          {sharedTodoList.map((item, index) => (
+                            <div key={index} className="flex items-center space-x-2 p-2 bg-white rounded border">
+                              <input 
+                                type="checkbox" 
+                                checked={item.completed}
+                                onChange={() => toggleTodoItem(index)}
+                                className="text-emerald-600"
+                              />
+                              <span className={item.completed ? 'line-through text-gray-500' : ''}>{item.task}</span>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        <div className="flex space-x-2 mt-2">
+                          <input 
+                            type="text"
+                            placeholder="Add royal decree..."
+                            value={newTodoItem}
+                            onChange={(e) => setNewTodoItem(e.target.value)}
+                            className="flex-1 p-2 border rounded"
+                          />
+                          <Button 
+                            size="sm"
+                            onClick={() => {
+                              if (newTodoItem.trim()) {
+                                setSharedTodoList([...sharedTodoList, { task: newTodoItem, completed: false }]);
+                                setNewTodoItem('');
+                              }
+                            }}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                          >
+                            ⚔️ Decree
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
