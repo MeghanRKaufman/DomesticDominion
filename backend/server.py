@@ -858,19 +858,48 @@ class MiniGameChallenge(BaseModel):
 # Request Models
 class CreateUserRequest(BaseModel):
     displayName: str
-    coupleCode: Optional[str] = None
+    householdCode: Optional[str] = None  # Changed from coupleCode
 
-class CreateCoupleRequest(BaseModel):
+class CreateHouseholdRequest(BaseModel):  # Changed from CreateCoupleRequest
     creatorName: str
+    householdType: HouseholdType = HouseholdType.ROOMMATES
+    memberLimit: int = 12
 
-class EnhancedCoupleRequest(BaseModel):
+class EnhancedHouseholdRequest(BaseModel):  # Changed from EnhancedCoupleRequest
     playerName: str
+    householdType: HouseholdType = HouseholdType.ROOMMATES
+    memberLimit: int = 12
     householdSetup: Dict[str, Any] = Field(default_factory=dict)
+    # NEW: Enhanced onboarding questions
+    hasWasherDryer: bool = False
+    hasDishwasher: bool = False
+    livesUpstairs: bool = False
     preferences: Dict[str, Any] = Field(default_factory=dict)
 
-class JoinCoupleRequest(BaseModel):
-    partnerName: str
+class JoinHouseholdRequest(BaseModel):  # Changed from JoinCoupleRequest
+    memberName: str  # Changed from partnerName
     inviteCode: str
+
+# NEW: Chore Swap Requests
+class RequestChoreSwapRequest(BaseModel):
+    requesterId: str
+    targetId: str
+    taskId: str
+    
+class RespondChoreSwapRequest(BaseModel):
+    swapId: str
+    response: str  # "accept" or "decline"
+    
+# NEW: Mini-Game Challenge Requests
+class CreateMiniGameChallengeRequest(BaseModel):
+    challengerId: str
+    challengedId: str
+    taskId: str
+    gameType: str  # "spin", "tap", "trivia", "rock_paper_scissors"
+    
+class CompleteMiniGameRequest(BaseModel):
+    challengeId: str
+    winnerId: str
 
 class CompleteTaskRequest(BaseModel):
     userId: str
