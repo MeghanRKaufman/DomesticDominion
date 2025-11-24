@@ -25,82 +25,70 @@ load_dotenv(ROOT_DIR / '.env')
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
-# Pi API Configuration
-PI_API_URL = "https://api.inflection.ai/v1/chat/completions"
-PI_API_KEY = os.environ.get('PI_API_KEY', 'sk-emergent-281893dE8B579E7725')  # Using Emergent LLM key as fallback
+# ChatGPT API Configuration (using Emergent LLM key)
+CHATGPT_API_KEY = os.environ.get('PI_API_KEY', 'sk-emergent-281893dE8B579E7725')  # Reusing Emergent LLM key
 
-# Pi API Client for message enhancement
-async def enhance_message_with_pi(message: str, enhancement_level: str = "moderate", preserve_style: bool = True) -> dict:
+# ChatGPT Client for message enhancement (kind/constructive criticism)
+async def enhance_message_with_chatgpt(message: str, message_type: str = "general") -> dict:
     """
-    Enhance a message using Pi AI for empathetic communication
+    Enhance a message using ChatGPT for kind and constructive communication
+    message_type: "general", "criticism", "request", "appreciation"
     """
     try:
-        # Create enhancement prompt based on level
-        if enhancement_level == "light":
-            prompt = f"Please make this message slightly more empathetic and kind while preserving the original meaning and style: '{message}'"
-        elif enhancement_level == "significant":
-            prompt = f"Please rewrite this message to be much more empathetic, understanding, and supportive while keeping the core message intact: '{message}'"
-        else:  # moderate
-            prompt = f"Please enhance this message to be more empathetic and considerate while maintaining the original tone and meaning: '{message}'"
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
         
-        if preserve_style:
-            prompt += " Keep the writing style as close to the original as possible."
+        # Create enhancement prompt based on type
+        if message_type == "criticism":
+            system_prompt = "You are a communication expert. Rewrite messages to be constructive, kind, and solution-focused. Turn criticism into helpful feedback that builds people up rather than tears them down. Keep the core message but make it compassionate."
+            user_prompt = f"Please rewrite this message to be more constructive and kind, while keeping the core point: '{message}'"
+        elif message_type == "request":
+            system_prompt = "You are a communication expert. Rewrite requests to be polite, considerate, and collaborative. Frame asks in ways that respect everyone's time and effort."
+            user_prompt = f"Please rewrite this request to be more considerate and collaborative: '{message}'"
+        elif message_type == "appreciation":
+            system_prompt = "You are a communication expert. Enhance appreciation messages to be more heartfelt and specific."
+            user_prompt = f"Please enhance this appreciation message to be more heartfelt: '{message}'"
+        else:  # general
+            system_prompt = "You are a communication expert. Rewrite messages to be kind, clear, and constructive. Maintain the original intent but improve tone and clarity."
+            user_prompt = f"Please rewrite this message to be kinder and clearer: '{message}'"
         
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                PI_API_URL,
-                headers={
-                    "Authorization": f"Bearer {PI_API_KEY}",
-                    "Content-Type": "application/json"
-                },
-                json={
-                    "model": "pi-3-mini",
-                    "messages": [
-                        {
-                            "role": "system", 
-                            "content": "You are Pi, a helpful and empathetic AI assistant. Your role is to help enhance messages between partners to be more loving, understanding, and supportive. Always maintain respect and authenticity."
-                        },
-                        {"role": "user", "content": prompt}
-                    ],
-                    "max_tokens": 200,
-                    "temperature": 0.7
-                },
-                timeout=30.0
-            )
-            
-        if response.status_code == 200:
-            result = response.json()
-            enhanced_message = result['choices'][0]['message']['content'].strip()
-            
-            # Remove quotes if Pi added them
-            if enhanced_message.startswith('"') and enhanced_message.endswith('"'):
-                enhanced_message = enhanced_message[1:-1]
-            
-            return {
-                "enhanced_message": enhanced_message,
-                "confidence_score": 0.85,  # Mock score - Pi doesn't provide this
-                "enhancements_applied": ["empathy", "tone_softening"],
-                "original_message": message
-            }
-        else:
-            # Fallback to mock enhancement if Pi API fails
-            return {
-                "enhanced_message": f"I wanted to share something with you: {message} I hope you understand where I'm coming from.",
-                "confidence_score": 0.5,
-                "enhancements_applied": ["basic_empathy"],
-                "original_message": message,
-                "note": "Pi API unavailable, using fallback enhancement"
-            }
+        # Use Emergent LLM integration
+        chat = LlmChat(
+            api_key=CHATGPT_API_KEY,
+            model="gpt-4o-mini",  # Fast and cost-effective
+            system_instructions=system_prompt
+        )
+        
+        response = chat.send_user_message(UserMessage(content=user_prompt))
+        enhanced_message = response.content.strip()
+        
+        # Remove quotes if ChatGPT added them
+        if enhanced_message.startswith('"') and enhanced_message.endswith('"'):
+            enhanced_message = enhanced_message[1:-1]
+        
+        return {
+            "enhanced_message": enhanced_message,
+            "original_message": message,
+            "message_type": message_type,
+            "success": True
+        }
             
     except Exception as e:
-        print(f"Pi API Error: {e}")
+        print(f"ChatGPT API Error: {e}")
         # Fallback enhancement
+        fallback_prefixes = {
+            "criticism": "I wanted to share some thoughts: ",
+            "request": "When you have a moment, could you please ",
+            "appreciation": "I really appreciate that ",
+            "general": ""
+        }
+        prefix = fallback_prefixes.get(message_type, "")
+        
         return {
-            "enhanced_message": f"I'd like to talk about something: {message} I value our communication and hope we can work through this together.",
-            "confidence_score": 0.4,
-            "enhancements_applied": ["fallback_empathy"],
+            "enhanced_message": f"{prefix}{message}",
             "original_message": message,
-            "note": f"Pi API error: {str(e)}"
+            "message_type": message_type,
+            "success": False,
+            "note": f"ChatGPT API error: {str(e)}"
         }
 
 # Create the main app
