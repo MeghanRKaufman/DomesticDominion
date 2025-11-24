@@ -739,16 +739,19 @@ class Task(BaseModel):
     title: str
     basePoints: int
     difficulty: TaskDifficulty
-    category: str = "household"  # household, pet, vehicle, personal, couple, special
+    category: str = "household"  # household, pet, vehicle, personal, kindness, special
     quest_type: QuestType = QuestType.DAILY
     linkGroupId: Optional[str] = None
     recurrence: str = "daily"
-    assignedOnlyTo: Optional[str] = None
+    assignedTo: Optional[str] = None  # userId
     timerMinutes: Optional[int] = None
     description: Optional[str] = None
-    icon: str = "📋"  # NES-style emoji icon
-    can_takeover: bool = True
+    icon: str = "📋"
+    can_swap: bool = True  # NEW: Can this task be swapped?
+    can_challenge: bool = True  # NEW: Can players challenge for this task?
     requires_verification: bool = False
+    targetPlayer: Optional[str] = None  # NEW: For kindness quests - which player to help
+    swapRequests: List[str] = Field(default_factory=list)  # NEW: UserIds who want to swap
 
 class TalentNode(BaseModel):
     nodeId: Optional[str] = None  # For backward compatibility
