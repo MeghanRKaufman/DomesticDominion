@@ -193,10 +193,10 @@ class RoomType(str, Enum):
 
 class TalentBranch(str, Enum):
     EFFICIENCY = "Efficiency"
-    COUPLE = "Couple"
+    COUPLE = "Couple"  # Kept but renamed to "Connection" in frontend
     GROWTH = "Growth"
     HOUSEKEEPING = "Housekeeping"
-    COUPLING = "Coupling"
+    COUPLING = "Coupling"  # Now "Connection" - unlocks romantic quests with talent combo
 
 class TaskDifficulty(str, Enum):
     EASY = "EASY"
@@ -207,6 +207,17 @@ class QuestType(str, Enum):
     DAILY = "DAILY"
     WEEKLY = "WEEKLY" 
     SPECIAL = "SPECIAL"
+
+class UserRole(str, Enum):
+    ADMIN = "admin"  # Household creator, can assign chores, manage members
+    MEMBER = "member"  # Regular player
+    GUEST = "guest"  # Limited access
+
+class HouseholdType(str, Enum):
+    FAMILY = "family"
+    ROOMMATES = "roommates"
+    COUPLE = "couple"
+    OTHER = "other"
 
 # Comprehensive 10-Tier Talent Tree System (Domestic Dominion)
 # Based on new world map specification with 3 kingdoms/branches
