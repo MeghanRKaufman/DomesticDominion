@@ -784,14 +784,16 @@ class DailyOdds(BaseModel):
     taskOdds: Dict[str, Dict[str, float]]  # taskId -> {userId: probability}
     computed_at: datetime = Field(default_factory=datetime.utcnow)
 
-class Couple(BaseModel):
-    coupleId: str = Field(default_factory=lambda: f"couple_{uuid.uuid4().hex[:8]}")
+class Household(BaseModel):
+    householdId: str = Field(default_factory=lambda: f"household_{uuid.uuid4().hex[:8]}")
     inviteCode: str = Field(default_factory=lambda: f"{uuid.uuid4().hex[:6].upper()}")
     creatorId: str
     creatorName: str
-    partnerId: Optional[str] = None
-    partnerName: Optional[str] = None
+    householdType: HouseholdType = HouseholdType.ROOMMATES
+    memberIds: List[str] = Field(default_factory=list)  # All member userIds
+    memberLimit: int = 12  # Max 12 players
     isActive: bool = False
+    choresAssigned: bool = False  # NEW: Admin manually assigns chores
     adventureTheme: str = Field(default_factory=lambda: random.choice([
         "Legendary Heroes of the Household Realm",
         "Champions of the Domestic Kingdom", 
@@ -808,18 +810,50 @@ class Couple(BaseModel):
     ]))
     # Enhanced onboarding data
     householdSetup: Dict[str, Any] = Field(default_factory=dict)
+    # NEW: Detailed appliance/living situation
+    hasWasherDryer: bool = False
+    hasDishwasher: bool = False
+    livesUpstairs: bool = False
     gamePreferences: Dict[str, Any] = Field(default_factory=dict)
     customizedChores: List[str] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    joined_at: Optional[datetime] = None
-
-class CoupleInvitation(BaseModel):
+    
+class HouseholdInvitation(BaseModel):
     inviteCode: str
     message: str
     theme: str
     questPhrase: str
     creatorName: str
+    householdType: HouseholdType
+    currentMembers: int
+    maxMembers: int
     expiresAt: datetime
+
+# NEW: Chore Swap Model
+class ChoreSwap(BaseModel):
+    swapId: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    householdId: str
+    taskId: str
+    requesterId: str  # Who wants to swap
+    requesterName: str
+    targetId: str  # Who they want to swap with
+    targetName: str
+    status: str = "pending"  # pending, accepted, declined
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    
+# NEW: Mini-Game Challenge Model
+class MiniGameChallenge(BaseModel):
+    challengeId: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    householdId: str
+    taskId: str
+    challengerId: str
+    challengerName: str
+    challengedId: str
+    challengedName: str
+    gameType: str  # "spin", "tap", "trivia", "rock_paper_scissors"
+    winnerId: Optional[str] = None
+    status: str = "pending"  # pending, completed
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
 # Request Models
 class CreateUserRequest(BaseModel):
