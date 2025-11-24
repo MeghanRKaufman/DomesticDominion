@@ -1608,79 +1608,93 @@ def generate_customized_chores(household_setup: Dict[str, Any]) -> List[str]:
 
 # API Routes
 
-@api_router.post("/couples/create", response_model=CoupleInvitation)
-async def create_couple_invitation(request: CreateCoupleRequest):
-    """Create a new couple and generate epic adventure invitation"""
-    # Create couple record
-    couple = Couple(
-        creatorId=f"temp_{uuid.uuid4().hex[:8]}",  # Will be updated when creator creates user
-        creatorName=request.creatorName
+@api_router.post("/households/create", response_model=HouseholdInvitation)
+async def create_household_invitation(request: CreateHouseholdRequest):
+    """Create a new household and generate adventure invitation"""
+    # Create household record
+    household = Household(
+        creatorId=f"temp_{uuid.uuid4().hex[:8]}",
+        creatorName=request.creatorName,
+        householdType=request.householdType,
+        memberLimit=request.memberLimit,
+        memberIds=[]
     )
     
-    await db.couples.insert_one(couple.dict())
+    await db.households.insert_one(household.model_dump())
     
-    # Generate epic invitation message
+    # Generate invitation message based on household type
+    type_specific = {
+        "family": "👨‍👩‍👧‍👦 family",
+        "roommates": "🏠 roommate squad",
+        "couple": "💑 dynamic duo",
+        "other": "🎮 household crew"
+    }
+    
     invitation_messages = [
         f"🗡️ **SUMMONS TO ADVENTURE** 🛡️\n\n"
-        f"Greetings, Noble {request.creatorName} seeks a legendary partner!\n\n"
-        f"You have been chosen to join the {couple.adventureTheme} and {couple.questPhrase}!\n\n"
+        f"Greetings! {request.creatorName} seeks legendary {type_specific[request.householdType]} members!\n\n"
+        f"Join the {household.adventureTheme} and {household.questPhrase}!\n\n"
         f"✨ **What awaits you:**\n"
         f"• Epic household quests with XP rewards\n"
         f"• Legendary talent trees to unlock\n"
         f"• Mini-games and challenges\n" 
         f"• Glory, honor, and domestic prosperity!\n\n"
-        f"🏰 **Join Code:** {couple.inviteCode}\n\n"
-        f"Will you accept this call to adventure? 🌟",
-        
-        f"⚔️ **LEGENDARY INVITATION** 🏆\n\n"
-        f"Hark! {request.creatorName} has issued a challenge!\n\n"
-        f"Join the {couple.adventureTheme} and together we shall {couple.questPhrase}!\n\n"
-        f"🎮 **Your destiny includes:**\n"
-        f"• Transforming chores into epic quests\n"
-        f"• Earning XP, levels, and talent points\n"
-        f"• Cooperative mini-games and rewards\n"
-        f"• Building the ultimate household kingdom!\n\n"
-        f"🔮 **Adventure Code:** {couple.inviteCode}\n\n"
-        f"Answer the call, brave adventurer! 🌟"
+        f"🏰 **Join Code:** {household.inviteCode}\n"
+        f"👥 **Slots:** {request.memberLimit} members max\n\n"
+        f"Will you accept this call to adventure? 🌟"
     ]
     
-    invitation = CoupleInvitation(
-        inviteCode=couple.inviteCode,
+    invitation = HouseholdInvitation(
+        inviteCode=household.inviteCode,
         message=random.choice(invitation_messages),
-        theme=couple.adventureTheme,
-        questPhrase=couple.questPhrase,
+        theme=household.adventureTheme,
+        questPhrase=household.questPhrase,
         creatorName=request.creatorName,
+        householdType=request.householdType,
+        currentMembers=0,
+        maxMembers=request.memberLimit,
         expiresAt=datetime.utcnow() + timedelta(days=7)
     )
     
     return invitation
 
-@api_router.post("/couples/create-enhanced", response_model=CoupleInvitation)
-async def create_enhanced_couple(request: EnhancedCoupleRequest):
-    """Create a new couple adventure with enhanced onboarding data"""
+@api_router.post("/households/create-enhanced", response_model=HouseholdInvitation)
+async def create_enhanced_household(request: EnhancedHouseholdRequest):
+    """Create a new household with enhanced onboarding data"""
     
     # Generate customized chore list based on household setup
     customized_chores = generate_customized_chores(request.householdSetup)
     
-    # Generate couple with enhanced data
-    couple = Couple(
+    # Create household with enhanced data
+    household = Household(
         creatorName=request.playerName,
         creatorId=f"user_{uuid.uuid4().hex[:8]}",
+        householdType=request.householdType,
+        memberLimit=request.memberLimit,
         householdSetup=request.householdSetup,
+        hasWasherDryer=request.hasWasherDryer,
+        hasDishwasher=request.hasDishwasher,
+        livesUpstairs=request.livesUpstairs,
         gamePreferences=request.preferences,
-        customizedChores=customized_chores
+        customizedChores=customized_chores,
+        choresAssigned=False,  # Admin must manually assign
+        memberIds=[]
     )
     
-    # Create user for the creator
+    # Create user for the creator (as admin)
     creator_user = User(
         displayName=request.playerName,
-        coupleId=couple.coupleId,
-        userId=couple.creatorId
+        householdId=household.householdId,
+        userId=household.creatorId,
+        role=UserRole.ADMIN
     )
     
+    # Add creator to member list
+    household.memberIds.append(household.creatorId)
+    
     # Save to database
-    await db.couples.insert_one(couple.dict())
-    await db.users.insert_one(creator_user.dict())
+    await db.households.insert_one(household.model_dump())
+    await db.users.insert_one(creator_user.model_dump())
     
     # Create enhanced invitation message
     household_features = []
@@ -1690,44 +1704,68 @@ async def create_enhanced_couple(request: EnhancedCoupleRequest):
     
     if request.householdSetup.get('vehicleSharing') != 'none':
         household_features.append("🚗 Vehicle maintenance and care")
+    
+    if request.hasWasherDryer:
+        household_features.append("🧺 In-home laundry tasks")
+    else:
+        household_features.append("🏪 Laundromat trip quests")
+    
+    if request.hasDishwasher:
+        household_features.append("🍽️ Dishwasher loading/unloading")
+    else:
+        household_features.append("🧽 Hand-washing dish quests")
+    
+    if request.livesUpstairs:
+        household_features.append("🏢 Upstairs living adjustments (trash, groceries)")
         
     living_situation = request.householdSetup.get('livingSituation', 'home')
     household_features.append(f"🏠 {living_situation.title()} specific tasks")
     
+    type_label = {
+        "family": "family adventure",
+        "roommates": "roommate quest",
+        "couple": "duo adventure",
+        "other": "household quest"
+    }
+    
     invitation_message = f"""
-🏰 **EPIC ADVENTURE AWAITS!** 🏰
+🏰 **EPIC HOUSEHOLD ADVENTURE AWAITS!** 🏰
 
-{request.playerName} has crafted a legendary household adventure just for you two! 
+{request.playerName} has crafted a legendary {type_label[request.householdType]} for up to {request.memberLimit} members! 
 
 🎯 **Your Customized Quest Includes:**
 {chr(10).join('• ' + feature for feature in household_features)}
 • ⚖️ Fair task distribution system
-• 🎮 Daily challenges and couple bonuses
-• 🌳 Talent trees for relationship growth
-• 💬 Daily questions and communication tools
+• 🎮 Daily challenges and team bonuses
+• 🌳 Talent trees for personal growth
+• 💬 Constructive communication tools
 
-🎪 **Adventure Code:** {couple.inviteCode}
+🎪 **Adventure Code:** {household.inviteCode}
+👥 **Household Size:** Up to {request.memberLimit} members
 
 Ready to transform your household into an epic adventure? Join now!
 """.strip()
     
-    invitation = CoupleInvitation(
-        inviteCode=couple.inviteCode,
+    invitation = HouseholdInvitation(
+        inviteCode=household.inviteCode,
         message=invitation_message,
-        theme=couple.adventureTheme,
-        questPhrase=couple.questPhrase,
+        theme=household.adventureTheme,
+        questPhrase=household.questPhrase,
         creatorName=request.playerName,
+        householdType=request.householdType,
+        currentMembers=1,
+        maxMembers=request.memberLimit,
         expiresAt=datetime.utcnow() + timedelta(days=7)
     )
     
     return invitation
 
-@api_router.post("/couples/join", response_model=dict)
-async def join_couple_adventure(request: JoinCoupleRequest):
-    """Join an existing couple using invitation code"""
-    # Find couple by invite code
-    couple = await db.couples.find_one({"inviteCode": request.inviteCode})
-    if not couple:
+@api_router.post("/households/join", response_model=dict)
+async def join_household_adventure(request: JoinHouseholdRequest):
+    """Join an existing household using invitation code"""
+    # Find household by invite code
+    household = await db.households.find_one({"inviteCode": request.inviteCode})
+    if not household:
         raise HTTPException(status_code=404, detail="Invalid invitation code")
     
     if couple["partnerId"]:
