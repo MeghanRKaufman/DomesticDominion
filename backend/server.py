@@ -723,14 +723,14 @@ COUPLE_QUESTION_TEMPLATES = [
 class User(BaseModel):
     userId: str = Field(default_factory=lambda: f"user_{uuid.uuid4().hex[:8]}")
     displayName: str
-    coupleId: str
-    partnerId: Optional[str] = None
+    householdId: str  # Changed from coupleId
+    role: UserRole = UserRole.MEMBER
     points: int = 0
     level: int = 1
     talentPoints: int = 0
     talentBuild: Dict[str, Any] = Field(default_factory=dict)
     dailyActions: Dict[str, Any] = Field(default_factory=dict)
-    couplePoints: int = 0
+    householdPoints: int = 0  # Changed from couplePoints
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class Task(BaseModel):
