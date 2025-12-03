@@ -1869,6 +1869,65 @@ async def auto_assign_chores(household_id: str, admin_user_id: str):
         await db.tasks.update_one(
             {"taskId": task["taskId"], "householdId": household_id},
             {"$set": {
+
+    }
+
+@api_router.get("/households/{household_id}/stats")
+async def get_household_stats(household_id: str):
+    """Get household statistics including member list, assignment status, and daily progress"""
+    household = await db.households.find_one({"householdId": household_id})
+    if not household:
+        raise HTTPException(status_code=404, detail="Household not found")
+    
+    # Get all members
+    members = []
+    for member_id in household.get("memberIds", []):
+        user = await db.users.find_one({"userId": member_id})
+        if user:
+            members.append({
+                "userId": user["userId"],
+                "displayName": user["displayName"],
+                "role": user.get("role", "member"),
+                "level": user.get("level", 1),
+                "points": user.get("points", 0)
+            })
+    
+    # Get today's task assignments
+    today = datetime.utcnow().strftime('%Y-%m-%d')
+    tasks_today = await db.tasks.find({
+        "householdId": household_id,
+        "date": today
+    }).to_list(1000)
+    
+    # Calculate completion stats
+    total_tasks = len(tasks_today)
+    completed_tasks = sum(1 for task in tasks_today if task.get("completed", False))
+    
+    # Per-member task counts
+    member_task_counts = {}
+    for task in tasks_today:
+        assigned_to = task.get("assignedTo")
+        if assigned_to:
+            member_task_counts[assigned_to] = member_task_counts.get(assigned_to, 0) + 1
+    
+    return {
+        "householdId": household_id,
+        "householdType": household.get("householdType", "other"),
+        "creatorName": household.get("creatorName"),
+        "adventureTheme": household.get("adventureTheme"),
+        "isActive": household.get("isActive", False),
+        "choresAssigned": household.get("choresAssigned", False),
+        "lastAssignedDate": household.get("lastAssignedDate"),
+        "members": members,
+        "memberCount": len(members),
+        "maxMembers": household.get("memberLimit", 12),
+        "todayStats": {
+            "totalTasks": total_tasks,
+            "completedTasks": completed_tasks,
+            "completionRate": (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0,
+            "tasksPerMember": member_task_counts
+        }
+
                 "assignedTo": assigned_member, 
                 "date": today,
                 "completed": False,
