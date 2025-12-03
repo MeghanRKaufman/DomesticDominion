@@ -2395,16 +2395,23 @@ class SendMessageRequest(BaseModel):
     couple_id: str
 
 # Pi message enhancement endpoint
-@api_router.post("/pi/enhance-message")
+@api_router.post("/chatgpt/enhance-message")
 async def enhance_message_endpoint(request: MessageRequest):
     """
-    Enhance a message using Pi AI for empathetic communication
+    Enhance a message using ChatGPT for kind and constructive communication
     """
     try:
-        result = await enhance_message_with_pi(
+        # Determine message type from enhancement level
+        message_type_map = {
+            "light": "general",
+            "moderate": "general",
+            "significant": "criticism"
+        }
+        message_type = message_type_map.get(request.enhancement_level, "general")
+        
+        result = await enhance_message_with_chatgpt(
             message=request.message,
-            enhancement_level=request.enhancement_level,
-            preserve_style=request.preserve_style
+            message_type=message_type
         )
         
         # Log the enhancement for analytics (optional)
@@ -2413,12 +2420,12 @@ async def enhance_message_endpoint(request: MessageRequest):
             "timestamp": datetime.now(timezone.utc),
             "original_message": request.message,
             "enhanced_message": result["enhanced_message"],
-            "enhancement_level": request.enhancement_level,
-            "confidence_score": result["confidence_score"]
+            "message_type": message_type,
+            "success": result["success"]
         }
         
         # Store in database for future analysis (optional)
-        await db.pi_enhancements.insert_one(enhancement_log)
+        await db.message_enhancements.insert_one(enhancement_log)
         
         return result
         
