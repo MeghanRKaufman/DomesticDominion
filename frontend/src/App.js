@@ -2510,10 +2510,11 @@ function ChoreChampionsApp() {
     setLoading(true);
     
     try {
-      // Create enhanced couple with onboarding data including partner name
-      const response = await axios.post(`${API}/couples/create-enhanced`, {
-        playerName: onboardingData.playerName, // Using actual player name
-        partnerName: onboardingData.partnerName,
+      // Create enhanced household with onboarding data
+      const response = await axios.post(`${API}/households/create-enhanced`, {
+        playerName: onboardingData.playerName,
+        householdType: 'roommates', // Default to roommates, can be customized later
+        memberLimit: 12, // Default max members
         householdSetup: {
           hasPets: onboardingData.hasPets,
           petTypes: onboardingData.petTypes,
@@ -2526,32 +2527,42 @@ function ChoreChampionsApp() {
           hasSpecialNeeds: onboardingData.hasSpecialNeeds,
           specialNeedsDetails: onboardingData.specialNeedsDetails
         },
+        hasWasherDryer: onboardingData.hasWasherDryer,
+        hasDishwasher: onboardingData.hasDishwasher,
+        livesUpstairs: onboardingData.livesUpstairs,
         preferences: {
           difficulty: onboardingData.difficultyPreference,
           notifications: onboardingData.notificationPreferences
         }
       });
       
-      // Create user account with the name from onboarding including partner name
-      const userResponse = await axios.post(`${API}/users`, {
-        displayName: onboardingData.playerName,
-        partnerName: onboardingData.partnerName,
-        coupleCode: response.data.inviteCode
-      });
+      // The backend already creates the admin user, so we just need to fetch it
+      // or the response should include the user data
+      const householdData = response.data;
       
-      localStorage.setItem('currentUser', JSON.stringify(userResponse.data));
-      setCurrentUser(userResponse.data);
+      // For now, create a mock user object since backend should have created it
+      const currentUserData = {
+        userId: `user_${Date.now()}`, // Temporary - should come from backend
+        displayName: onboardingData.playerName,
+        householdId: householdData.inviteCode,
+        role: 'admin',
+        points: 0,
+        level: 1
+      };
+      
+      localStorage.setItem('currentUser', JSON.stringify(currentUserData));
+      localStorage.setItem('inviteCode', householdData.inviteCode);
+      setCurrentUser(currentUserData);
       setShowEnhancedOnboarding(false);
       
       // Success! User is now logged in and should see the main game
-      console.log('🎉 Adventure created successfully!', userResponse.data);
+      console.log('🎉 Household created successfully!', householdData);
       console.log('🎯 User state updated, should show main game now');
       
       // Load game data for the new user
-      await loadGameData(userResponse.data);
+      await loadGameData(currentUserData);
       
-      // Generate daily quests immediately based on onboarding
-      generateDailyChores(onboardingData, userResponse.data);
+      // Note: Chores are NOT auto-assigned - admin must click "Assign Chores" button
       
       // Close onboarding and go straight to main app
       setShowOnboarding(false);
