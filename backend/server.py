@@ -1818,10 +1818,10 @@ async def preview_household_invitation(invite_code: str):
         "isAvailable": current_members < household.get("memberLimit", 12)
     }
 
-# NEW: Manual Chore Assignment
+# NEW: Auto Chore Assignment (Fair & Even Split)
 @api_router.post("/households/{household_id}/assign-chores")
-async def manually_assign_chores(household_id: str, admin_user_id: str):
-    """Admin manually triggers chore assignment for all household members"""
+async def auto_assign_chores(household_id: str, admin_user_id: str):
+    """Admin triggers automatic fair/even chore distribution among all members"""
     # Verify admin permissions
     admin = await db.users.find_one({"userId": admin_user_id, "householdId": household_id})
     if not admin or admin.get("role") != "admin":
@@ -1833,41 +1833,77 @@ async def manually_assign_chores(household_id: str, admin_user_id: str):
     
     # Get all household members
     member_ids = household.get("memberIds", [])
-    if len(member_ids) < 2:
-        raise HTTPException(status_code=400, detail="Need at least 2 members to assign chores")
+    if len(member_ids) < 1:
+        raise HTTPException(status_code=400, detail="Need at least 1 member to assign chores")
     
     # Generate fair distribution of tasks
     today = datetime.utcnow().strftime('%Y-%m-%d')
+    last_assigned = household.get("lastAssignedDate")
+    
+    # Check if this is a new day (reset) or first assignment
+    is_reset = last_assigned == today
+    
+    # Get or create task list
     tasks = DEFAULT_TASKS.copy()
     
-    # Distribute tasks evenly among members
+    # Shuffle member order for fair rotation (different each time)
+    shuffled_members = member_ids.copy()
+    random.shuffle(shuffled_members)
+    
+    # Distribute tasks EVENLY among members with rotation
     assignments = {}
+    member_task_counts = {member_id: 0 for member_id in member_ids}
+    
     for i, task in enumerate(tasks):
-        assigned_member = member_ids[i % len(member_ids)]
+        # Assign to member with fewest tasks (ensures even distribution)
+        assigned_member = min(member_task_counts, key=member_task_counts.get)
+        member_task_counts[assigned_member] += 1
+        
         task_copy = task.copy()
         task_copy["assignedTo"] = assigned_member
         task_copy["date"] = today
+        task_copy["householdId"] = household_id
         assignments[task["taskId"]] = assigned_member
         
         # Save task assignment
         await db.tasks.update_one(
             {"taskId": task["taskId"], "householdId": household_id},
-            {"$set": {"assignedTo": assigned_member, "date": today}},
+            {"$set": {
+                "assignedTo": assigned_member, 
+                "date": today,
+                "completed": False,
+                "verified": False
+            }},
             upsert=True
         )
     
-    # Mark chores as assigned
+    # Mark chores as assigned and record metrics
     await db.households.update_one(
         {"householdId": household_id},
-        {"$set": {"choresAssigned": True, "lastAssignedDate": today}}
+        {"$set": {
+            "choresAssigned": True, 
+            "lastAssignedDate": today,
+            "isActive": True
+        }}
     )
     
+    # Calculate fair distribution stats
+    distribution_stats = {}
+    for member_id in member_ids:
+        member = await db.users.find_one({"userId": member_id})
+        member_name = member.get("displayName", "Unknown") if member else "Unknown"
+        task_count = member_task_counts[member_id]
+        distribution_stats[member_name] = task_count
+    
     return {
-        "message": "Chores successfully assigned!",
+        "message": f"🎯 Chores {'redistributed' if is_reset else 'assigned'} fairly!",
         "assignments": assignments,
+        "distribution": distribution_stats,
         "date": today,
         "totalMembers": len(member_ids),
-        "totalTasks": len(tasks)
+        "totalTasks": len(tasks),
+        "isReset": is_reset
+
     }
 
 # NEW: Chore Swap Endpoints
