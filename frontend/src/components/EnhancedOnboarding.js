@@ -23,6 +23,11 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
     livingSituation: '', // 'apartment', 'house', 'other'
     householdSize: 2,
     
+    // NEW: Appliance & Living Questions
+    hasWasherDryer: false,
+    hasDishwasher: false,
+    livesUpstairs: false,
+    
     // Special Needs
     hasChildren: false,
     hasElderly: false,
