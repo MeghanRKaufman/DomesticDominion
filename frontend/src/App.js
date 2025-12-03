@@ -2562,7 +2562,9 @@ function ChoreChampionsApp() {
       // Load game data for the new user
       await loadGameData(currentUserData);
       
-      // Note: Chores are NOT auto-assigned - admin must click "Assign Chores" button
+      // Note: Chores are NOT auto-assigned yet
+      // Admin must click "Assign Chores" button after all members join
+      // This triggers automatic FAIR/EVEN distribution among all members
       
       // Close onboarding and go straight to main app
       setShowOnboarding(false);
