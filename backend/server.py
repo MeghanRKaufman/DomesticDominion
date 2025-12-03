@@ -1818,6 +1818,241 @@ async def preview_household_invitation(invite_code: str):
         "isAvailable": current_members < household.get("memberLimit", 12)
     }
 
+# NEW: Manual Chore Assignment
+@api_router.post("/households/{household_id}/assign-chores")
+async def manually_assign_chores(household_id: str, admin_user_id: str):
+    """Admin manually triggers chore assignment for all household members"""
+    # Verify admin permissions
+    admin = await db.users.find_one({"userId": admin_user_id, "householdId": household_id})
+    if not admin or admin.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Only household admin can assign chores")
+    
+    household = await db.households.find_one({"householdId": household_id})
+    if not household:
+        raise HTTPException(status_code=404, detail="Household not found")
+    
+    # Get all household members
+    member_ids = household.get("memberIds", [])
+    if len(member_ids) < 2:
+        raise HTTPException(status_code=400, detail="Need at least 2 members to assign chores")
+    
+    # Generate fair distribution of tasks
+    today = datetime.utcnow().strftime('%Y-%m-%d')
+    tasks = DEFAULT_TASKS.copy()
+    
+    # Distribute tasks evenly among members
+    assignments = {}
+    for i, task in enumerate(tasks):
+        assigned_member = member_ids[i % len(member_ids)]
+        task_copy = task.copy()
+        task_copy["assignedTo"] = assigned_member
+        task_copy["date"] = today
+        assignments[task["taskId"]] = assigned_member
+        
+        # Save task assignment
+        await db.tasks.update_one(
+            {"taskId": task["taskId"], "householdId": household_id},
+            {"$set": {"assignedTo": assigned_member, "date": today}},
+            upsert=True
+        )
+    
+    # Mark chores as assigned
+    await db.households.update_one(
+        {"householdId": household_id},
+        {"$set": {"choresAssigned": True, "lastAssignedDate": today}}
+    )
+    
+    return {
+        "message": "Chores successfully assigned!",
+        "assignments": assignments,
+        "date": today,
+        "totalMembers": len(member_ids),
+        "totalTasks": len(tasks)
+    }
+
+# NEW: Chore Swap Endpoints
+@api_router.post("/chore-swaps/request")
+async def request_chore_swap(request: RequestChoreSwapRequest):
+    """Request to swap a chore with another household member"""
+    # Verify both users exist and are in same household
+    requester = await db.users.find_one({"userId": request.requesterId})
+    target = await db.users.find_one({"userId": request.targetId})
+    
+    if not requester or not target:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if requester.get("householdId") != target.get("householdId"):
+        raise HTTPException(status_code=400, detail="Users must be in same household")
+    
+    # Verify task exists and is assigned to requester
+    task = await db.tasks.find_one({"taskId": request.taskId})
+    if not task or task.get("assignedTo") != request.requesterId:
+        raise HTTPException(status_code=400, detail="Task not assigned to requester")
+    
+    if not task.get("can_swap", True):
+        raise HTTPException(status_code=400, detail="This task cannot be swapped")
+    
+    # Create swap request
+    swap = ChoreSwap(
+        householdId=requester["householdId"],
+        taskId=request.taskId,
+        requesterId=request.requesterId,
+        requesterName=requester["displayName"],
+        targetId=request.targetId,
+        targetName=target["displayName"]
+    )
+    
+    await db.chore_swaps.insert_one(swap.model_dump())
+    
+    return {
+        "message": f"Swap request sent to {target['displayName']}!",
+        "swapId": swap.swapId,
+        "status": "pending"
+    }
+
+@api_router.post("/chore-swaps/respond")
+async def respond_to_chore_swap(request: RespondChoreSwapRequest):
+    """Accept or decline a chore swap request"""
+    swap = await db.chore_swaps.find_one({"swapId": request.swapId})
+    if not swap:
+        raise HTTPException(status_code=404, detail="Swap request not found")
+    
+    if request.response == "accept":
+        # Swap the task assignments
+        task = await db.tasks.find_one({"taskId": swap["taskId"]})
+        
+        await db.tasks.update_one(
+            {"taskId": swap["taskId"]},
+            {"$set": {"assignedTo": swap["targetId"]}}
+        )
+        
+        # Update swap status
+        await db.chore_swaps.update_one(
+            {"swapId": request.swapId},
+            {"$set": {"status": "accepted"}}
+        )
+        
+        return {
+            "message": f"✅ Swap accepted! {task['title']} is now assigned to {swap['targetName']}",
+            "status": "accepted"
+        }
+    else:
+        # Decline swap
+        await db.chore_swaps.update_one(
+            {"swapId": request.swapId},
+            {"$set": {"status": "declined"}}
+        )
+        
+        return {
+            "message": "❌ Swap declined",
+            "status": "declined"
+        }
+
+@api_router.get("/chore-swaps/{household_id}/pending")
+async def get_pending_swaps(household_id: str, user_id: str):
+    """Get all pending swap requests for a user"""
+    swaps = await db.chore_swaps.find({
+        "householdId": household_id,
+        "targetId": user_id,
+        "status": "pending"
+    }).to_list(100)
+    
+    for swap in swaps:
+        swap.pop('_id', None)
+    
+    return {"swaps": swaps}
+
+# NEW: Mini-Game Challenge Endpoints
+@api_router.post("/mini-game-challenges/create")
+async def create_mini_game_challenge(request: CreateMiniGameChallengeRequest):
+    """Challenge another household member to a mini-game for a task"""
+    # Verify both users exist
+    challenger = await db.users.find_one({"userId": request.challengerId})
+    challenged = await db.users.find_one({"userId": request.challengedId})
+    
+    if not challenger or not challenged:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if challenger.get("householdId") != challenged.get("householdId"):
+        raise HTTPException(status_code=400, detail="Users must be in same household")
+    
+    # Verify task
+    task = await db.tasks.find_one({"taskId": request.taskId})
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    if not task.get("can_challenge", True):
+        raise HTTPException(status_code=400, detail="This task cannot be challenged")
+    
+    # Create challenge
+    challenge = MiniGameChallenge(
+        householdId=challenger["householdId"],
+        taskId=request.taskId,
+        challengerId=request.challengerId,
+        challengerName=challenger["displayName"],
+        challengedId=request.challengedId,
+        challengedName=challenged["displayName"],
+        gameType=request.gameType
+    )
+    
+    await db.mini_game_challenges.insert_one(challenge.model_dump())
+    
+    return {
+        "message": f"🎮 Challenge sent! {challenger['displayName']} vs {challenged['displayName']} - {request.gameType}",
+        "challengeId": challenge.challengeId,
+        "gameType": request.gameType
+    }
+
+@api_router.post("/mini-game-challenges/complete")
+async def complete_mini_game_challenge(request: CompleteMiniGameRequest):
+    """Record the winner of a mini-game challenge"""
+    challenge = await db.mini_game_challenges.find_one({"challengeId": request.challengeId})
+    if not challenge:
+        raise HTTPException(status_code=404, detail="Challenge not found")
+    
+    # Verify winner is one of the participants
+    if request.winnerId not in [challenge["challengerId"], challenge["challengedId"]]:
+        raise HTTPException(status_code=400, detail="Winner must be a participant")
+    
+    # Update challenge
+    await db.mini_game_challenges.update_one(
+        {"challengeId": request.challengeId},
+        {"$set": {"winnerId": request.winnerId, "status": "completed"}}
+    )
+    
+    # Loser gets the task
+    loser_id = challenge["challengedId"] if request.winnerId == challenge["challengerId"] else challenge["challengerId"]
+    
+    await db.tasks.update_one(
+        {"taskId": challenge["taskId"]},
+        {"$set": {"assignedTo": loser_id}}
+    )
+    
+    winner = await db.users.find_one({"userId": request.winnerId})
+    loser = await db.users.find_one({"userId": loser_id})
+    task = await db.tasks.find_one({"taskId": challenge["taskId"]})
+    
+    return {
+        "message": f"🏆 {winner['displayName']} wins! {loser['displayName']} gets the task: {task['title']}",
+        "winnerId": request.winnerId,
+        "loserId": loser_id
+    }
+
+@api_router.get("/mini-game-challenges/{household_id}/pending")
+async def get_pending_challenges(household_id: str, user_id: str):
+    """Get all pending challenges for a user"""
+    challenges = await db.mini_game_challenges.find({
+        "householdId": household_id,
+        "$or": [{"challengerId": user_id}, {"challengedId": user_id}],
+        "status": "pending"
+    }).to_list(100)
+    
+    for challenge in challenges:
+        challenge.pop('_id', None)
+    
+    return {"challenges": challenges}
+
+
 @api_router.post("/users", response_model=User)
 async def create_user(request: CreateUserRequest):
     """Create a new user and link to couple"""
