@@ -236,12 +236,78 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
         </div>
       </div>
 
-      <div className="bg-green-50 p-4 rounded-lg text-center">
-        <h3 className="text-lg font-bold text-green-800 mb-2">👫 Couples Adventure</h3>
-        <p className="text-sm text-green-700">
-          This game is designed for 2 partners working together to conquer household tasks and build stronger relationships!
+      <div>
+        <Label className="text-lg font-semibold">Do you have a washer and dryer at home?</Label>
+        <div className="grid grid-cols-2 gap-3 mt-2">
+          <Button
+            variant={onboardingData.hasWasherDryer ? 'default' : 'outline'}
+            onClick={() => handleInputChange('hasWasherDryer', true)}
+            className="h-20 flex flex-col"
+          >
+            <div className="text-2xl mb-1">🧺</div>
+            Yes
+          </Button>
+          <Button
+            variant={!onboardingData.hasWasherDryer ? 'default' : 'outline'}
+            onClick={() => handleInputChange('hasWasherDryer', false)}
+            className="h-20 flex flex-col"
+          >
+            <div className="text-2xl mb-1">🏪</div>
+            No (Laundromat)
+          </Button>
+        </div>
+      </div>
+
+      <div>
+        <Label className="text-lg font-semibold">Do you have a dishwasher?</Label>
+        <div className="grid grid-cols-2 gap-3 mt-2">
+          <Button
+            variant={onboardingData.hasDishwasher ? 'default' : 'outline'}
+            onClick={() => handleInputChange('hasDishwasher', true)}
+            className="h-20 flex flex-col"
+          >
+            <div className="text-2xl mb-1">🍽️</div>
+            Yes
+          </Button>
+          <Button
+            variant={!onboardingData.hasDishwasher ? 'default' : 'outline'}
+            onClick={() => handleInputChange('hasDishwasher', false)}
+            className="h-20 flex flex-col"
+          >
+            <div className="text-2xl mb-1">🧽</div>
+            No (Hand wash)
+          </Button>
+        </div>
+      </div>
+
+      <div>
+        <Label className="text-lg font-semibold">Do you live upstairs?</Label>
+        <div className="grid grid-cols-2 gap-3 mt-2">
+          <Button
+            variant={onboardingData.livesUpstairs ? 'default' : 'outline'}
+            onClick={() => handleInputChange('livesUpstairs', true)}
+            className="h-20 flex flex-col"
+          >
+            <div className="text-2xl mb-1">🏢⬆️</div>
+            Yes
+          </Button>
+          <Button
+            variant={!onboardingData.livesUpstairs ? 'default' : 'outline'}
+            onClick={() => handleInputChange('livesUpstairs', false)}
+            className="h-20 flex flex-col"
+          >
+            <div className="text-2xl mb-1">🏠</div>
+            No (Ground level)
+          </Button>
+        </div>
+      </div>
+
+      <div className="bg-blue-50 p-4 rounded-lg text-center">
+        <h3 className="text-lg font-bold text-blue-800 mb-2">🏠 Household Adventure</h3>
+        <p className="text-sm text-blue-700">
+          This game works for couples, roommates, or families working together to conquer household tasks!
         </p>
-        <div className="mt-3 text-2xl">💕</div>
+        <div className="mt-3 text-2xl">👥</div>
       </div>
     </div>
   );
