@@ -1768,39 +1768,54 @@ async def join_household_adventure(request: JoinHouseholdRequest):
     if not household:
         raise HTTPException(status_code=404, detail="Invalid invitation code")
     
-    if couple["partnerId"]:
-        raise HTTPException(status_code=400, detail="This adventure already has two heroes!")
+    # Check if household is full
+    current_members = len(household.get("memberIds", []))
+    if current_members >= household.get("memberLimit", 12):
+        raise HTTPException(status_code=400, detail=f"This household is full ({household['memberLimit']} members max)!")
     
-    # Update couple with partner info
-    await db.couples.update_one(
+    # Create new member user
+    new_member = User(
+        displayName=request.memberName,
+        householdId=household["householdId"],
+        role=UserRole.MEMBER
+    )
+    
+    # Add member to household
+    await db.households.update_one(
         {"inviteCode": request.inviteCode},
         {
-            "$set": {
-                "partnerName": request.partnerName,
-                "joined_at": datetime.utcnow(),
-                "isActive": True
-            }
+            "$push": {"memberIds": new_member.userId},
+            "$set": {"isActive": True}
         }
     )
     
-    return {
-        "message": f"🎉 Welcome to the adventure, {request.partnerName}! You have joined {couple['creatorName']} in the {couple['adventureTheme']}!",
-        "coupleId": couple["coupleId"],
-        "adventureTheme": couple["adventureTheme"]
-    }
-
-@api_router.get("/couples/{invite_code}/preview")
-async def preview_couple_invitation(invite_code: str):
-    """Preview couple invitation details"""
-    couple = await db.couples.find_one({"inviteCode": invite_code})
-    if not couple:
-        raise HTTPException(status_code=404, detail="Invalid invitation code")
+    # Save new member
+    await db.users.insert_one(new_member.model_dump())
     
     return {
-        "creatorName": couple["creatorName"],
-        "adventureTheme": couple["adventureTheme"],
-        "questPhrase": couple["questPhrase"],
-        "isAvailable": couple["partnerId"] is None
+        "message": f"🎉 Welcome to the adventure, {request.memberName}! You have joined {household['creatorName']} in the {household['adventureTheme']}!",
+        "householdId": household["householdId"],
+        "adventureTheme": household["adventureTheme"],
+        "userId": new_member.userId
+    }
+
+@api_router.get("/households/{invite_code}/preview")
+async def preview_household_invitation(invite_code: str):
+    """Preview household invitation details"""
+    household = await db.households.find_one({"inviteCode": invite_code})
+    if not household:
+        raise HTTPException(status_code=404, detail="Invalid invitation code")
+    
+    current_members = len(household.get("memberIds", []))
+    
+    return {
+        "creatorName": household["creatorName"],
+        "adventureTheme": household["adventureTheme"],
+        "questPhrase": household["questPhrase"],
+        "householdType": household.get("householdType", "other"),
+        "currentMembers": current_members,
+        "maxMembers": household.get("memberLimit", 12),
+        "isAvailable": current_members < household.get("memberLimit", 12)
     }
 
 @api_router.post("/users", response_model=User)
