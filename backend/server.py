@@ -1970,33 +1970,6 @@ async def get_household_stats(household_id: str):
         }
     }
 
-    await db.households.update_one(
-        {"householdId": household_id},
-        {"$set": {
-            "choresAssigned": True, 
-            "lastAssignedDate": today,
-            "isActive": True
-        }}
-    )
-    
-    # Calculate fair distribution stats
-    distribution_stats = {}
-    for member_id in member_ids:
-        member = await db.users.find_one({"userId": member_id})
-        member_name = member.get("displayName", "Unknown") if member else "Unknown"
-        task_count = member_task_counts[member_id]
-        distribution_stats[member_name] = task_count
-    
-    return {
-        "message": f"🎯 Chores {'redistributed' if is_reset else 'assigned'} fairly!",
-        "assignments": assignments,
-        "distribution": distribution_stats,
-        "date": today,
-        "totalMembers": len(member_ids),
-        "totalTasks": len(tasks),
-        "isReset": is_reset
-
-    }
 
 # NEW: Chore Swap Endpoints
 @api_router.post("/chore-swaps/request")
