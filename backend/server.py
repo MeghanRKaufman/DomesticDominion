@@ -1968,16 +1968,8 @@ async def get_household_stats(household_id: str):
             "completionRate": (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0,
             "tasksPerMember": member_task_counts
         }
+    }
 
-                "assignedTo": assigned_member, 
-                "date": today,
-                "completed": False,
-                "verified": False
-            }},
-            upsert=True
-        )
-    
-    # Mark chores as assigned and record metrics
     await db.households.update_one(
         {"householdId": household_id},
         {"$set": {
