@@ -1760,6 +1760,14 @@ Ready to transform your household into an epic adventure? Join now!
     
     return invitation
 
+
+# Backwards compatibility - redirect old couples endpoint to households
+@api_router.post("/couples/create-enhanced", response_model=HouseholdInvitation)
+async def create_enhanced_couple_compat(request: EnhancedHouseholdRequest):
+    """Backwards compatible endpoint - redirects to households"""
+    return await create_enhanced_household(request)
+
+
 @api_router.post("/households/join", response_model=dict)
 async def join_household_adventure(request: JoinHouseholdRequest):
     """Join an existing household using invitation code"""
