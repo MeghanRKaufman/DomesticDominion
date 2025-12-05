@@ -3079,16 +3079,44 @@ function ChoreChampionsApp() {
                       <p className="text-lg mb-6">What is the capital of France?</p>
                       
                       <div className="grid grid-cols-2 gap-3">
-                        <Button variant="outline" className="h-16 text-lg">A) London</Button>
-                        <Button variant="outline" className="h-16 text-lg">B) Paris</Button>
-                        <Button variant="outline" className="h-16 text-lg">C) Berlin</Button>
-                        <Button variant="outline" className="h-16 text-lg">D) Madrid</Button>
+                        {['London', 'Paris', 'Berlin', 'Madrid'].map((answer, idx) => (
+                          <Button
+                            key={answer}
+                            variant={triviaAnswer === answer ? 'default' : 'outline'}
+                            onClick={() => !triviaLocked && setTriviaAnswer(answer)}
+                            disabled={triviaLocked}
+                            className={`h-16 text-lg ${
+                              triviaAnswer === answer ? 'bg-blue-600 text-white' : ''
+                            } ${triviaLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          >
+                            {String.fromCharCode(65 + idx)}) {answer}
+                            {triviaAnswer === answer && ' ✓'}
+                          </Button>
+                        ))}
                       </div>
+                      
+                      {triviaAnswer && !triviaLocked && (
+                        <Button
+                          onClick={() => setTriviaLocked(true)}
+                          className="w-full mt-4 bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          🔒 Lock In Answer
+                        </Button>
+                      )}
+                      
+                      {triviaLocked && (
+                        <div className="mt-4 p-3 bg-green-100 border border-green-400 rounded-lg text-center">
+                          <p className="text-green-800 font-bold">✅ Answer Locked: {triviaAnswer}</p>
+                          <p className="text-sm text-green-700">Waiting for other players...</p>
+                        </div>
+                      )}
                     </div>
                     
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-purple-600 font-medium">💎 Worth 5 XP</span>
-                      <span className="text-gray-600">Waiting for all players to answer...</span>
+                      <span className="text-gray-600">
+                        {triviaLocked ? 'Answer submitted!' : 'Select an answer to continue'}
+                      </span>
                     </div>
                   </div>
                 </CardContent>
