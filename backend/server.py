@@ -202,6 +202,9 @@ class UserRole(str, Enum):
     GUEST = "guest"  # Limited access
 
 class HouseholdType(str, Enum):
+    APARTMENT = "Apartment"
+    HOUSE = "House"
+    SHARED = "Shared Housing / Dorm"
     FAMILY = "family"
     ROOMMATES = "roommates"
     COUPLE = "couple"
