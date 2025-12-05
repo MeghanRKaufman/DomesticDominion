@@ -1660,6 +1660,17 @@ function ChoreChampionsApp() {
   const [activeTab, setActiveTab] = useState('home'); // Changed default to 'home'
   const [celebrationMessage, setCelebrationMessage] = useState('');
   const [selectedRoom, setSelectedRoom] = useState('my-chores');
+  
+  // Daily Trivia State
+  const [triviaAnswer, setTriviaAnswer] = useState(null);
+  const [triviaLocked, setTriviaLocked] = useState(false);
+  
+  // Kingdom Todos State
+  const [kingdomTodos, setKingdomTodos] = useState([
+    { id: 1, task: 'Grocery shopping', xp: 15, claimedBy: null },
+    { id: 2, task: 'Pay rent', xp: 10, claimedBy: null },
+    { id: 3, task: 'Schedule maintenance', xp: 5, claimedBy: null }
+  ]);
   const [myDailyChores, setMyDailyChores] = useState([]);
   const [allChores, setAllChores] = useState([]);
   const [partnerChores, setPartnerChores] = useState([]);
