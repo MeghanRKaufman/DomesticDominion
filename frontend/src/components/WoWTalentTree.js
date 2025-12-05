@@ -104,28 +104,40 @@ const WoWTalentTree = ({ currentUser, talentNodes, onNodeUnlock }) => {
     const nodes = getBranchNodes(selectedBranch);
     const lines = [];
     
-    nodes.forEach(node => {
-      node.prereqs.forEach(prereqId => {
-        const prereqNode = nodes.find(n => n.id === prereqId);
-        if (prereqNode) {
-          const nodePos = getNodePosition(node);
-          const prereqPos = getNodePosition(prereqNode);
-          
-          lines.push(
-            <line
-              key={`${prereqId}-${node.id}`}
-              x1={prereqPos.left}
-              y1={parseInt(prereqPos.top) + 40}
-              x2={nodePos.left}
-              y2={parseInt(nodePos.top) + 40}
-              stroke={isNodeUnlocked(prereqId) ? '#10b981' : '#4b5563'}
-              strokeWidth="3"
-              opacity={isNodeUnlocked(prereqId) ? 1 : 0.3}
-            />
-          );
-        }
+    try {
+      nodes.forEach(node => {
+        if (!node || !node.prereqs) return;
+        
+        node.prereqs.forEach(prereqId => {
+          const prereqNode = nodes.find(n => n && n.id === prereqId);
+          if (prereqNode) {
+            const nodePos = getNodePosition(node);
+            const prereqPos = getNodePosition(prereqNode);
+            
+            // Convert percentages to pixels for SVG
+            const x1 = prereqPos.left;
+            const y1 = prereqPos.top;
+            const x2 = nodePos.left;
+            const y2 = nodePos.top;
+            
+            lines.push(
+              <line
+                key={`${prereqId}-${node.id}`}
+                x1={x1}
+                y1={y1}
+                x2={x2}
+                y2={y2}
+                stroke={isNodeUnlocked(prereqId) ? '#10b981' : '#4b5563'}
+                strokeWidth="3"
+                opacity={isNodeUnlocked(prereqId) ? 1 : 0.3}
+              />
+            );
+          }
+        });
       });
-    });
+    } catch (e) {
+      console.error('Error rendering connections:', e);
+    }
     
     return lines;
   };
