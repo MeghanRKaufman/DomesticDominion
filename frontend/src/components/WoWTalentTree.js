@@ -3,13 +3,13 @@ import { Button } from './ui/button';
 
 // WoW-Style Talent Tree Component
 const WoWTalentTree = ({ currentUser, talentNodes, onNodeUnlock }) => {
-  const [selectedBranch, setSelectedBranch] = useState('Efficiency');
+  const [selectedBranch, setSelectedBranch] = useState('Housekeeping');
   const [hoveredNode, setHoveredNode] = useState(null);
 
   const branches = {
-    'Efficiency': { icon: '⚡', color: 'yellow', name: 'Efficiency Mastery' },
-    'Connection': { icon: '💕', color: 'pink', name: 'Team Connection' },
-    'Growth': { icon: '🌱', color: 'green', name: 'Personal Evolution' }
+    'Housekeeping': { icon: '🏡', color: 'green', name: 'Housekeeping Heroes' },
+    'Coupling': { icon: '💕', color: 'pink', name: 'Team Connection' },
+    'Growth': { icon: '🌱', color: 'blue', name: 'Personal Evolution' }
   };
 
   const unlockedNodes = currentUser?.talentBuild?.nodeIds || [];
