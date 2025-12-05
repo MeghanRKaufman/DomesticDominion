@@ -8,46 +8,37 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
   const [step, setStep] = useState(1);
   const [onboardingData, setOnboardingData] = useState({
-    // Personal Info
+    // Core Data
     playerName: '',
     
-    // Household Info
-    householdType: 'roommates', // 'family', 'roommates', 'couple', 'other'
-    memberLimit: 4, // 2-12+ members
-    kingdomName: '',
+    // Step 1: Household Type
+    householdType: 'Apartment',
     
-    // Household Setup
+    // Step 2: Household Size
+    householdSize: 1,
+    
+    // Step 3: Key Appliances
+    appliances: [],
+    
+    // Step 4: Pets
     hasPets: false,
     petTypes: [],
-    hasVehicle: false,
-    vehicleSharing: 'none', // 'shared', 'separate', 'none'
-    livingSituation: '', // 'apartment', 'house', 'other'
-    householdSize: 2,
     
-    // NEW: Appliance & Living Questions
-    hasWasherDryer: false,
-    hasDishwasher: false,
-    livesUpstairs: false,
+    // Step 5: Bathrooms
+    bathrooms: 1,
     
-    // Special Needs
-    hasChildren: false,
-    hasElderly: false,
-    hasSpecialNeeds: false,
-    specialNeedsDetails: '',
+    // Optional: Outdoor Space
+    hasYard: false,
     
-    // Chore Preferences
-    selectedChoreCategories: [],
-    customChores: [],
-    
-    // Communication Preferences
-    notificationPreferences: {
-      daily: true,
-      verification: true,
-      encouragement: true
-    }
+    // Optional: Environmental Conditions
+    environmentalConditions: []
   });
 
-  const totalSteps = 8; // Welcome → Name → Household Type → Kingdom → Living → Pets → Vehicles → Summary
+  const totalSteps = () => {
+    let count = 6; // Name + 5 core steps
+    if (onboardingData.hasPets) count++; // Add pet types step
+    return count;
+  };
 
   const handleInputChange = (field, value) => {
     setOnboardingData(prev => ({
