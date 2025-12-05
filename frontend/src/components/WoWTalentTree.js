@@ -50,8 +50,10 @@ const WoWTalentTree = ({ currentUser, talentNodes, onNodeUnlock }) => {
   const isNodeUnlocked = (nodeId) => unlockedNodes.includes(nodeId);
   
   const arePrereqsMet = (node) => {
-    if (!node || !node.prereqs || node.prereqs.length === 0) return true;
-    return node.prereqs.every(prereqId => isNodeUnlocked(prereqId));
+    if (!node) return false;
+    const prereqs = node.prereqs || node.prerequisites || [];
+    if (prereqs.length === 0) return true;
+    return prereqs.every(prereqId => isNodeUnlocked(prereqId));
   };
   
   const canUnlockNode = (node) => {
