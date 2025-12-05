@@ -2306,7 +2306,7 @@ function ChoreChampionsApp() {
         householdType: onboardingData.householdType || 'Apartment',
         memberLimit: onboardingData.householdSize || 4,
         householdSetup: {
-          householdSize: onboarding Data.householdSize,
+          householdSize: onboardingData.householdSize,
           hasPets: onboardingData.hasPets,
           petTypes: onboardingData.petTypes,
           bathrooms: onboardingData.bathrooms,
