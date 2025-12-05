@@ -3054,6 +3054,17 @@ function ChoreChampionsApp() {
               )}
               
               <button
+                onClick={() => setActiveTab('home')}
+                className={`px-6 py-4 font-medium whitespace-nowrap border-b-4 transition-colors ${
+                  activeTab === 'home'
+                    ? 'border-blue-600 text-blue-600 bg-blue-50'
+                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                }`}
+              >
+                🏠 Home
+              </button>
+
+              <button
                 onClick={() => setActiveTab('my-chores')}
                 className={`px-6 py-4 font-medium whitespace-nowrap border-b-4 transition-colors ${
                   activeTab === 'my-chores'
@@ -3062,17 +3073,6 @@ function ChoreChampionsApp() {
                 }`}
               >
                 ⚔️ My Quests
-              </button>
-
-              <button
-                onClick={() => setActiveTab('all-chores')}
-                className={`px-6 py-4 font-medium whitespace-nowrap border-b-4 transition-colors ${
-                  activeTab === 'all-chores'
-                    ? 'border-blue-600 text-blue-600 bg-blue-50'
-                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-                }`}
-              >
-                📋 All Quests
               </button>
 
               <button
