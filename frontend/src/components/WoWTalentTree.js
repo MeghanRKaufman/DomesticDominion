@@ -45,17 +45,22 @@ const WoWTalentTree = ({ currentUser, talentNodes, onNodeUnlock }) => {
   const getNodePosition = (node) => {
     if (!node || !node.tier) return { left: '50%', top: '0px' };
     
-    const tier = node.tier;
-    const nodesInTier = getBranchNodes(selectedBranch).filter(n => n && n.tier === tier);
-    const indexInTier = nodesInTier.indexOf(node);
-    const totalInTier = nodesInTier.length;
-    
-    // Center nodes in their tier
-    const columnSpacing = 100 / (totalInTier + 1);
-    const left = columnSpacing * (indexInTier + 1);
-    const top = (tier - 1) * 120 + 20;
-    
-    return { left: `${left}%`, top: `${top}px` };
+    try {
+      const tier = node.tier;
+      const nodesInTier = getBranchNodes(selectedBranch).filter(n => n && n.tier === tier);
+      const indexInTier = nodesInTier.indexOf(node);
+      const totalInTier = nodesInTier.length || 1; // Prevent division by zero
+      
+      // Center nodes in their tier
+      const columnSpacing = 100 / (totalInTier + 1);
+      const left = columnSpacing * (indexInTier + 1);
+      const top = (tier - 1) * 120 + 20;
+      
+      return { left: `${left}%`, top: `${top}px` };
+    } catch (e) {
+      console.error('Error calculating node position:', e);
+      return { left: '50%', top: '0px' };
+    }
   };
 
   const isNodeUnlocked = (nodeId) => unlockedNodes.includes(nodeId);
