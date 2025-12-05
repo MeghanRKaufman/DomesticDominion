@@ -1874,13 +1874,19 @@ async def create_enhanced_household(request: EnhancedHouseholdRequest):
         "family": "family adventure",
         "roommates": "roommate quest",
         "couple": "duo adventure",
-        "other": "household quest"
+        "other": "household quest",
+        "Apartment": "apartment adventure",
+        "House": "house adventure",
+        "Shared Housing / Dorm": "shared living quest"
     }
+    
+    # Get the string value from enum
+    household_type_str = request.householdType if isinstance(request.householdType, str) else request.householdType.value
     
     invitation_message = f"""
 🏰 **EPIC HOUSEHOLD ADVENTURE AWAITS!** 🏰
 
-{request.playerName} has crafted a legendary {type_label[request.householdType]} for up to {request.memberLimit} members! 
+{request.playerName} has crafted a legendary {type_label.get(household_type_str, 'household quest')} for up to {request.memberLimit} members! 
 
 🎯 **Your Customized Quest Includes:**
 {chr(10).join('• ' + feature for feature in household_features)}
