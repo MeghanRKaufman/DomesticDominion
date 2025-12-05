@@ -16,14 +16,25 @@ const WoWTalentTree = ({ currentUser, talentNodes, onNodeUnlock }) => {
   const availableTalentPoints = currentUser?.talentPoints || 0;
 
   // Safety check for talentNodes
-  if (!talentNodes || typeof talentNodes !== 'object') {
-    return <div className="text-white p-8">Loading talent tree...</div>;
+  if (!talentNodes || typeof talentNodes !== 'object' || Object.keys(talentNodes).length === 0) {
+    return (
+      <div className="bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900 rounded-2xl p-6 text-white min-h-screen">
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <div className="text-6xl mb-4">🌳</div>
+            <h2 className="text-2xl font-bold mb-2">Loading Talent Tree...</h2>
+            <p className="text-gray-400">Preparing your talents</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // Get nodes for current branch
   const getBranchNodes = (branch) => {
     try {
-      return Object.values(talentNodes).filter(node => node && node.branch === branch);
+      const nodes = Object.values(talentNodes).filter(node => node && node.branch === branch);
+      return nodes || [];
     } catch (e) {
       console.error('Error getting branch nodes:', e);
       return [];
