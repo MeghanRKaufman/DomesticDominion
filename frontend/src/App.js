@@ -930,7 +930,7 @@ function VisualTalentTree({ currentUser, onNodeUnlock }) {
         <div className="col-span-3 overflow-y-auto max-h-96">
           <h3 className="text-2xl font-bold mb-6 text-center sticky top-0 bg-gradient-to-r from-purple-900 to-blue-900 py-2 rounded-lg">
             {selectedBranch === 'Efficiency' && '⚡ Efficiency Mastery'} 
-            {selectedBranch === 'Household' && '💕 Relationship Bonding'} 
+            {selectedBranch === 'Household' && '💕 Team Connection'} 
             {selectedBranch === 'Growth' && '🌱 Personal Evolution'} 
           </h3>
           
