@@ -947,6 +947,8 @@ class HouseholdInvitation(BaseModel):
     currentMembers: int
     maxMembers: int
     expiresAt: datetime
+    userId: str  # Creator's userId
+    householdId: str  # For direct access
 
 # NEW: Chore Swap Model
 class ChoreSwap(BaseModel):
