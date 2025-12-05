@@ -707,6 +707,134 @@ COUPLE_QUESTION_TEMPLATES = [
     {"question": "What's their ideal weekend activity?", "category": "leisure"}
 ]
 
+
+
+# Dynamic Chore Generation based on Household Data
+def generate_household_chores(onboarding_data: dict) -> List[dict]:
+    """
+    Generate personalized chore list based on household onboarding data
+    Following the CHORE_MAPPING specification
+    """
+    chores = []
+    chore_id_counter = 1
+    
+    def add_chore(title: str, room: str = "General", difficulty: str = "MEDIUM", category: str = "household"):
+        nonlocal chore_id_counter
+        chores.append({
+            "taskId": f"task_{chore_id_counter}",
+            "title": title,
+            "room": room,
+            "basePoints": {"EASY": 5, "MEDIUM": 10, "HARD": 15}.get(difficulty, 10),
+            "difficulty": difficulty,
+            "category": category,
+            "icon": "📋"
+        })
+        chore_id_counter += 1
+    
+    # ---------- Laundry ----------
+    appliances = onboarding_data.get('appliances', [])
+    if "Washer" in appliances:
+        add_chore("Sort laundry by color or fabric", "Laundry Room", "EASY")
+        add_chore("Start a load of laundry", "Laundry Room", "EASY")
+        
+        if "Dryer" in appliances:
+            add_chore("Move laundry to dryer", "Laundry Room", "EASY")
+        else:
+            add_chore("Hang laundry to dry", "Laundry Room", "MEDIUM")
+        
+        add_chore("Fold laundry", "Laundry Room", "MEDIUM")
+        add_chore("Put away clothing", "Bedroom", "EASY")
+    
+    # ---------- Kitchen ----------
+    add_chore("Wash dishes", "Kitchen", "MEDIUM")
+    
+    if "Dishwasher" in appliances:
+        add_chore("Load dishwasher", "Kitchen", "EASY")
+        add_chore("Unload dishwasher", "Kitchen", "EASY")
+    
+    add_chore("Wipe countertops", "Kitchen", "EASY")
+    add_chore("Sanitize high-touch surfaces", "Kitchen", "MEDIUM")
+    add_chore("Take out kitchen trash", "Kitchen", "EASY")
+    
+    # ---------- Bathrooms ----------
+    bathrooms = onboarding_data.get('bathrooms', 1)
+    for i in range(1, bathrooms + 1):
+        bath_label = f"Bathroom {i}" if bathrooms > 1 else "Bathroom"
+        add_chore(f"Clean {bath_label.lower()} sink", "Bathroom", "EASY")
+        add_chore(f"Clean {bath_label.lower()} toilet", "Bathroom", "MEDIUM")
+        add_chore(f"Scrub bathtub/shower in {bath_label.lower()}", "Bathroom", "HARD")
+        add_chore(f"Wipe {bath_label.lower()} counters", "Bathroom", "EASY")
+        add_chore(f"Mop {bath_label.lower()} floor", "Bathroom", "MEDIUM")
+    
+    # ---------- Pets ----------
+    has_pets = onboarding_data.get('hasPets', False)
+    if has_pets:
+        pet_types = onboarding_data.get('petTypes', [])
+        
+        if "Dogs" in pet_types:
+            add_chore("Walk dog", "Outdoor", "MEDIUM", "pet")
+            add_chore("Feed dog", "Kitchen", "EASY", "pet")
+            add_chore("Pick up dog waste", "Outdoor", "EASY", "pet")
+        
+        if "Cats" in pet_types:
+            add_chore("Clean litter box", "Bathroom", "MEDIUM", "pet")
+            add_chore("Feed cat", "Kitchen", "EASY", "pet")
+        
+        if "Other small pets" in pet_types:
+            add_chore("Clean pet habitat", "General", "MEDIUM", "pet")
+            add_chore("Feed small pet", "General", "EASY", "pet")
+    
+    # ---------- Household Size Scaling ----------
+    household_size = onboarding_data.get('householdSize', 1)
+    if household_size > 2:
+        # Scale frequency of dishes and laundry
+        add_chore("Extra dish washing cycle", "Kitchen", "MEDIUM")
+        if "Washer" in appliances:
+            add_chore("Additional laundry load", "Laundry Room", "MEDIUM")
+    
+    # ---------- Household Type ----------
+    household_type = onboarding_data.get('householdType', 'Apartment')
+    
+    if household_type == "House":
+        add_chore("Sweep entryway", "Entryway", "EASY")
+        add_chore("Mop entryway", "Entryway", "MEDIUM")
+        add_chore("Vacuum living room", "Living Room", "MEDIUM")
+        add_chore("Dust furniture", "Living Room", "EASY")
+    
+    if household_type == "Shared Housing / Dorm":
+        add_chore("Organize personal space", "Bedroom", "EASY")
+        add_chore("Clean shared kitchen area", "Kitchen", "MEDIUM")
+    
+    # Always add some general chores
+    add_chore("Vacuum floors", "Living Room", "MEDIUM")
+    add_chore("Dust all surfaces", "Living Room", "EASY")
+    add_chore("Take out trash", "General", "EASY")
+    
+    # ---------- Optional: Yard ----------
+    has_yard = onboarding_data.get('hasYard', False)
+    if has_yard:
+        add_chore("Mow lawn", "Outdoor", "HARD")
+        add_chore("Rake leaves", "Outdoor", "MEDIUM")
+        add_chore("Water plants", "Outdoor", "EASY")
+        add_chore("Trim bushes or hedges", "Outdoor", "HARD")
+        add_chore("Sweep patio or porch", "Outdoor", "EASY")
+    
+    # ---------- Optional: Environmental Conditions ----------
+    env_conditions = onboarding_data.get('environmentalConditions', [])
+    
+    if "High dust" in env_conditions:
+        add_chore("Deep dust all surfaces", "Living Room", "MEDIUM")
+        add_chore("Vacuum carpets thoroughly", "Living Room", "MEDIUM")
+        add_chore("Clean air vents", "General", "HARD")
+    
+    if "Snowfall" in env_conditions:
+        add_chore("Shovel driveway and sidewalk", "Outdoor", "HARD")
+        add_chore("Salt driveway and walkway", "Outdoor", "MEDIUM")
+        add_chore("Clear snow from porch", "Outdoor", "MEDIUM")
+    
+    return chores
+
+
 # Models
 class User(BaseModel):
     userId: str = Field(default_factory=lambda: f"user_{uuid.uuid4().hex[:8]}")
