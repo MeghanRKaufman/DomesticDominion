@@ -3239,7 +3239,6 @@ function ChoreChampionsApp() {
                   </div>
                 </CardContent>
               </Card>
-            </div>
 
               {/* All Quests Section - Admin Only */}
               <Card className="mt-6">
