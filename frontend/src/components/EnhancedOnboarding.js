@@ -579,7 +579,6 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
           {step === 6 && renderStep6()}
           {step === 7 && renderStep7()}
           {step === 8 && renderSummary()}
-          {step === 9 && renderInvitation()}
           
           <div className="flex justify-between mt-8">
             <Button
@@ -592,10 +591,10 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
             
             <Button
               onClick={nextStep}
-              disabled={(step === 2 && !onboardingData.playerName?.trim()) || (step === 3 && !onboardingData.partnerName?.trim()) || (step === 4 && !onboardingData.kingdomName?.trim())}
+              disabled={(step === 2 && !onboardingData.playerName?.trim()) || (step === 3 && !onboardingData.householdType) || (step === 4 && !onboardingData.kingdomName?.trim())}
               className="bg-gradient-to-r from-purple-600 to-blue-600 text-white"
             >
-              {step === totalSteps ? '🚀 Start Playing!' : step === totalSteps - 1 ? 'Create Kingdom!' : 'Next →'}
+              {step === totalSteps ? '🚀 Start Playing!' : 'Next →'}
             </Button>
           </div>
         </div>
