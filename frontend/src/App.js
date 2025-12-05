@@ -3240,6 +3240,198 @@ function ChoreChampionsApp() {
                 </CardContent>
               </Card>
             </div>
+
+              {/* All Quests Section - Admin Only */}
+              <Card className="mt-6">
+                <CardHeader>
+                  <CardTitle className="text-2xl">📋 All Kingdom Quests</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 mb-4">View and manage all assigned quests across the household</p>
+                  <div className="space-y-3">
+                    {myDailyChores && myDailyChores.length > 0 ? (
+                      myDailyChores.map((chore, index) => (
+                        <div key={chore.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
+                          <div>
+                            <h4 className="font-bold">{chore.title}</h4>
+                            <p className="text-sm text-gray-600">{chore.room} • {chore.difficulty}</p>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm text-gray-500">Assigned to</div>
+                            <div className="font-medium">{chore.assignedTo || 'Unassigned'}</div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-center text-gray-500 py-8">No quests assigned yet. Click "Assign Quests" above!</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* HOME DASHBOARD - New Default Landing Page */}
+          {activeTab === 'home' && (
+            <div className="max-w-6xl mx-auto">
+              <div className="mb-6">
+                <h2 className="text-4xl font-bold">🏠 Welcome to Your Kingdom</h2>
+                <p className="text-gray-600 mt-2">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+              </div>
+
+              {/* Daily Trivia Question */}
+              <Card className="mb-6 bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-purple-200">
+                <CardHeader>
+                  <CardTitle className="text-2xl flex items-center gap-2">
+                    🎯 Daily Trivia Challenge
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="bg-white rounded-lg p-6 border-2 border-purple-200">
+                      <h3 className="text-xl font-bold mb-4">Question of the Day:</h3>
+                      <p className="text-lg mb-6">What is the capital of France?</p>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        <Button variant="outline" className="h-16 text-lg">A) London</Button>
+                        <Button variant="outline" className="h-16 text-lg">B) Paris</Button>
+                        <Button variant="outline" className="h-16 text-lg">C) Berlin</Button>
+                        <Button variant="outline" className="h-16 text-lg">D) Madrid</Button>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-purple-600 font-medium">💎 Worth 5 XP</span>
+                      <span className="text-gray-600">Waiting for all players to answer...</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Kingdom Todo List + Calendar Integration */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-xl">📅 Kingdom Todo List</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
+                        <input type="checkbox" className="mt-1" />
+                        <div>
+                          <p className="font-medium">Grocery shopping</p>
+                          <p className="text-xs text-gray-500">Shared household task</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
+                        <input type="checkbox" className="mt-1" />
+                        <div>
+                          <p className="font-medium">Pay rent</p>
+                          <p className="text-xs text-gray-500">Due in 3 days</p>
+                        </div>
+                      </div>
+                      <Button variant="outline" className="w-full mt-4">
+                        + Add Todo
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-xl">📆 Calendar Sync</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <Button variant="outline" className="w-full h-16 flex items-center justify-center gap-2">
+                        <span className="text-2xl">📱</span>
+                        <div className="text-left">
+                          <div className="font-medium">Connect Apple Calendar</div>
+                          <div className="text-xs text-gray-500">Sync household events</div>
+                        </div>
+                      </Button>
+                      <Button variant="outline" className="w-full h-16 flex items-center justify-center gap-2">
+                        <span className="text-2xl">📊</span>
+                        <div className="text-left">
+                          <div className="font-medium">Connect Google Calendar</div>
+                          <div className="text-xs text-gray-500">Import shared todos</div>
+                        </div>
+                      </Button>
+                      <p className="text-xs text-gray-500 text-center mt-3">
+                        🔒 Coming soon: Auto-import household events
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Player's Assigned Chores with XP */}
+              <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200">
+                <CardHeader>
+                  <CardTitle className="text-2xl flex items-center justify-between">
+                    <span>⚔️ Your Quests Today</span>
+                    <span className="text-lg font-normal text-blue-600">Potential XP: {myDailyChores?.reduce((sum, c) => sum + (c.basePoints || 0), 0) || 0} 💎</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {myDailyChores && myDailyChores.length > 0 ? (
+                      myDailyChores.map((chore, index) => (
+                        <div key={chore.id} className="flex items-center justify-between p-4 bg-white rounded-lg border-l-4 border-blue-400 shadow hover:shadow-lg transition-shadow">
+                          <div className="flex items-center space-x-4">
+                            <div className="w-10 h-10 rounded-full bg-blue-200 text-blue-800 flex items-center justify-center font-bold">
+                              {index + 1}
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-lg">{chore.title}</h4>
+                              <p className="text-sm text-gray-600">🏠 {chore.room} • {chore.difficulty}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-2xl font-bold text-blue-600">+{chore.basePoints} XP</div>
+                            <Button size="sm" className="mt-2">Complete</Button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-12">
+                        <p className="text-gray-500 text-lg mb-4">No quests assigned yet!</p>
+                        <p className="text-sm text-gray-400">
+                          {currentUser?.role === 'admin' 
+                            ? '👑 Go to Kingdom Control to assign quests' 
+                            : 'Wait for your admin to assign quests'}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Quick Stats */}
+              <div className="grid grid-cols-3 gap-4 mt-6">
+                <Card>
+                  <CardContent className="text-center py-6">
+                    <div className="text-3xl font-bold text-green-600">0</div>
+                    <div className="text-sm text-gray-600">Completed Today</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="text-center py-6">
+                    <div className="text-3xl font-bold text-blue-600">{myDailyChores?.length || 0}</div>
+                    <div className="text-sm text-gray-600">Total Quests</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="text-center py-6">
+                    <div className="text-3xl font-bold text-purple-600">{currentUser?.level || 1}</div>
+                    <div className="text-sm text-gray-600">Current Level</div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
+
+
           )}
 
 
