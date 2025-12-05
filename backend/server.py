@@ -1790,8 +1790,26 @@ async def create_household_invitation(request: CreateHouseholdRequest):
 async def create_enhanced_household(request: EnhancedHouseholdRequest):
     """Create a new household with enhanced onboarding data"""
     
+    # Prepare onboarding data for chore generation
+    onboarding_data = {
+        'householdType': request.householdType,
+        'householdSize': request.householdSetup.get('householdSize', 1),
+        'appliances': [],
+        'hasPets': request.householdSetup.get('hasPets', False),
+        'petTypes': request.householdSetup.get('petTypes', []),
+        'bathrooms': request.householdSetup.get('bathrooms', 1),
+        'hasYard': request.householdSetup.get('hasYard', False),
+        'environmentalConditions': request.householdSetup.get('environmentalConditions', [])
+    }
+    
+    # Build appliances list from old format
+    if request.hasWasherDryer:
+        onboarding_data['appliances'].extend(['Washer', 'Dryer'])
+    if request.hasDishwasher:
+        onboarding_data['appliances'].append('Dishwasher')
+    
     # Generate customized chore list based on household setup
-    customized_chores = generate_customized_chores(request.householdSetup)
+    customized_chores = generate_household_chores(onboarding_data)
     
     # Create household with enhanced data
     household = Household(
