@@ -259,7 +259,7 @@ const WoWTalentTree = ({ currentUser, talentNodes, onNodeUnlock }) => {
             }}
           >
             <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
-              {getTierIcon(hoveredNode.tier)} {hoveredNode.name}
+              {getTierIcon(hoveredNode.tier || 1)} {hoveredNode.name}
             </h3>
             <p className="text-sm text-gray-300 mb-3">{hoveredNode.description}</p>
             <div className="text-sm">
@@ -267,9 +267,9 @@ const WoWTalentTree = ({ currentUser, talentNodes, onNodeUnlock }) => {
               <div className="text-green-300">Value: {hoveredNode.value}</div>
               <div className="text-yellow-400 mt-2 font-bold">Cost: 💎 {hoveredNode.cost}</div>
             </div>
-            {hoveredNode.prereqs.length > 0 && (
+            {((hoveredNode.prereqs && hoveredNode.prereqs.length > 0) || (hoveredNode.prerequisites && hoveredNode.prerequisites.length > 0)) && (
               <div className="mt-3 text-xs text-gray-400">
-                Requires: {hoveredNode.prereqs.join(', ')}
+                Requires: {(hoveredNode.prereqs || hoveredNode.prerequisites || []).join(', ')}
               </div>
             )}
           </div>
