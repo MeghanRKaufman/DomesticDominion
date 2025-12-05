@@ -2948,13 +2948,13 @@ function ChoreChampionsApp() {
                     onClick={async () => {
                       try {
                         const response = await axios.post(
-                          `${API}/households/${currentUser.householdId}/assign-chores`,
-                          { admin_user_id: currentUser.userId }
+                          `${API}/households/${currentUser.householdId}/assign-chores?admin_user_id=${currentUser.userId}`
                         );
                         alert(response.data.message);
                         window.location.reload(); // Refresh to show assigned quests
                       } catch (error) {
-                        alert('Error assigning chores: ' + error.message);
+                        const errorMsg = error.response?.data?.detail || error.message;
+                        alert('Error assigning chores: ' + errorMsg);
                       }
                     }}
                     className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white text-lg px-8 py-6 w-full"
