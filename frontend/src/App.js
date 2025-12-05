@@ -3219,6 +3219,133 @@ function ChoreChampionsApp() {
 
           {/* Main Content Area */}
           <div className="flex-1 p-4 md:p-6 bg-gray-50 min-h-screen">
+          
+          {/* ADMIN/KINGDOM CONTROL TAB */}
+          {activeTab === 'admin' && currentUser?.role === 'admin' && (
+            <div className="max-w-6xl mx-auto">
+              <div className="mb-6">
+                <h2 className="text-4xl font-bold flex items-center gap-3">
+                  👑 Kingdom Control Center
+                </h2>
+                <p className="text-gray-600 mt-2">Manage your household, assign quests, and view member progress</p>
+              </div>
+
+              {/* Invite Code Card */}
+              <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl p-6 mb-6 shadow-lg">
+                <h3 className="text-2xl font-bold mb-3">📨 Invite Your Household</h3>
+                <p className="mb-4">Share this code with your household members to join the adventure!</p>
+                <div className="bg-white/20 backdrop-blur rounded-lg p-4 flex items-center justify-between">
+                  <div>
+                    <div className="text-sm opacity-90 mb-1">Invite Code</div>
+                    <div className="text-3xl font-bold tracking-wider font-mono">
+                      {localStorage.getItem('inviteCode') || 'LOADING...'}
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => {
+                      navigator.clipboard.writeText(localStorage.getItem('inviteCode') || '');
+                      alert('Invite code copied!');
+                    }}
+                    className="bg-white text-purple-600 hover:bg-purple-50"
+                  >
+                    📋 Copy Code
+                  </Button>
+                </div>
+              </div>
+
+              {/* Assign Chores Button */}
+              <Card className="mb-6 border-2 border-blue-500">
+                <CardHeader>
+                  <CardTitle className="text-2xl">🎯 Quest Assignment</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 mb-4">
+                    When all your household members have joined, click below to automatically distribute quests fairly among everyone.
+                  </p>
+                  <Button
+                    onClick={async () => {
+                      try {
+                        const response = await axios.post(
+                          `${API}/households/${currentUser.householdId}/assign-chores`,
+                          { admin_user_id: currentUser.userId }
+                        );
+                        alert(response.data.message);
+                        window.location.reload(); // Refresh to show assigned quests
+                      } catch (error) {
+                        alert('Error assigning chores: ' + error.message);
+                      }
+                    }}
+                    className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white text-lg px-8 py-6 w-full"
+                  >
+                    ⚔️ Assign Quests to All Members
+                  </Button>
+                  <p className="text-sm text-gray-500 mt-3">
+                    💡 Tip: You can click this daily to redistribute quests fairly with different assignments each time!
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Household Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>👥 Household Members</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                        <span className="font-medium">👑 {currentUser.displayName} (You)</span>
+                        <span className="text-xs bg-purple-200 text-purple-800 px-2 py-1 rounded">Admin</span>
+                      </div>
+                      <p className="text-sm text-gray-500 text-center py-4">
+                        Share your invite code to add more members!
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>📊 Today's Progress</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-6">
+                      <div className="text-5xl font-bold text-blue-600 mb-2">0%</div>
+                      <p className="text-gray-600">Quests Completed</p>
+                      <p className="text-sm text-gray-500 mt-3">
+                        Assign quests to start tracking progress
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Quick Actions */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>⚡ Quick Actions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Button variant="outline" className="h-20 flex flex-col items-center justify-center">
+                      <span className="text-2xl mb-1">📊</span>
+                      <span>View Reports</span>
+                    </Button>
+                    <Button variant="outline" className="h-20 flex flex-col items-center justify-center">
+                      <span className="text-2xl mb-1">🔄</span>
+                      <span>Reset Daily</span>
+                    </Button>
+                    <Button variant="outline" className="h-20 flex flex-col items-center justify-center">
+                      <span className="text-2xl mb-1">⚙️</span>
+                      <span>Settings</span>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+
           {/* My Quest Log - Enhanced */}
           {activeTab === 'my-chores' && (
             <div>
