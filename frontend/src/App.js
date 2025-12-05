@@ -3028,26 +3028,58 @@ function ChoreChampionsApp() {
               {/* All Quests Section - Admin Only */}
               <Card className="mt-6">
                 <CardHeader>
-                  <CardTitle className="text-2xl">📋 All Kingdom Quests</CardTitle>
+                  <CardTitle className="text-2xl">📋 Master Chore Chart - All Kingdom Quests</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600 mb-4">View and manage all assigned quests across the household</p>
+                  
+                  <Button 
+                    onClick={async () => {
+                      try {
+                        const response = await axios.get(`${API}/households/${currentUser.householdId}/stats`);
+                        console.log('Household stats:', response.data);
+                        
+                        // Fetch all tasks for today
+                        const tasksResponse = await axios.get(`${API}/tasks?householdId=${currentUser.householdId}`);
+                        console.log('All tasks:', tasksResponse.data);
+                        alert('Check console for task data');
+                      } catch (error) {
+                        console.error('Error fetching tasks:', error);
+                      }
+                    }}
+                    className="mb-4"
+                    variant="outline"
+                  >
+                    🔍 Refresh Quest List
+                  </Button>
+                  
                   <div className="space-y-3">
                     {myDailyChores && myDailyChores.length > 0 ? (
-                      myDailyChores.map((chore, index) => (
-                        <div key={chore.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
-                          <div>
-                            <h4 className="font-bold">{chore.title}</h4>
-                            <p className="text-sm text-gray-600">{chore.room} • {chore.difficulty}</p>
+                      <div>
+                        <h3 className="font-bold text-lg mb-3">Assigned Quests ({myDailyChores.length})</h3>
+                        {myDailyChores.map((chore, index) => (
+                          <div key={chore.id || index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border mb-2">
+                            <div className="flex-1">
+                              <h4 className="font-bold">{chore.title}</h4>
+                              <p className="text-sm text-gray-600">
+                                📍 {chore.room} • 
+                                💪 {chore.difficulty} • 
+                                💎 {chore.basePoints || chore.points || 10} XP
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm text-gray-500">Assigned to</div>
+                              <div className="font-medium">{chore.assignedTo || currentUser.displayName}</div>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <div className="text-sm text-gray-500">Assigned to</div>
-                            <div className="font-medium">{chore.assignedTo || 'Unassigned'}</div>
-                          </div>
-                        </div>
-                      ))
+                        ))}
+                      </div>
                     ) : (
-                      <p className="text-center text-gray-500 py-8">No quests assigned yet. Click "Assign Quests" above!</p>
+                      <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed">
+                        <div className="text-5xl mb-4">📋</div>
+                        <p className="text-gray-500 text-lg mb-2">No quests assigned yet</p>
+                        <p className="text-sm text-gray-400">Click "Assign Quests to All Members" above to generate and distribute tasks!</p>
+                      </div>
                     )}
                   </div>
                 </CardContent>
