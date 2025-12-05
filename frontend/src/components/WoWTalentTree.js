@@ -108,9 +108,11 @@ const WoWTalentTree = ({ currentUser, talentNodes, onNodeUnlock }) => {
     
     try {
       nodes.forEach(node => {
-        if (!node || !node.prereqs) return;
+        if (!node) return;
         
-        node.prereqs.forEach(prereqId => {
+        const prereqs = node.prereqs || node.prerequisites || [];
+        
+        prereqs.forEach(prereqId => {
           const prereqNode = nodes.find(n => n && n.id === prereqId);
           if (prereqNode) {
             const nodePos = getNodePosition(node);
