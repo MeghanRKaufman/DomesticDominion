@@ -2330,11 +2330,11 @@ function ChoreChampionsApp() {
       
       const householdData = response.data;
       
-      // Create user object
+      // Use the userId and householdId from backend response
       const currentUserData = {
-        userId: `user_${Date.now()}`,
+        userId: householdData.userId,  // From backend
         displayName: onboardingData.playerName,
-        householdId: householdData.inviteCode,
+        householdId: householdData.householdId,  // From backend
         role: 'admin',
         points: 0,
         level: 1,
