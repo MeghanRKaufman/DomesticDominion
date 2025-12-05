@@ -1912,7 +1912,9 @@ Ready to transform your household into an epic adventure? Join now!
         householdType=request.householdType,
         currentMembers=1,
         maxMembers=request.memberLimit,
-        expiresAt=datetime.utcnow() + timedelta(days=7)
+        expiresAt=datetime.utcnow() + timedelta(days=7),
+        userId=creator_user.userId,  # Return the actual userId from DB
+        householdId=household.householdId  # Return the householdId
     )
     
     return invitation
