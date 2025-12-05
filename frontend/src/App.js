@@ -4335,29 +4335,12 @@ function ChoreChampionsApp() {
 
           {/* Talent Tree */}
           {activeTab === 'talent-tree' && (
-            <div>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold">🌳 Talent Tree - Domestic Dominion</h2>
-                <div className="flex items-center space-x-4">
-                  <div className="text-right">
-                    <div className="text-sm text-gray-600">Available Talent Points</div>
-                    <div className="text-2xl font-bold text-blue-600">⭐ {currentUser.talentPoints}</div>
-                  </div>
-                  <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1">
-                    Level {Math.floor(currentUser.points / LEVEL_UP_POINTS) + 1}
-                  </Badge>
-                </div>
-              </div>
-              
-              {/* Premium Unlock Notice */}
-              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 p-4 mb-6">
-                <div className="flex items-center">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-yellow-800">🏆 Free Tiers 1-5 Available</h3>
-                    <p className="text-yellow-700">Unlock premium tiers 6-10 with in-app purchase for advanced mastery nodes and household bonuses!</p>
-                  </div>
-                  <Button className="bg-yellow-600 hover:bg-yellow-700 text-white ml-4">
-                    Unlock Premium 👑
+            <WoWTalentTree 
+              currentUser={currentUser}
+              talentNodes={TALENT_TREE_NODES}
+              onNodeUnlock={handleNodeUnlock}
+            />
+          )}
                   </Button>
                 </div>
               </div>
