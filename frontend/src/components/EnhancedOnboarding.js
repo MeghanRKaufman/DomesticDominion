@@ -761,9 +761,9 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
           {step === 3 && renderStep3()}
           {step === 4 && renderStep4()}
           {step === 5 && renderStep5()}
-          {step === 6 && renderStep6()}
-          {step === 7 && renderStep7()}
-          {step === 8 && renderSummary()}
+          {step === 6 && onboardingData.hasPets && renderStep5a()}
+          {step === 6 && !onboardingData.hasPets && renderStep6()}
+          {step === 7 && renderStep6()}
           
           <div className="flex justify-between mt-8">
             <Button
@@ -776,10 +776,10 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
             
             <Button
               onClick={nextStep}
-              disabled={(step === 2 && !onboardingData.playerName?.trim()) || (step === 3 && !onboardingData.householdType) || (step === 4 && !onboardingData.kingdomName?.trim())}
+              disabled={step === 1 && !onboardingData.playerName?.trim()}
               className="bg-gradient-to-r from-purple-600 to-blue-600 text-white"
             >
-              {step === totalSteps ? '🚀 Start Playing!' : 'Next →'}
+              {step === totalSteps() ? '🚀 Start Playing!' : 'Next →'}
             </Button>
           </div>
         </div>
