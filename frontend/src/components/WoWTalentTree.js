@@ -15,15 +15,27 @@ const WoWTalentTree = ({ currentUser, talentNodes, onNodeUnlock }) => {
   const unlockedNodes = currentUser?.talentBuild?.nodeIds || [];
   const availableTalentPoints = currentUser?.talentPoints || 0;
 
+  // Safety check for talentNodes
+  if (!talentNodes || typeof talentNodes !== 'object') {
+    return <div className="text-white p-8">Loading talent tree...</div>;
+  }
+
   // Get nodes for current branch
   const getBranchNodes = (branch) => {
-    return Object.values(talentNodes).filter(node => node.branch === branch);
+    try {
+      return Object.values(talentNodes).filter(node => node && node.branch === branch);
+    } catch (e) {
+      console.error('Error getting branch nodes:', e);
+      return [];
+    }
   };
 
   // Position nodes in WoW-style grid (4 tiers, 4 columns)
   const getNodePosition = (node) => {
+    if (!node || !node.tier) return { left: '50%', top: '0px' };
+    
     const tier = node.tier;
-    const nodesInTier = getBranchNodes(selectedBranch).filter(n => n.tier === tier);
+    const nodesInTier = getBranchNodes(selectedBranch).filter(n => n && n.tier === tier);
     const indexInTier = nodesInTier.indexOf(node);
     const totalInTier = nodesInTier.length;
     
@@ -38,11 +50,12 @@ const WoWTalentTree = ({ currentUser, talentNodes, onNodeUnlock }) => {
   const isNodeUnlocked = (nodeId) => unlockedNodes.includes(nodeId);
   
   const arePrereqsMet = (node) => {
-    if (node.prereqs.length === 0) return true;
+    if (!node || !node.prereqs || node.prereqs.length === 0) return true;
     return node.prereqs.every(prereqId => isNodeUnlocked(prereqId));
   };
   
   const canUnlockNode = (node) => {
+    if (!node || !node.cost) return false;
     return availableTalentPoints >= node.cost && 
            !isNodeUnlocked(node.id) && 
            arePrereqsMet(node);
