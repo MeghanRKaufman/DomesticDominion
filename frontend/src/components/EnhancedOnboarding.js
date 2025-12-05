@@ -225,8 +225,6 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
         <p className="text-sm text-blue-700">
           💡 <strong>Tip:</strong> You can always invite more members later. Start with your current household size.
         </p>
-          </p>
-        </div>
       </div>
     </div>
   );
