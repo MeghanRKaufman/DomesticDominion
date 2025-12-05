@@ -3130,21 +3130,62 @@ function ChoreChampionsApp() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      <div className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
-                        <input type="checkbox" className="mt-1" />
-                        <div>
-                          <p className="font-medium">Grocery shopping</p>
-                          <p className="text-xs text-gray-500">Shared household task</p>
+                      {kingdomTodos.map(todo => (
+                        <div key={todo.id} className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
+                          <div className="flex-1">
+                            <p className="font-medium">{todo.task}</p>
+                            <p className="text-xs text-gray-500">
+                              {todo.claimedBy ? `Claimed by ${todo.claimedBy}` : 'Available for any member'}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm font-bold text-blue-600">+{todo.xp} XP</span>
+                            {!todo.claimedBy ? (
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  setKingdomTodos(prev => prev.map(t =>
+                                    t.id === todo.id ? { ...t, claimedBy: currentUser.displayName } : t
+                                  ));
+                                }}
+                                className="bg-green-600 hover:bg-green-700 text-white"
+                              >
+                                Claim
+                              </Button>
+                            ) : todo.claimedBy === currentUser.displayName ? (
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  // Award XP and remove todo
+                                  setCurrentUser(prev => ({ ...prev, points: prev.points + todo.xp }));
+                                  setKingdomTodos(prev => prev.filter(t => t.id !== todo.id));
+                                  alert(`+${todo.xp} XP earned! Task completed!`);
+                                }}
+                                className="bg-blue-600 hover:bg-blue-700 text-white"
+                              >
+                                Complete
+                              </Button>
+                            ) : (
+                              <span className="text-xs text-gray-500 px-3">Claimed</span>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
-                        <input type="checkbox" className="mt-1" />
-                        <div>
-                          <p className="font-medium">Pay rent</p>
-                          <p className="text-xs text-gray-500">Due in 3 days</p>
-                        </div>
-                      </div>
-                      <Button variant="outline" className="w-full mt-4">
+                      ))}
+                      <Button 
+                        variant="outline" 
+                        className="w-full mt-4"
+                        onClick={() => {
+                          const newTask = prompt('Enter new todo item:');
+                          if (newTask) {
+                            setKingdomTodos(prev => [...prev, {
+                              id: Date.now(),
+                              task: newTask,
+                              xp: 10,
+                              claimedBy: null
+                            }]);
+                          }
+                        }}
+                      >
                         + Add Todo
                       </Button>
                     </div>
