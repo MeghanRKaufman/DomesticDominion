@@ -195,6 +195,8 @@ const WoWTalentTree = ({ currentUser, talentNodes, onNodeUnlock }) => {
 
         {/* Talent Nodes */}
         {getBranchNodes(selectedBranch).map(node => {
+          if (!node || !node.id) return null;
+          
           const position = getNodePosition(node);
           const style = getNodeStyle(node);
           const unlocked = isNodeUnlocked(node.id);
@@ -209,17 +211,17 @@ const WoWTalentTree = ({ currentUser, talentNodes, onNodeUnlock }) => {
               onMouseLeave={() => setHoveredNode(null)}
             >
               <div
-                onClick={() => canUnlock && onNodeUnlock(node.id)}
+                onClick={() => canUnlock && onNodeUnlock && onNodeUnlock(node.id)}
                 className="w-20 h-20 rounded-xl flex items-center justify-center text-3xl transition-all relative"
                 style={style}
               >
                 {unlocked && <span className="absolute -top-2 -right-2 text-2xl">✓</span>}
-                <span>{node.icon || getTierIcon(node.tier)}</span>
+                <span>{node.icon || getTierIcon(node.tier || 1)}</span>
               </div>
               
               <div className="text-center mt-2">
-                <div className="text-xs font-bold">{node.name}</div>
-                <div className="text-xs text-yellow-400">💎 {node.cost}</div>
+                <div className="text-xs font-bold">{node.name || 'Unknown'}</div>
+                <div className="text-xs text-yellow-400">💎 {node.cost || 0}</div>
               </div>
             </div>
           );
