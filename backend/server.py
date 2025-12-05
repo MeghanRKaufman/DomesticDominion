@@ -2171,6 +2171,27 @@ async def request_chore_swap(request: RequestChoreSwapRequest):
     }
 
 @api_router.post("/chore-swaps/respond")
+
+
+@api_router.get("/tasks")
+async def get_household_tasks(householdId: str, date: str = None):
+    """Get all tasks for a household, optionally filtered by date"""
+    try:
+        query = {"householdId": householdId}
+        if date:
+            query["date"] = date
+        
+        tasks = await db.tasks.find(query).to_list(1000)
+        
+        # Remove MongoDB _id field
+        for task in tasks:
+            task.pop('_id', None)
+        
+        return tasks
+    except Exception as e:
+        print(f"Error fetching tasks: {e}")
+        return []
+
 async def respond_to_chore_swap(request: RespondChoreSwapRequest):
     """Accept or decline a chore swap request"""
     swap = await db.chore_swaps.find_one({"swapId": request.swapId})
