@@ -92,7 +92,7 @@ const TALENT_TREE_NODES = {
     branch: "Housekeeping",
     tier: 5,
     cost: 3,
-    description: "Bonus for completing a chore within 2 hrs of partner's",
+    description: "Bonus for completing a chore within 2 hrs of teammate's",
     effect: { type: "partner_sync_bonus", time_window: 2, bonus_multiplier: 1.2 },
     prerequisites: ["hh_vehicle_vanguard"],
     position: { x: 100, y: 330 },
@@ -117,7 +117,7 @@ const TALENT_TREE_NODES = {
     branch: "Housekeeping",
     tier: 7,
     cost: 3,
-    description: "Partner receives a calm-day bonus if all rooms logged",
+    description: "Teammate receives a calm-day bonus if all rooms logged",
     effect: { type: "partner_bonus", condition: "all_rooms_complete", bonus: "calm_day" },
     prerequisites: ["hh_efficiency_expert"],
     position: { x: 100, y: 470 },
@@ -153,7 +153,7 @@ const TALENT_TREE_NODES = {
     branch: "Housekeeping",
     tier: 10,
     cost: 5,
-    description: "Auto-completes one daily low-value task when you reach 100% partner approval for a week",
+    description: "Auto-completes one daily low-value task when you reach 100% teammate approval for a week",
     effect: { type: "mastery_autocomplete", condition: "100_percent_approval", duration: "week" },
     prerequisites: ["hh_homebound_hero"],
     position: { x: 100, y: 680 },
@@ -204,7 +204,7 @@ const TALENT_TREE_NODES = {
     branch: "Coupling",
     tier: 4,
     cost: 2,
-    description: "+5 pts for partner-verified tasks",
+    description: "+5 pts for teammate-verified tasks",
     effect: { type: "verification_bonus", bonus: 5 },
     prerequisites: ["cq_shared_goal_setter"],
     position: { x: 300, y: 260 },
@@ -216,7 +216,7 @@ const TALENT_TREE_NODES = {
     branch: "Coupling",
     tier: 5,
     cost: 3,
-    description: "Option to take partner's task for 3x reward",
+    description: "Option to take teammate's task for 3x reward",
     effect: { type: "takeover_multiplier", multiplier: 3.0 },
     prerequisites: ["cq_verification_bonus"],
     position: { x: 300, y: 330 },
@@ -241,7 +241,7 @@ const TALENT_TREE_NODES = {
     branch: "Coupling",
     tier: 7,
     cost: 3,
-    description: "Each compliment written adds +1 to partner's morale meter",
+    description: "Each compliment written adds +1 to teammate's morale meter",
     effect: { type: "partner_morale_bonus", bonus_per_compliment: 1 },
     prerequisites: ["cq_bond_builder"],
     position: { x: 300, y: 470 },
@@ -328,7 +328,7 @@ const TALENT_TREE_NODES = {
     branch: "Growth",
     tier: 4,
     cost: 2,
-    description: "+10 pts for self-evaluation that matches partner's rating",
+    description: "+10 pts for self-evaluation that matches teammate's rating",
     effect: { type: "partner_alignment_bonus", bonus: 10 },
     prerequisites: ["pg_zen_mode"],
     position: { x: 500, y: 260 },
@@ -353,7 +353,7 @@ const TALENT_TREE_NODES = {
     branch: "Growth",
     tier: 6,
     cost: 3,
-    description: "Unlocks 'calm break' feature to pause your partner's critique for 24 hrs",
+    description: "Unlocks 'calm break' feature to pause your teammate's critique for 24 hrs",
     effect: { type: "pause_critiques", duration: 24, frequency: "as_needed" },
     prerequisites: ["pg_mood_manager"],
     position: { x: 500, y: 400 },
@@ -365,7 +365,7 @@ const TALENT_TREE_NODES = {
     branch: "Growth",
     tier: 7,
     cost: 3,
-    description: "+10% base points on days with both self and partner quests complete",
+    description: "+10% base points on days with both self and teammate quests complete",
     effect: { type: "balance_bonus", requirement: "both_quest_types", multiplier: 1.1 },
     prerequisites: ["pg_self_soother"],
     position: { x: 500, y: 470 },
@@ -389,7 +389,7 @@ const TALENT_TREE_NODES = {
     branch: "Growth",
     tier: 9,
     cost: 4,
-    description: "2x points for doing tasks that directly benefit your partner's comfort",
+    description: "2x points for doing tasks that directly benefit your teammate's comfort",
     effect: { type: "altruism_multiplier", multiplier: 2.0, target: "partner_comfort" },
     prerequisites: ["pg_growth_guardian"],
     position: { x: 500, y: 610 },
@@ -397,11 +397,11 @@ const TALENT_TREE_NODES = {
   },
   "pg_enlightened_partner": {
     id: "pg_enlightened_partner",
-    name: "Enlightened Partner",
+    name: "Enlightened Teammate",
     branch: "Growth",
     tier: 10,
     cost: 5,
-    description: "Gain 1 free 'Zen Token' weekly, which lets you skip or swap a task without penalty and gift that break to your partner",
+    description: "Gain 1 free 'Zen Token' weekly, which lets you skip or swap a task without penalty and gift that break to your teammate",
     effect: { type: "mastery_zen_token", frequency: "weekly", benefits: ["skip_task", "swap_task", "gift_partner"] },
     prerequisites: ["pg_altruist_aura"],
     position: { x: 500, y: 680 },
@@ -455,12 +455,12 @@ function OnboardingModal({ isOpen, onComplete }) {
   const steps = [
     {
       title: "Welcome to Domestic Dominion! 🏰",
-      content: "Transform your household tasks into epic quests for you and your partner!",
+      content: "Transform your household tasks into epic quests for you and your teammate!",
       image: "🎮"
     },
     {
       title: "Daily Quest System ⏰",
-      content: "Every day at midnight, tasks are split 50/50 between you and your partner. Complete your assigned quests before the daily reset to maintain your streak!",
+      content: "Every day at midnight, tasks are split 50/50 between you and your teammate. Complete your assigned quests before the daily reset to maintain your streak!",
       image: "📅"
     },
     {
@@ -695,7 +695,7 @@ function TapChallengeGame({ onComplete, onClose }) {
   );
 }
 
-// Couple Trivia Game
+// Household Trivia Game
 function CoupleTrivia({ onComplete, onClose, partnerName }) {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
@@ -704,17 +704,17 @@ function CoupleTrivia({ onComplete, onClose, partnerName }) {
 
   const questions = [
     {
-      question: "What's your partner's favorite type of music?",
+      question: "What's your teammate's favorite type of music?",
       options: ["Pop", "Rock", "Jazz", "Classical"],
       correct: 0 // This would be personalized
     },
     {
-      question: "What chore does your partner hate most?",
+      question: "What chore does your teammate hate most?",
       options: ["Dishes", "Laundry", "Cleaning bathroom", "Taking out trash"],
       correct: 2
     },
     {
-      question: "What's your partner's ideal date night?",
+      question: "What's your teammate's ideal date night?",
       options: ["Movie at home", "Fancy dinner", "Outdoor adventure", "Game night"],
       correct: 1
     }
@@ -745,7 +745,7 @@ function CoupleTrivia({ onComplete, onClose, partnerName }) {
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg text-center">
         <DialogHeader>
-          <DialogTitle className="text-2xl">💕 Couple Trivia!</DialogTitle>
+          <DialogTitle className="text-2xl">💕 Household Trivia!</DialogTitle>
         </DialogHeader>
         
         <div className="py-6">
@@ -805,7 +805,7 @@ function VisualTalentTree({ currentUser, onNodeUnlock }) {
   const [selectedNode, setSelectedNode] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  const branches = ['Efficiency', 'Couple', 'Growth'];
+  const branches = ['Efficiency', 'Household', 'Growth'];
   
   const unlockedNodes = currentUser.talentBuild?.nodeIds || [];
   const availableTalentPoints = currentUser.talentPoints || 0;
@@ -902,7 +902,7 @@ function VisualTalentTree({ currentUser, onNodeUnlock }) {
               }`}
             >
               {branch === 'Efficiency' && '⚡'} 
-              {branch === 'Couple' && '💕'} 
+              {branch === 'Household' && '💕'} 
               {branch === 'Growth' && '🌱'} 
               {branch}
             </button>
@@ -930,7 +930,7 @@ function VisualTalentTree({ currentUser, onNodeUnlock }) {
         <div className="col-span-3 overflow-y-auto max-h-96">
           <h3 className="text-2xl font-bold mb-6 text-center sticky top-0 bg-gradient-to-r from-purple-900 to-blue-900 py-2 rounded-lg">
             {selectedBranch === 'Efficiency' && '⚡ Efficiency Mastery'} 
-            {selectedBranch === 'Couple' && '💕 Relationship Bonding'} 
+            {selectedBranch === 'Household' && '💕 Relationship Bonding'} 
             {selectedBranch === 'Growth' && '🌱 Personal Evolution'} 
           </h3>
           
@@ -1055,7 +1055,7 @@ function VisualTalentTree({ currentUser, onNodeUnlock }) {
 }
 
 // Enhanced Checkbox Chore List with Verification UX
-function CheckboxChoreList({ tasks, currentUser, partner, onComplete, isToday = false, showEdit = false }) {
+function CheckboxChoreList({ tasks, currentUser, teammate, onComplete, isToday = false, showEdit = false }) {
   const [completingTask, setCompletingTask] = useState(null);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
@@ -1072,8 +1072,8 @@ function CheckboxChoreList({ tasks, currentUser, partner, onComplete, isToday = 
       const basePoints = getBasePoints(task.difficulty);
       onComplete(task, basePoints);
       
-      // Send partner notification for verification
-      if (partner) {
+      // Send teammate notification for verification
+      if (teammate) {
         sendVerificationNotification(task);
       }
       
@@ -1082,7 +1082,7 @@ function CheckboxChoreList({ tasks, currentUser, partner, onComplete, isToday = 
         triggerRandomVerificationCheck(task);
       }
     } else {
-      // Requires partner verification before points
+      // Requires teammate verification before points
       setShowVerificationModal(true);
     }
     
@@ -1108,8 +1108,8 @@ function CheckboxChoreList({ tasks, currentUser, partner, onComplete, isToday = 
     
     setVerificationRequests(prev => [...prev, request]);
     
-    // In real app, this would send push notification to partner
-    console.log(`📱 Notification to ${partner?.displayName}: "${currentUser.displayName} completed: ${task.title}. Verify?"`);
+    // In real app, this would send push notification to teammate
+    console.log(`📱 Notification to ${teammate?.displayName}: "${currentUser.displayName} completed: ${task.title}. Verify?"`);
   };
   
   const triggerRandomVerificationCheck = (task) => {
@@ -1130,15 +1130,15 @@ function CheckboxChoreList({ tasks, currentUser, partner, onComplete, isToday = 
     switch (action) {
       case 'verify':
         // Award any verification bonuses
-        console.log(`✅ ${partner?.displayName} verified: ${request.taskTitle}`);
+        console.log(`✅ ${teammate?.displayName} verified: ${request.taskTitle}`);
         break;
       case 'request_proof':
         // Prompt original completer for photo/GPS proof
-        console.log(`📸 ${partner?.displayName} requested proof for: ${request.taskTitle}`);
+        console.log(`📸 ${teammate?.displayName} requested proof for: ${request.taskTitle}`);
         break;
       case 'decline':
         // Points remain but marked unverified
-        console.log(`❌ ${partner?.displayName} declined: ${request.taskTitle} (points kept, unverified)`);
+        console.log(`❌ ${teammate?.displayName} declined: ${request.taskTitle} (points kept, unverified)`);
         break;
     }
   };
@@ -1169,7 +1169,7 @@ function CheckboxChoreList({ tasks, currentUser, partner, onComplete, isToday = 
 
   return (
     <div className="space-y-4">
-      {/* Pending Verification Requests (Partner View) */}
+      {/* Pending Verification Requests (Teammate View) */}
       {verificationRequests.filter(req => req.status === 'pending' && new Date() < new Date(req.expiresAt)).length > 0 && (
         <Card className="bg-yellow-50 border-yellow-200">
           <CardHeader>
@@ -1259,7 +1259,7 @@ function CheckboxChoreList({ tasks, currentUser, partner, onComplete, isToday = 
                       {task.difficulty} • {getBasePoints(task.difficulty)} pts
                     </span>
                     {task.requirePartnerVerification && (
-                      <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">👫 Partner Required</span>
+                      <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">👫 Teammate Required</span>
                     )}
                   </div>
                 </div>
@@ -1284,7 +1284,7 @@ function CheckboxChoreList({ tasks, currentUser, partner, onComplete, isToday = 
               <DialogTitle>Verification Required</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <p>"{selectedTask.title}" requires partner verification before points are awarded.</p>
+              <p>"{selectedTask.title}" requires teammate verification before points are awarded.</p>
               <div className="flex space-x-3">
                 <Button 
                   onClick={() => {
@@ -1293,7 +1293,7 @@ function CheckboxChoreList({ tasks, currentUser, partner, onComplete, isToday = 
                   }}
                   className="flex-1"
                 >
-                  📤 Notify Partner
+                  📤 Notify Teammate
                 </Button>
                 <Button 
                   variant="outline" 
@@ -1310,8 +1310,8 @@ function CheckboxChoreList({ tasks, currentUser, partner, onComplete, isToday = 
   );
 }
 
-// Couple Games Interface Component
-function CoupleGamesInterface({ currentUser, partner, onGameComplete }) {
+// Household Games Interface Component
+function CoupleGamesInterface({ currentUser, teammate, onGameComplete }) {
   const games = [
     { name: "Battleship", emoji: "🚢", description: "Classic naval strategy game" },
     { name: "Chess", emoji: "♟️", description: "The ultimate strategy game" },
@@ -1385,7 +1385,7 @@ function ChoreManagement({ tasks, setTasks, currentUser }) {
 }
 
 // Enhanced Quest Component with Games and Verification
-function ChoreQuest({ task, currentUser, partner, onComplete }) {
+function ChoreQuest({ task, currentUser, teammate, onComplete }) {
   const [showVerification, setShowVerification] = useState(false);
   const [showBoardGame, setShowBoardGame] = useState(false);
   const [showMiniGame, setShowMiniGame] = useState(null);
@@ -1394,8 +1394,8 @@ function ChoreQuest({ task, currentUser, partner, onComplete }) {
   
   const points = DIFFICULTY_POINTS[task.difficulty];
   
-  // Check if this task needs dual verification (partner approval)
-  // US room tasks always need partner verification, others are optional but can be contested
+  // Check if this task needs dual verification (teammate approval)
+  // US room tasks always need teammate verification, others are optional but can be contested
   const needsDualVerification = task.room === 'US' || task.requiresVerification;
 
   const handleStartQuest = () => {
@@ -1533,9 +1533,9 @@ function ChoreQuest({ task, currentUser, partner, onComplete }) {
                   <Button onClick={() => handleVerificationMethod('emoji')} className="p-4">
                     😄 Quick Emoji Check
                   </Button>
-                  {partner && (
-                    <Button onClick={() => handleVerificationMethod('partner')} className="p-4">
-                      👫 Partner Verification
+                  {teammate && (
+                    <Button onClick={() => handleVerificationMethod('teammate')} className="p-4">
+                      👫 Teammate Verification
                     </Button>
                   )}
                 </div>
@@ -1581,17 +1581,17 @@ function ChoreQuest({ task, currentUser, partner, onComplete }) {
               </>
             )}
             
-            {verificationStep === 'partner' && (
+            {verificationStep === 'teammate' && (
               <>
                 <DialogHeader>
-                  <DialogTitle>👫 Waiting for partner verification...</DialogTitle>
+                  <DialogTitle>👫 Waiting for teammate verification...</DialogTitle>
                 </DialogHeader>
                 <div className="py-4">
                   <p className="text-gray-600 mb-4">
-                    We've sent a notification to {partner?.name || 'your partner'} to verify this quest!
+                    We've sent a notification to {teammate?.name || 'your teammate'} to verify this quest!
                   </p>
                   <Button onClick={() => handleCompleteQuest(5)} className="w-full">
-                    Partner Verified! (+5 bonus) ✨
+                    Teammate Verified! (+5 bonus) ✨
                   </Button>
                 </div>
               </>
@@ -1605,7 +1605,7 @@ function ChoreQuest({ task, currentUser, partner, onComplete }) {
         <VerificationSystem
           quest={task}
           currentUser={currentUser}
-          partner={partner}
+          teammate={teammate}
           onVerificationComplete={handleVerificationComplete}
           onClose={() => setShowVerification(false)}
         />
@@ -1636,7 +1636,7 @@ function ChoreQuest({ task, currentUser, partner, onComplete }) {
         <CoupleTrivia 
           onComplete={(bonusPoints) => handleVerificationComplete({ bonusPoints, quickGame: true })}
           onClose={() => setShowMiniGame(null)}
-          partnerName={partner?.displayName}
+          partnerName={teammate?.displayName}
         />
       )}
     </Card>
@@ -1657,7 +1657,7 @@ function EpicAdventureModal({ isOpen, onClose, onSuccess, onEnhancedOnboarding }
     setLoading(true);
     
     try {
-      // Create couple invitation
+      // Create household invitation
       const response = await axios.post(`${API}/couples/create`, {
         creatorName: name
       });
@@ -1676,7 +1676,7 @@ function EpicAdventureModal({ isOpen, onClose, onSuccess, onEnhancedOnboarding }
     setLoading(true);
     
     try {
-      // Join existing couple
+      // Join existing household
       const response = await axios.post(`${API}/couples/join`, {
         partnerName: name,
         inviteCode: inviteCode
@@ -1790,7 +1790,7 @@ function EpicAdventureModal({ isOpen, onClose, onSuccess, onEnhancedOnboarding }
           <div className="space-y-4">
             <div className="text-center py-4">
               <div className="text-4xl mb-3">🗡️</div>
-              <p className="text-gray-600">Enter your details to join your partner's epic quest!</p>
+              <p className="text-gray-600">Enter your details to join your teammate's epic quest!</p>
             </div>
             
             <div>
@@ -1869,7 +1869,7 @@ function EpicAdventureModal({ isOpen, onClose, onSuccess, onEnhancedOnboarding }
                 <strong>🎯 Quest:</strong> {previewData?.questPhrase}
               </p>
               <p className="text-sm mt-2">
-                <strong>📊 Status:</strong> {previewData?.isAvailable ? '✅ Ready for Partner' : '❌ Adventure Full'}
+                <strong>📊 Status:</strong> {previewData?.isAvailable ? '✅ Ready for Teammate' : '❌ Adventure Full'}
               </p>
             </div>
             
@@ -1905,7 +1905,7 @@ function EpicAdventureModal({ isOpen, onClose, onSuccess, onEnhancedOnboarding }
 // Main Game App Component
 function ChoreChampionsApp() {
   const [currentUser, setCurrentUser] = useState(null);
-  const [partner, setPartner] = useState(null);
+  const [teammate, setPartner] = useState(null);
   const [tasks, setTasks] = useState({});
   const [showAuth, setShowAuth] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -2029,12 +2029,12 @@ function ChoreChampionsApp() {
       const myTasksResponse = await axios.get(`${API}/couples/${user.coupleId}/my-tasks/${user.userId}?date=${today}`);
       setTasks(myTasksResponse.data);
 
-      // Load partner info if exists
+      // Load teammate info if exists
       if (user.partnerId) {
         const partnerResponse = await axios.get(`${API}/users/${user.partnerId}`);
         setPartner(partnerResponse.data);
       } else if (user.partnerName) {
-        // Use partner name from onboarding data if no partner user exists yet
+        // Use teammate name from onboarding data if no teammate user exists yet
         setPartner({
           displayName: user.partnerName,
           userId: null,
@@ -2126,11 +2126,11 @@ function ChoreChampionsApp() {
   // Daily Questions and Pi Message Suggestions
   const generateDailyQuestionAndSuggestion = () => {
     const triviaQuestions = [
-      "What did your partner want to be when they grew up?",
-      "What's your partner's favorite childhood movie?", 
-      "What's your partner's biggest fear?",
-      "What's your partner's dream vacation destination?",
-      "What's your partner's favorite way to relax after a long day?"
+      "What did your teammate want to be when they grew up?",
+      "What's your teammate's favorite childhood movie?", 
+      "What's your teammate's biggest fear?",
+      "What's your teammate's dream vacation destination?",
+      "What's your teammate's favorite way to relax after a long day?"
     ];
     
     setDailyQuestion(triviaQuestions[Math.floor(Math.random() * triviaQuestions.length)]);
@@ -2189,7 +2189,7 @@ function ChoreChampionsApp() {
       
       // ===== 100 US QUESTS ===== (Acts of Service & Love)
       // Acts of Service
-      { id: 'us_morning_drink', title: '☕ Bring partner their morning drink', room: 'Kitchen', points: 5, difficulty: 'EASY', category: 'team-building' },
+      { id: 'us_morning_drink', title: '☕ Bring teammate their morning drink', room: 'Kitchen', points: 5, difficulty: 'EASY', category: 'team-building' },
       { id: 'us_prep_snack', title: '🥪 Pack or prep their snack/meal', room: 'Kitchen', points: 10, difficulty: 'EASY', category: 'team-building' },
       { id: 'us_fold_laundry', title: '👕 Fold one piece of their laundry', room: 'Bedroom', points: 5, difficulty: 'EASY', category: 'team-building' },
       { id: 'us_warm_blanket', title: '🛏️ Warm their blanket or bed', room: 'Bedroom', points: 5, difficulty: 'EASY', category: 'team-building' },
@@ -2273,11 +2273,11 @@ function ChoreChampionsApp() {
       // Deep Connection
       { id: 'us_share_past', title: '📖 Share something new from your past', room: 'Anywhere', points: 20, difficulty: 'MEDIUM', category: 'team-building' },
       { id: 'us_ask_memory', title: '💭 Ask about unshared memory', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'team-building' },
-      { id: 'us_thank_partner', title: '🙏 "Thank you for being my partner"', room: 'Anywhere', points: 20, difficulty: 'EASY', category: 'team-building' },
+      { id: 'us_thank_partner', title: '🙏 "Thank you for being my teammate"', room: 'Anywhere', points: 20, difficulty: 'EASY', category: 'team-building' },
       { id: 'us_noticed_today', title: '👀 Tell them what you noticed today', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'team-building' },
       { id: 'us_small_detail_love', title: '💕 Share small detail you love', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'team-building' },
       { id: 'us_ask_dream', title: '🌟 Ask about current dream/goal', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'team-building' },
-      { id: 'us_better_partner', title: '🤔 Ask how to be better partner today', room: 'Anywhere', points: 20, difficulty: 'MEDIUM', category: 'team-building' },
+      { id: 'us_better_partner', title: '🤔 Ask how to be better teammate today', room: 'Anywhere', points: 20, difficulty: 'MEDIUM', category: 'team-building' },
       { id: 'us_shared_dream', title: '✨ Remind of shared dream/plan', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'team-building' },
       { id: 'us_feel_lucky', title: '🍀 Tell them you feel lucky to know them', room: 'Anywhere', points: 20, difficulty: 'EASY', category: 'team-building' },
       { id: 'us_thank_recent', title: '🙏 Thank for recent specific thing', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'team-building' },
@@ -2324,7 +2324,7 @@ function ChoreChampionsApp() {
       { id: 'pg_identify_trigger', title: '⚠️ Identify one personal trigger', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'self-care' },
       { id: 'pg_admit_mistake', title: '🙋 Admit one mistake today (to self)', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'self-care' },
       { id: 'pg_handled_well', title: '💪 Reflect on handling something well', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'self-care' },
-      { id: 'pg_grateful_partner', title: '💕 Think grateful thought about partner', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'self-care' },
+      { id: 'pg_grateful_partner', title: '💕 Think grateful thought about teammate', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'self-care' },
       { id: 'pg_learning_to', title: '🌱 Write "I\'m learning to..."', room: 'Bedroom', points: 10, difficulty: 'EASY', category: 'self-care' },
       { id: 'pg_grown_this_year', title: '📈 Think how you\'ve grown this year', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'self-care' },
       { id: 'pg_reframe_negative', title: '🔄 Reframe negative thought to neutral', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'self-care' },
@@ -2347,7 +2347,7 @@ function ChoreChampionsApp() {
       { id: 'pg_couldve_better', title: '🤔 Admit something you could\'ve done better', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'self-care' },
       { id: 'pg_gentle_apology', title: '💌 Write gentle apology draft', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'self-care' },
       { id: 'pg_replace_defensive', title: '🔄 Replace defensive thought with curiosity', room: 'Anywhere', points: 15, difficulty: 'HARD', category: 'self-care' },
-      { id: 'pg_compliment_partner_mental', title: '💭 Mentally compliment partner despite upset', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'self-care' },
+      { id: 'pg_compliment_partner_mental', title: '💭 Mentally compliment teammate despite upset', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'self-care' },
       { id: 'pg_not_raise_voice', title: '🤫 Decide not to raise voice when feeling like it', room: 'Anywhere', points: 20, difficulty: 'HARD', category: 'self-care' },
       { id: 'pg_take_responsibility', title: '💪 Take responsibility for small annoyance', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'self-care' },
       { id: 'pg_let_irritation_go', title: '🕊️ Let one petty irritation go on purpose', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'self-care' },
@@ -2368,12 +2368,12 @@ function ChoreChampionsApp() {
       { id: 'pg_small_comfort', title: '🎁 Treat yourself to small comfort', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'self-care' },
       
       // Relationship-Connected Growth
-      { id: 'pg_reread_appreciation', title: '💕 Re-read partner\'s appreciation message', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'self-care' },
-      { id: 'pg_taken_granted', title: '🤔 Think what partner does you\'ve taken for granted', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'self-care' },
-      { id: 'pg_partner_helps', title: '✍️ Write "My partner helps me..."', room: 'Bedroom', points: 10, difficulty: 'EASY', category: 'self-care' },
-      { id: 'pg_notice_partner_today', title: '👀 Notice what partner did for you today', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'self-care' },
+      { id: 'pg_reread_appreciation', title: '💕 Re-read teammate\'s appreciation message', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'self-care' },
+      { id: 'pg_taken_granted', title: '🤔 Think what teammate does you\'ve taken for granted', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'self-care' },
+      { id: 'pg_partner_helps', title: '✍️ Write "My teammate helps me..."', room: 'Bedroom', points: 10, difficulty: 'EASY', category: 'self-care' },
+      { id: 'pg_notice_partner_today', title: '👀 Notice what teammate did for you today', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'self-care' },
       { id: 'pg_assume_good_intent', title: '💭 Choose to assume good intent once', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'self-care' },
-      { id: 'pg_partner_admires', title: '💫 Write what partner admires about you', room: 'Bedroom', points: 15, difficulty: 'MEDIUM', category: 'self-care' },
+      { id: 'pg_partner_admires', title: '💫 Write what teammate admires about you', room: 'Bedroom', points: 15, difficulty: 'MEDIUM', category: 'self-care' },
       { id: 'pg_communicate_better', title: '📞 Reflect on communicating better', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'self-care' },
       { id: 'pg_made_feel_safe', title: '🛡️ Think time they made you feel safe', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'self-care' },
       { id: 'pg_surprise_them', title: '🎁 Decide way to surprise them this week', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'self-care' },
@@ -2395,7 +2395,7 @@ function ChoreChampionsApp() {
       { id: 'pg_learn_fact', title: '📚 Learn one new fact today', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'self-care' },
       { id: 'pg_educational_3min', title: '🎓 Watch/read educational 3 minutes', room: 'Living Room', points: 10, difficulty: 'EASY', category: 'self-care' },
       { id: 'pg_task_differently', title: '🔄 Try task slightly differently than usual', room: 'Anywhere', points: 10, difficulty: 'EASY', category: 'self-care' },
-      { id: 'pg_partner_teach', title: '👫 Ask partner to teach you something', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'self-care' },
+      { id: 'pg_partner_teach', title: '👫 Ask teammate to teach you something', room: 'Anywhere', points: 15, difficulty: 'EASY', category: 'self-care' },
       { id: 'pg_want_learn', title: '📝 Write one thing you\'d like to learn', room: 'Bedroom', points: 10, difficulty: 'EASY', category: 'self-care' },
       { id: 'pg_notice_pattern', title: '🔍 Try to notice pattern you fall into', room: 'Anywhere', points: 15, difficulty: 'MEDIUM', category: 'self-care' },
       { id: 'pg_comfort_zone', title: '🚀 Do one thing outside comfort zone', room: 'Anywhere', points: 20, difficulty: 'MEDIUM', category: 'self-care' },
@@ -2492,7 +2492,7 @@ function ChoreChampionsApp() {
       
       console.log('✅ Daily quest assignment complete!');
       console.log('👤 My quests:', myDomesticQuests.length);
-      console.log('👥 Partner quests:', partnerDomesticQuests.length);
+      console.log('👥 Teammate quests:', partnerDomesticQuests.length);
       
     } catch (error) {
       console.error('❌ Error generating daily quests:', error);
@@ -2759,7 +2759,7 @@ function ChoreChampionsApp() {
                 If you're into challenges, board games, dares, have a competitive streak, and love leveling up in life, this is the perfect game for you. Domestic Dominion transforms ordinary duties into exciting duels and shared victories that make teamwork actually fun.
               </p>
               <p>
-                So grab your partner, claim your quests, and start ruling your household like the champions you are.
+                So grab your teammate, claim your quests, and start ruling your household like the champions you are.
               </p>
               <p className="font-semibold text-yellow-200">
                 Your dominion awaits — let the adventure begin!
@@ -2802,20 +2802,20 @@ function ChoreChampionsApp() {
     setShowAuth(true);
   };
 
-  // Get couple data for NES interface
+  // Get household data for NES interface
   const getCoupleData = () => {
-    if (currentUser && partner) {
+    if (currentUser && teammate) {
       return {
         coupleId: currentUser.coupleId,
         creatorName: currentUser.displayName,
-        partnerName: partner.displayName,
+        partnerName: teammate.displayName,
         isActive: true
       };
     }
     return {
       coupleId: currentUser?.coupleId,
       creatorName: currentUser?.displayName,
-      partnerName: 'Partner',
+      partnerName: 'Teammate',
       isActive: false
     };
   };
@@ -2969,7 +2969,7 @@ function ChoreChampionsApp() {
 
         <NESGameInterface 
           user={currentUser}
-          couple={getCoupleData()}
+          household={getCoupleData()}
           onLogout={handleLogout}
         />
       </div>
@@ -2993,7 +2993,7 @@ function ChoreChampionsApp() {
               <h1 className="text-2xl md:text-4xl font-bold drop-shadow-lg">🏰 Domestic Dominion</h1>
               <p className="text-purple-100 text-sm md:text-lg">Hero: {currentUser.displayName}</p>
               <p className="text-purple-200 text-sm md:text-base">
-                Partner: {partner?.displayName || currentUser.partnerName || 'Awaiting Partner'}
+                Teammate: {teammate?.displayName || currentUser.partnerName || 'Awaiting Teammate'}
               </p>
             </div>
             
@@ -3019,7 +3019,7 @@ function ChoreChampionsApp() {
               </div>
               
               <Badge className="bg-white/20 text-white text-sm md:text-lg px-2 md:px-3 py-1">
-                Party: {partner?.displayName || currentUser.partnerName || 'Solo'}
+                Party: {teammate?.displayName || currentUser.partnerName || 'Solo'}
               </Badge>
               
               <Button 
@@ -3552,9 +3552,9 @@ function ChoreChampionsApp() {
                   
                   {/* Daily Connection Features */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Daily Trivia & Partner Questions */}
+                    {/* Daily Trivia & Teammate Questions */}
                     <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200 p-6">
-                      <h3 className="text-xl font-bold mb-3 text-purple-800">🎲 Partner Trivia Challenge</h3>
+                      <h3 className="text-xl font-bold mb-3 text-purple-800">🎲 Teammate Trivia Challenge</h3>
                       <p className="text-gray-700 mb-4 italic">"{dailyQuestion}"</p>
                       <p className="text-xs text-purple-600 mb-3">🎯 Answer correctly to earn 10 XP • Future ally trivia!</p>
                       
@@ -4051,20 +4051,20 @@ function ChoreChampionsApp() {
                 <h2 className="text-3xl font-bold">👥 {currentUser?.partnerName ? `${currentUser.partnerName}'s Quests` : 'My Ally'}</h2>
               </div>
               
-              {partner ? (
+              {teammate ? (
                 <div className="space-y-6">
-                  {/* Partner Stats */}
+                  {/* Teammate Stats */}
                   <div className="bg-white rounded-lg shadow-lg p-6">
                     <div className="text-center">
                       <div className="text-6xl mb-4">👤</div>
-                      <h3 className="text-2xl font-bold mb-2">{partner.displayName}</h3>
-                      <p className="text-gray-600 mb-4">Your adventure partner</p>
+                      <h3 className="text-2xl font-bold mb-2">{teammate.displayName}</h3>
+                      <p className="text-gray-600 mb-4">Your adventure teammate</p>
                       
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                         <div className="bg-blue-50 p-4 rounded-lg">
                           <div className="text-2xl mb-2">📊</div>
-                          <h4 className="font-bold">Level {partner.level || 1}</h4>
-                          <p className="text-sm text-gray-600">{partner.totalPoints || 0} total points</p>
+                          <h4 className="font-bold">Level {teammate.level || 1}</h4>
+                          <p className="text-sm text-gray-600">{teammate.totalPoints || 0} total points</p>
                         </div>
                         
                         <div className="bg-green-50 p-4 rounded-lg">
@@ -4082,9 +4082,9 @@ function ChoreChampionsApp() {
                     </div>
                   </div>
 
-                  {/* Partner's Today's Chores */}
+                  {/* Teammate's Today's Chores */}
                   <div className="bg-white rounded-lg shadow-lg p-6">
-                    <h3 className="text-lg font-bold mb-4">🎯 {partner.displayName}'s Quests for Today</h3>
+                    <h3 className="text-lg font-bold mb-4">🎯 {teammate.displayName}'s Quests for Today</h3>
                     
                     {partnerChores.length > 0 ? (
                       <div className="space-y-3">
@@ -4122,7 +4122,7 @@ function ChoreChampionsApp() {
                                     setPartnerChores(prev => prev.map(c => 
                                       c.id === chore.id ? {...c, completed: true, takenOver: true} : c
                                     ));
-                                    setCelebrationMessage(`🎉 Task Takeover! You earned ${takeoverPoints} points (3x bonus) for helping your partner!`);
+                                    setCelebrationMessage(`🎉 Task Takeover! You earned ${takeoverPoints} points (3x bonus) for helping your teammate!`);
                                     setTimeout(() => setCelebrationMessage(''), 3000);
                                   }}
                                   className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 text-sm font-bold"
@@ -4142,7 +4142,7 @@ function ChoreChampionsApp() {
                       </div>
                     ) : (
                       <div className="text-center py-8 text-gray-500">
-                        No chores assigned to {partner.displayName} today
+                        No chores assigned to {teammate.displayName} today
                       </div>
                     )}
                   </div>
@@ -4152,7 +4152,7 @@ function ChoreChampionsApp() {
                   <div className="text-center py-8">
                     <div className="text-4xl mb-4">👥</div>
                     <h3 className="text-xl font-bold mb-2">No Teammate Yet</h3>
-                    <p className="text-gray-600">Invite your partner to join the adventure!</p>
+                    <p className="text-gray-600">Invite your teammate to join the adventure!</p>
                   </div>
                 </div>
               )}
@@ -4288,7 +4288,7 @@ function ChoreChampionsApp() {
                         <span className={`font-semibold ${
                           message.sender === currentUser.userId ? 'text-blue-800' : 'text-green-800'
                         }`}>
-                          {message.sender === currentUser.userId ? 'You' : partner?.displayName || 'Partner'}
+                          {message.sender === currentUser.userId ? 'You' : teammate?.displayName || 'Teammate'}
                         </span>
                         <span className="text-sm text-gray-500">
                           {new Date(message.timestamp).toLocaleString()}
@@ -4355,7 +4355,7 @@ function ChoreChampionsApp() {
                 <div className="flex items-center">
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-yellow-800">🏆 Free Tiers 1-5 Available</h3>
-                    <p className="text-yellow-700">Unlock premium tiers 6-10 with in-app purchase for advanced mastery nodes and couple bonuses!</p>
+                    <p className="text-yellow-700">Unlock premium tiers 6-10 with in-app purchase for advanced mastery nodes and household bonuses!</p>
                   </div>
                   <Button className="bg-yellow-600 hover:bg-yellow-700 text-white ml-4">
                     Unlock Premium 👑
@@ -4561,7 +4561,7 @@ function ChoreChampionsApp() {
                 </p>
                 <div className="flex justify-center space-x-4">
                   <Badge className="bg-white/20 text-white px-4 py-2">
-                    Partner Progress: 🌱 Tier {Math.max(...Object.values(TALENT_TREE_NODES).filter(n => partner?.talentBuild?.[n.id]).map(n => n.tier) || [0])}
+                    Teammate Progress: 🌱 Tier {Math.max(...Object.values(TALENT_TREE_NODES).filter(n => teammate?.talentBuild?.[n.id]).map(n => n.tier) || [0])}
                   </Badge>
                   <Badge className="bg-white/20 text-white px-4 py-2">
                     Your Progress: 🌱 Tier {Math.max(...Object.values(TALENT_TREE_NODES).filter(n => currentUser.talentBuild?.[n.id]).map(n => n.tier) || [0])}
@@ -4574,11 +4574,11 @@ function ChoreChampionsApp() {
           {/* US Activities removed - covered in All Quests */}
           {false && activeTab === 'games' && (
             <div>
-              <h2 className="text-3xl font-bold mb-6">💕 US Activities & Couple Tasks</h2>
+              <h2 className="text-3xl font-bold mb-6">💕 US Activities & Household Tasks</h2>
               
               <div className="bg-white rounded-lg shadow-lg p-6">
                 <div className="mb-6">
-                  <h3 className="text-lg font-bold mb-4">Complete US/Couple Task Library</h3>
+                  <h3 className="text-lg font-bold mb-4">Complete US/Household Task Library</h3>
                   <p className="text-gray-600 mb-4">Activities that bring you together and strengthen your partnership.</p>
                 </div>
                 
