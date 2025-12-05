@@ -4349,8 +4349,8 @@ function ChoreChampionsApp() {
       {/* End of main interface */}
       </div>
 
-      {/* Onboarding */}
-      <OnboardingModal isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
+      {/* Onboarding - DISABLED, using EnhancedOnboarding instead */}
+      {/* <OnboardingModal isOpen={showOnboarding} onComplete={handleOnboardingComplete} /> */}
       
       {/* Enhanced Onboarding */}
       <EnhancedOnboarding 
