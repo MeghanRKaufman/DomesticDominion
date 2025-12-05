@@ -934,7 +934,7 @@ class Household(BaseModel):
     hasDishwasher: bool = False
     livesUpstairs: bool = False
     gamePreferences: Dict[str, Any] = Field(default_factory=dict)
-    customizedChores: List[str] = Field(default_factory=list)
+    customizedChores: List[dict] = Field(default_factory=list)  # List of task dictionaries
     created_at: datetime = Field(default_factory=datetime.utcnow)
     
 class HouseholdInvitation(BaseModel):
