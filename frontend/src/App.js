@@ -3034,87 +3034,85 @@ function ChoreChampionsApp() {
       </div>
 
       {/* Main Interface - Proper Layout */}
-      <div className="min-h-screen">
-        {/* Mobile Navigation Toggle */}
-        <div className="md:hidden bg-white border-b px-4 py-2">
-          <button 
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="flex items-center space-x-2 text-gray-700"
-          >
-            <span className="text-xl">☰</span>
-            <span>Menu</span>
-          </button>
-        </div>
-
-        <div className="flex">
-          {/* Desktop Sidebar */}
-          <div className="hidden md:block w-64 bg-white shadow-lg min-h-screen border-r">
-          <div className="p-4">
-            <h3 className="text-lg font-bold mb-4 text-gray-800">🗺️ Quest Areas</h3>
-            
-            <div className="space-y-2">
-              <button
-                onClick={() => setActiveTab('my-chores')}
-                className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
-                  activeTab === 'my-chores' 
-                    ? 'bg-blue-100 text-blue-800 border border-blue-200' 
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                ⚔️ My Quest Log
-              </button>
+      <div className="min-h-screen bg-gray-50">
+        {/* Horizontal Tabs Navigation */}
+        <div className="bg-white border-b shadow-sm sticky top-0 z-10">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex space-x-1 overflow-x-auto">
+              {/* Admin/King Tab - Only for admins */}
+              {currentUser?.role === 'admin' && (
+                <button
+                  onClick={() => setActiveTab('admin')}
+                  className={`px-6 py-4 font-medium whitespace-nowrap border-b-4 transition-colors ${
+                    activeTab === 'admin'
+                      ? 'border-purple-600 text-purple-600 bg-purple-50'
+                      : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                  }`}
+                >
+                  👑 Kingdom Control
+                </button>
+              )}
               
               <button
+                onClick={() => setActiveTab('my-chores')}
+                className={`px-6 py-4 font-medium whitespace-nowrap border-b-4 transition-colors ${
+                  activeTab === 'my-chores'
+                    ? 'border-blue-600 text-blue-600 bg-blue-50'
+                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                }`}
+              >
+                ⚔️ My Quests
+              </button>
+
+              <button
                 onClick={() => setActiveTab('all-chores')}
-                className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
-                  activeTab === 'all-chores' 
-                    ? 'bg-blue-100 text-blue-800 border border-blue-200' 
-                    : 'text-gray-600 hover:bg-gray-100'
+                className={`px-6 py-4 font-medium whitespace-nowrap border-b-4 transition-colors ${
+                  activeTab === 'all-chores'
+                    ? 'border-blue-600 text-blue-600 bg-blue-50'
+                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50'
                 }`}
               >
                 📋 All Quests
               </button>
-              
+
               <button
                 onClick={() => setActiveTab('teammate')}
-                className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
-                  activeTab === 'teammate' 
-                    ? 'bg-blue-100 text-blue-800 border border-blue-200' 
-                    : 'text-gray-600 hover:bg-gray-100'
+                className={`px-6 py-4 font-medium whitespace-nowrap border-b-4 transition-colors ${
+                  activeTab === 'teammate'
+                    ? 'border-blue-600 text-blue-600 bg-blue-50'
+                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50'
                 }`}
               >
-                👥 {partner?.displayName || currentUser?.partnerName || 'My Teammate'}
+                👥 Teammates
               </button>
-              
+
               <button
                 onClick={() => setActiveTab('talent-tree')}
-                className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
-                  activeTab === 'talent-tree' 
-                    ? 'bg-blue-100 text-blue-800 border border-blue-200' 
-                    : 'text-gray-600 hover:bg-gray-100'
+                className={`px-6 py-4 font-medium whitespace-nowrap border-b-4 transition-colors ${
+                  activeTab === 'talent-tree'
+                    ? 'border-blue-600 text-blue-600 bg-blue-50'
+                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50'
                 }`}
               >
                 🌳 Talent Tree
               </button>
-              
+
               <button
                 onClick={() => setActiveTab('ai-messages')}
-                className={`w-full text-left p-3 rounded-lg font-medium transition-colors ${
-                  activeTab === 'ai-messages' 
-                    ? 'bg-blue-100 text-blue-800 border border-blue-200' 
-                    : 'text-gray-600 hover:bg-gray-100'
+                className={`px-6 py-4 font-medium whitespace-nowrap border-b-4 transition-colors ${
+                  activeTab === 'ai-messages'
+                    ? 'border-blue-600 text-blue-600 bg-blue-50'
+                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50'
                 }`}
               >
                 🤖 AI Messages
               </button>
             </div>
           </div>
+        </div>
 
-          {/* Room Filters (for all chores view) */}
-          {(activeTab === 'all-chores' || activeTab === 'my-chores') && (
-            <div className="p-4 border-t">
-              <h4 className="text-sm font-bold mb-3 text-gray-600 uppercase">🏠 Rooms</h4>
-              <div className="space-y-1">
+        <div className="flex">
+          {/* Remove old sidebar navigation - replaced with tabs above */}
                 {Object.entries(ROOMS).map(([roomKey, room]) => (
                   <button
                     key={roomKey}
