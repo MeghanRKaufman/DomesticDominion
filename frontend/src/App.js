@@ -1708,6 +1708,48 @@ function ChoreChampionsApp() {
   ]);
   const [newTodoItem, setNewTodoItem] = useState('');
 
+  // Talent Tree - Handle Node Unlock
+  const handleNodeUnlock = async (nodeId) => {
+    if (!currentUser) return;
+    
+    try {
+      // Get the node details
+      const node = TALENT_TREE_NODES[nodeId];
+      if (!node) {
+        console.error('Node not found:', nodeId);
+        return;
+      }
+      
+      // Check if user has enough talent points
+      if (currentUser.talentPoints < node.cost) {
+        alert(`Not enough talent points! Need ${node.cost}, have ${currentUser.talentPoints}`);
+        return;
+      }
+      
+      // Update user locally
+      const updatedUser = {
+        ...currentUser,
+        talentPoints: currentUser.talentPoints - node.cost,
+        talentBuild: {
+          ...currentUser.talentBuild,
+          nodeIds: [...(currentUser.talentBuild?.nodeIds || []), nodeId]
+        }
+      };
+      
+      setCurrentUser(updatedUser);
+      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+      
+      // Call backend to save (optional - could add API call here)
+      console.log('✅ Unlocked talent node:', node.name);
+      alert(`🎉 Unlocked: ${node.name}!`);
+      
+    } catch (error) {
+      console.error('Error unlocking node:', error);
+      alert('Error unlocking talent. Please try again.');
+    }
+  };
+
+
   // Load user from localStorage on app start
   useEffect(() => {
     const savedUser = localStorage.getItem('currentUser');
