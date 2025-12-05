@@ -1793,9 +1793,7 @@ function ChoreChampionsApp() {
         if (user.userId) {
           setCurrentUser(user);
           setShowAuth(false);
-          if (!hasSeenOnboarding) {
-            setShowOnboarding(true);
-          }
+          // Removed old onboarding popup - using EnhancedOnboarding only
           loadGameData(user);
           
           // Generate daily quests for existing users who don't have them
