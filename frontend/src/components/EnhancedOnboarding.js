@@ -10,16 +10,17 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
   const [onboardingData, setOnboardingData] = useState({
     // Personal Info
     playerName: '',
-    partnerName: '',
     
-    // Kingdom Info
+    // Household Info
+    householdType: 'roommates', // 'family', 'roommates', 'couple', 'other'
+    memberLimit: 4, // 2-12+ members
     kingdomName: '',
     
     // Household Setup
     hasPets: false,
     petTypes: [],
     hasVehicle: false,
-    vehicleSharing: 'shared', // 'shared', 'separate', 'none'
+    vehicleSharing: 'none', // 'shared', 'separate', 'none'
     livingSituation: '', // 'apartment', 'house', 'other'
     householdSize: 2,
     
@@ -38,7 +39,7 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
     selectedChoreCategories: [],
     customChores: [],
     
-    // Communication Preferences (removed difficulty - game is same intensity for everyone)
+    // Communication Preferences
     notificationPreferences: {
       daily: true,
       verification: true,
@@ -46,7 +47,7 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
     }
   });
 
-  const totalSteps = 9; // Congratulations → Name → Partner → Kingdom → Living → Pets → Vehicles → Summary → Invitation
+  const totalSteps = 8; // Welcome → Name → Household Type → Kingdom → Living → Pets → Vehicles → Summary
 
   const handleInputChange = (field, value) => {
     setOnboardingData(prev => ({
