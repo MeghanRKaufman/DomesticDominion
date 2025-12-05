@@ -2950,8 +2950,19 @@ function ChoreChampionsApp() {
                         const response = await axios.post(
                           `${API}/households/${currentUser.householdId}/assign-chores?admin_user_id=${currentUser.userId}`
                         );
-                        alert(response.data.message);
-                        window.location.reload(); // Refresh to show assigned quests
+                        alert(response.data.message + `\n\n${response.data.totalTasks} tasks distributed among ${response.data.totalMembers} member(s)`);
+                        
+                        // Reload the chores data instead of full page reload
+                        const today = new Date().toISOString().split('T')[0];
+                        try {
+                          // Try to fetch tasks from database
+                          const tasksResponse = await axios.get(`${API}/tasks?householdId=${currentUser.householdId}&date=${today}`);
+                          setMyDailyChores(tasksResponse.data || []);
+                        } catch (err) {
+                          console.error('Error loading tasks:', err);
+                          // If no endpoint exists, just refresh the page
+                          window.location.reload();
+                        }
                       } catch (error) {
                         const errorMsg = error.response?.data?.detail || error.message;
                         alert('Error assigning chores: ' + errorMsg);
