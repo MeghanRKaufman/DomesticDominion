@@ -57,8 +57,13 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
   };
 
   const nextStep = () => {
-    if (step < totalSteps) {
-      setStep(step + 1);
+    if (step < totalSteps()) {
+      // Skip pet types step if no pets
+      if (step === 4 && !onboardingData.hasPets) {
+        setStep(step + 2); // Skip to bathrooms
+      } else {
+        setStep(step + 1);
+      }
     } else {
       onComplete(onboardingData);
     }
@@ -66,9 +71,200 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
 
   const prevStep = () => {
     if (step > 1) {
-      setStep(step - 1);
+      // Skip pet types step when going back if no pets
+      if (step === 6 && !onboardingData.hasPets) {
+        setStep(step - 2); // Go back to pets question
+      } else {
+        setStep(step - 1);
+      }
     }
   };
+
+  // Step 1: Player Name
+  const renderStep1 = () => (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold mb-2">👋 Welcome to Domestic Dominion!</h2>
+        <p className="text-gray-600">Let's set up your household adventure</p>
+      </div>
+      
+      <div>
+        <Label htmlFor="playerName">What's your name?</Label>
+        <Input
+          id="playerName"
+          value={onboardingData.playerName}
+          onChange={(e) => handleInputChange('playerName', e.target.value)}
+          placeholder="Enter your name"
+          className="text-lg"
+        />
+      </div>
+      
+      <div className="bg-blue-50 p-4 rounded-lg">
+        <p className="text-sm text-blue-700">
+          💡 This quick setup will help us customize your experience!
+        </p>
+      </div>
+    </div>
+  );
+
+  // Step 2: Household Type
+  const renderStep2 = () => (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold mb-2">🏠 Household Type</h2>
+        <p className="text-gray-600">What type of home do you live in?</p>
+      </div>
+      
+      <div className="grid grid-cols-1 gap-3">
+        {['Apartment', 'House', 'Shared Housing / Dorm'].map(type => (
+          <Button
+            key={type}
+            variant={onboardingData.householdType === type ? 'default' : 'outline'}
+            onClick={() => handleInputChange('householdType', type)}
+            className="h-20 text-lg"
+          >
+            {type === 'Apartment' && '🏢 '}
+            {type === 'House' && '🏡 '}
+            {type === 'Shared Housing / Dorm' && '🏘️ '}
+            {type}
+          </Button>
+        ))}
+      </div>
+    </div>
+  );
+
+  // Step 3: Household Size
+  const renderStep3 = () => (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold mb-2">👥 Household Size</h2>
+        <p className="text-gray-600">How many people live in your home (including you)?</p>
+      </div>
+      
+      <div className="grid grid-cols-5 gap-3">
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+          <Button
+            key={num}
+            variant={onboardingData.householdSize === num ? 'default' : 'outline'}
+            onClick={() => handleInputChange('householdSize', num)}
+            className="h-16 text-xl font-bold"
+          >
+            {num}
+          </Button>
+        ))}
+      </div>
+    </div>
+  );
+
+  // Step 4: Key Appliances
+  const renderStep4 = () => (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold mb-2">🔧 Key Appliances</h2>
+        <p className="text-gray-600">Which appliances do you have?</p>
+      </div>
+      
+      <div className="space-y-3">
+        {['Washer', 'Dryer', 'Dishwasher'].map(appliance => (
+          <Button
+            key={appliance}
+            variant={onboardingData.appliances.includes(appliance) ? 'default' : 'outline'}
+            onClick={() => handleArrayToggle('appliances', appliance)}
+            className="w-full h-16 text-lg"
+          >
+            {appliance === 'Washer' && '🧺 '}
+            {appliance === 'Dryer' && '🌀 '}
+            {appliance === 'Dishwasher' && '🍽️ '}
+            {appliance}
+            {onboardingData.appliances.includes(appliance) && ' ✓'}
+          </Button>
+        ))}
+      </div>
+      
+      <p className="text-sm text-gray-500 text-center">Select all that apply</p>
+    </div>
+  );
+
+  // Step 5: Pets
+  const renderStep5 = () => (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold mb-2">🐾 Pets</h2>
+        <p className="text-gray-600">Do you have pets?</p>
+      </div>
+      
+      <div className="grid grid-cols-2 gap-4">
+        <Button
+          variant={onboardingData.hasPets === true ? 'default' : 'outline'}
+          onClick={() => handleInputChange('hasPets', true)}
+          className="h-24 flex flex-col items-center justify-center text-lg"
+        >
+          <div className="text-4xl mb-2">🐶</div>
+          <div>Yes</div>
+        </Button>
+        <Button
+          variant={onboardingData.hasPets === false ? 'default' : 'outline'}
+          onClick={() => handleInputChange('hasPets', false)}
+          className="h-24 flex flex-col items-center justify-center text-lg"
+        >
+          <div className="text-4xl mb-2">🚫</div>
+          <div>No</div>
+        </Button>
+      </div>
+    </div>
+  );
+
+  // Step 5a: Pet Types (conditional)
+  const renderStep5a = () => (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold mb-2">🐕 Pet Types</h2>
+        <p className="text-gray-600">Which types of pets do you have?</p>
+      </div>
+      
+      <div className="space-y-3">
+        {['Dogs', 'Cats', 'Other small pets'].map(petType => (
+          <Button
+            key={petType}
+            variant={onboardingData.petTypes.includes(petType) ? 'default' : 'outline'}
+            onClick={() => handleArrayToggle('petTypes', petType)}
+            className="w-full h-16 text-lg"
+          >
+            {petType === 'Dogs' && '🐕 '}
+            {petType === 'Cats' && '🐈 '}
+            {petType === 'Other small pets' && '🐹 '}
+            {petType}
+            {onboardingData.petTypes.includes(petType) && ' ✓'}
+          </Button>
+        ))}
+      </div>
+      
+      <p className="text-sm text-gray-500 text-center">Select all that apply</p>
+    </div>
+  );
+
+  // Step 6: Bathrooms
+  const renderStep6 = () => (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold mb-2">🚿 Bathrooms</h2>
+        <p className="text-gray-600">How many bathrooms are in your home?</p>
+      </div>
+      
+      <div className="grid grid-cols-5 gap-3">
+        {[1, 2, 3, 4, 5].map(num => (
+          <Button
+            key={num}
+            variant={onboardingData.bathrooms === num ? 'default' : 'outline'}
+            onClick={() => handleInputChange('bathrooms', num)}
+            className="h-16 text-xl font-bold"
+          >
+            {num}
+          </Button>
+        ))}
+      </div>
+    </div>
+  );
 
   const renderProgressBar = () => (
     <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
