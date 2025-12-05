@@ -142,7 +142,7 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
         <ul className="text-sm space-y-1">
           <li>1. You'll create your household "Kingdom"</li>
           <li>2. Set up tasks that fit your living situation</li>
-          <li>3. Invite your partner to join the adventure</li>
+          <li>3. Invite household members to join the adventure</li>
           <li>4. Start completing quests together and level up!</li>
         </ul>
       </div>
@@ -152,26 +152,79 @@ const EnhancedOnboarding = ({ isOpen, onComplete, onClose }) => {
   const renderStep3 = () => (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-3xl font-bold mb-2">👥 Your Partner's Name</h2>
-        <p className="text-gray-600">What should we call your partner in the royal invitation?</p>
+        <h2 className="text-3xl font-bold mb-2">🏠 What Type of Household?</h2>
+        <p className="text-gray-600">This helps us customize your experience</p>
       </div>
       
-      <div className="space-y-4">
-        <div>
-          <Label htmlFor="partnerName">Partner's Name</Label>
-          <Input
-            id="partnerName"
-            type="text"
-            placeholder="Enter your partner's name"
-            value={onboardingData.partnerName || ''}
-            onChange={(e) => handleInputChange('partnerName', e.target.value)}
-            className="text-lg p-4 text-center"
-          />
+      <div className="grid grid-cols-2 gap-4">
+        <Button
+          variant={onboardingData.householdType === 'family' ? 'default' : 'outline'}
+          onClick={() => handleInputChange('householdType', 'family')}
+          className="h-32 flex flex-col items-center justify-center text-lg"
+        >
+          <div className="text-4xl mb-2">👨‍👩‍👧‍👦</div>
+          <div className="font-bold">Family</div>
+          <div className="text-xs opacity-75">Parents & kids</div>
+        </Button>
+
+        <Button
+          variant={onboardingData.householdType === 'roommates' ? 'default' : 'outline'}
+          onClick={() => handleInputChange('householdType', 'roommates')}
+          className="h-32 flex flex-col items-center justify-center text-lg"
+        >
+          <div className="text-4xl mb-2">🏠</div>
+          <div className="font-bold">Roommates</div>
+          <div className="text-xs opacity-75">Sharing a place</div>
+        </Button>
+
+        <Button
+          variant={onboardingData.householdType === 'couple' ? 'default' : 'outline'}
+          onClick={() => handleInputChange('householdType', 'couple')}
+          className="h-32 flex flex-col items-center justify-center text-lg"
+        >
+          <div className="text-4xl mb-2">💑</div>
+          <div className="font-bold">Couple</div>
+          <div className="text-xs opacity-75">Just the two of us</div>
+        </Button>
+
+        <Button
+          variant={onboardingData.householdType === 'other' ? 'default' : 'outline'}
+          onClick={() => handleInputChange('householdType', 'other')}
+          className="h-32 flex flex-col items-center justify-center text-lg"
+        >
+          <div className="text-4xl mb-2">🎮</div>
+          <div className="font-bold">Other</div>
+          <div className="text-xs opacity-75">Custom setup</div>
+        </Button>
+      </div>
+
+      <div className="mt-6">
+        <Label className="text-lg font-semibold">How many members? (including you)</Label>
+        <div className="grid grid-cols-6 gap-2 mt-3">
+          {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(num => (
+            <Button
+              key={num}
+              variant={onboardingData.memberLimit === num ? 'default' : 'outline'}
+              onClick={() => handleInputChange('memberLimit', num)}
+              className="h-16 text-lg font-bold"
+            >
+              {num}
+            </Button>
+          ))}
+          <Button
+            variant={onboardingData.memberLimit === 99 ? 'default' : 'outline'}
+            onClick={() => handleInputChange('memberLimit', 99)}
+            className="h-16 text-sm font-bold"
+          >
+            12+
+          </Button>
         </div>
-        
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <p className="text-sm text-blue-700">
-            💡 <strong>Tip:</strong> This name will appear in your royal invitation and throughout the game when referring to your partner.
+      </div>
+
+      <div className="bg-blue-50 p-4 rounded-lg">
+        <p className="text-sm text-blue-700">
+          💡 <strong>Tip:</strong> You can always invite more members later. Start with your current household size.
+        </p>
           </p>
         </div>
       </div>
