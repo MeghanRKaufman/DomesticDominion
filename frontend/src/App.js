@@ -2300,44 +2300,37 @@ function ChoreChampionsApp() {
     setLoading(true);
     
     try {
-      // Create enhanced household with onboarding data
+      // Create enhanced household with new onboarding data format
       const response = await axios.post(`${API}/households/create-enhanced`, {
         playerName: onboardingData.playerName,
-        householdType: 'roommates', // Default to roommates, can be customized later
-        memberLimit: 12, // Default max members
+        householdType: onboardingData.householdType || 'Apartment',
+        memberLimit: onboardingData.householdSize || 4,
         householdSetup: {
+          householdSize: onboarding Data.householdSize,
           hasPets: onboardingData.hasPets,
           petTypes: onboardingData.petTypes,
-          hasVehicle: onboardingData.hasVehicle,
-          vehicleSharing: onboardingData.vehicleSharing,
-          livingSituation: onboardingData.livingSituation,
-          householdSize: onboardingData.householdSize,
-          hasChildren: onboardingData.hasChildren,
-          hasElderly: onboardingData.hasElderly,
-          hasSpecialNeeds: onboardingData.hasSpecialNeeds,
-          specialNeedsDetails: onboardingData.specialNeedsDetails
+          bathrooms: onboardingData.bathrooms,
+          hasYard: onboardingData.hasYard,
+          environmentalConditions: onboardingData.environmentalConditions
         },
-        hasWasherDryer: onboardingData.hasWasherDryer,
-        hasDishwasher: onboardingData.hasDishwasher,
-        livesUpstairs: onboardingData.livesUpstairs,
-        preferences: {
-          difficulty: onboardingData.difficultyPreference,
-          notifications: onboardingData.notificationPreferences
-        }
+        hasWasherDryer: onboardingData.appliances?.includes('Washer') && onboardingData.appliances?.includes('Dryer'),
+        hasDishwasher: onboardingData.appliances?.includes('Dishwasher'),
+        livesUpstairs: false, // Not in new onboarding
+        preferences: {}
       });
       
-      // The backend already creates the admin user, so we just need to fetch it
-      // or the response should include the user data
       const householdData = response.data;
       
-      // For now, create a mock user object since backend should have created it
+      // Create user object
       const currentUserData = {
-        userId: `user_${Date.now()}`, // Temporary - should come from backend
+        userId: `user_${Date.now()}`,
         displayName: onboardingData.playerName,
         householdId: householdData.inviteCode,
         role: 'admin',
         points: 0,
-        level: 1
+        level: 1,
+        talentPoints: 0,
+        talentBuild: { nodeIds: [] }
       };
       
       localStorage.setItem('currentUser', JSON.stringify(currentUserData));
@@ -2345,18 +2338,11 @@ function ChoreChampionsApp() {
       setCurrentUser(currentUserData);
       setShowEnhancedOnboarding(false);
       
-      // Success! User is now logged in and should see the main game
-      console.log('🎉 Household created successfully!', householdData);
-      console.log('🎯 User state updated, should show main game now');
+      console.log('🎉 Household created successfully with', householdData.customizedChores?.length || 0, 'custom chores!');
       
-      // Load game data for the new user
+      // Load game data
       await loadGameData(currentUserData);
       
-      // Note: Chores are NOT auto-assigned yet
-      // Admin must click "Assign Chores" button after all members join
-      // This triggers automatic FAIR/EVEN distribution among all members
-      
-      // Close onboarding and go straight to main app
       setShowOnboarding(false);
       
     } catch (error) {
