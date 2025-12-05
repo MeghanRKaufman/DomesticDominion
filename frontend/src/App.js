@@ -1909,7 +1909,7 @@ function ChoreChampionsApp() {
   const [tasks, setTasks] = useState({});
   const [showAuth, setShowAuth] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [activeTab, setActiveTab] = useState('my-chores');
+  const [activeTab, setActiveTab] = useState('home'); // Changed default to 'home'
   const [celebrationMessage, setCelebrationMessage] = useState('');
   const [selectedRoom, setSelectedRoom] = useState('my-chores');
   const [myDailyChores, setMyDailyChores] = useState([]);
