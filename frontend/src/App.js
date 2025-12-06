@@ -3281,7 +3281,7 @@ function ChoreChampionsApp() {
                   <div className="space-y-3">
                     {myDailyChores && myDailyChores.length > 0 ? (
                       myDailyChores.map((chore, index) => (
-                        <div key={chore.id} className="flex items-center justify-between p-4 bg-white rounded-lg border-l-4 border-blue-400 shadow hover:shadow-lg transition-shadow">
+                        <div key={chore.taskId || chore.id || index} className="flex items-center justify-between p-4 bg-white rounded-lg border-l-4 border-blue-400 shadow hover:shadow-lg transition-shadow">
                           <div className="flex items-center space-x-4">
                             <div className="w-10 h-10 rounded-full bg-blue-200 text-blue-800 flex items-center justify-center font-bold">
                               {index + 1}
@@ -3293,7 +3293,35 @@ function ChoreChampionsApp() {
                           </div>
                           <div className="text-right">
                             <div className="text-2xl font-bold text-blue-600">+{chore.basePoints} XP</div>
-                            <Button size="sm" className="mt-2">Complete</Button>
+                            <Button 
+                              size="sm" 
+                              className="mt-2"
+                              onClick={async () => {
+                                try {
+                                  // Mark task as complete in database
+                                  await axios.post(`${API}/tasks/${chore.taskId}/complete`, {
+                                    userId: currentUser.userId
+                                  });
+                                  
+                                  // Award XP to user
+                                  const newPoints = currentUser.points + chore.basePoints;
+                                  const updatedUser = { ...currentUser, points: newPoints };
+                                  setCurrentUser(updatedUser);
+                                  localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+                                  
+                                  // Remove from list
+                                  setMyDailyChores(prev => prev.filter(c => c.taskId !== chore.taskId));
+                                  
+                                  // Show success
+                                  alert(`✅ Quest Complete! +${chore.basePoints} XP earned!\n\nTotal XP: ${newPoints}`);
+                                } catch (error) {
+                                  console.error('Error completing task:', error);
+                                  alert('Error completing task. Please try again.');
+                                }
+                              }}
+                            >
+                              Complete
+                            </Button>
                           </div>
                         </div>
                       ))
