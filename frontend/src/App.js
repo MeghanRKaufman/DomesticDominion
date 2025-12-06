@@ -3093,7 +3093,6 @@ function ChoreChampionsApp() {
                           );
                         })}
                       </div>
-                      </div>
                     ) : (
                       <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed">
                         <div className="text-5xl mb-4">📋</div>
