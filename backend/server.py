@@ -2192,9 +2192,13 @@ async def get_household_tasks(householdId: str, date: str = None):
 
 
 @api_router.post("/tasks/{task_id}/complete")
-async def complete_task(task_id: str, userId: str):
+async def complete_task(task_id: str, request: dict):
     """Mark a task as complete"""
     try:
+        userId = request.get("userId")
+        if not userId:
+            raise HTTPException(status_code=400, detail="userId is required")
+        
         # Find the task
         task = await db.tasks.find_one({"taskId": task_id})
         if not task:
