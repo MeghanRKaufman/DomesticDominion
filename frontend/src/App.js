@@ -3068,22 +3068,31 @@ function ChoreChampionsApp() {
                     {myDailyChores && myDailyChores.length > 0 ? (
                       <div>
                         <h3 className="font-bold text-lg mb-3">Assigned Quests ({myDailyChores.length})</h3>
-                        {myDailyChores.map((chore, index) => (
-                          <div key={chore.id || index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border mb-2">
-                            <div className="flex-1">
-                              <h4 className="font-bold">{chore.title}</h4>
-                              <p className="text-sm text-gray-600">
-                                📍 {chore.room} • 
-                                💪 {chore.difficulty} • 
-                                💎 {chore.basePoints || chore.points || 10} XP
-                              </p>
+                        {myDailyChores.map((chore, index) => {
+                          // Get display name from assignedTo
+                          const assignedName = chore.assignedTo === currentUser.userId 
+                            ? currentUser.displayName 
+                            : chore.assignedTo || 'Unassigned';
+                          
+                          return (
+                            <div key={chore.taskId || chore.id || index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border mb-2">
+                              <div className="flex-1">
+                                <h4 className="font-bold">{chore.title || 'Untitled Task'}</h4>
+                                <p className="text-sm text-gray-600">
+                                  📍 {chore.room || 'General'} • 
+                                  💪 {chore.difficulty || 'MEDIUM'} • 
+                                  💎 {chore.basePoints || chore.points || 10} XP
+                                  {chore.category && ` • 🏷️ ${chore.category}`}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-sm text-gray-500">Assigned to</div>
+                                <div className="font-medium text-blue-600">{assignedName}</div>
+                              </div>
                             </div>
-                            <div className="text-right">
-                              <div className="text-sm text-gray-500">Assigned to</div>
-                              <div className="font-medium">{chore.assignedTo || currentUser.displayName}</div>
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
+                      </div>
                       </div>
                     ) : (
                       <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed">
