@@ -2037,17 +2037,14 @@ async def auto_assign_chores(household_id: str, admin_user_id: str):
         task_copy["assignedTo"] = assigned_member
         task_copy["date"] = today
         task_copy["householdId"] = household_id
+        task_copy["completed"] = False
+        task_copy["verified"] = False
         assignments[task["taskId"]] = assigned_member
         
-        # Save task assignment
+        # Save task assignment with ALL task fields
         await db.tasks.update_one(
             {"taskId": task["taskId"], "householdId": household_id},
-            {"$set": {
-                "assignedTo": assigned_member, 
-                "date": today,
-                "completed": False,
-                "verified": False
-            }},
+            {"$set": task_copy},
             upsert=True
         )
     
