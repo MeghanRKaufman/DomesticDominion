@@ -2010,8 +2010,15 @@ async def auto_assign_chores(household_id: str, admin_user_id: str):
     # Check if this is a new day (reset) or first assignment
     is_reset = last_assigned == today
     
-    # Get or create task list
-    tasks = DEFAULT_TASKS.copy()
+    # Get or create task list - use household's customized chores
+    if household.get("customizedChores") and len(household.get("customizedChores")) > 0:
+        tasks = household.get("customizedChores")
+    else:
+        # Fallback to default if no customized chores exist
+        tasks = DEFAULT_TASKS.copy() if 'DEFAULT_TASKS' in globals() else []
+        
+    if len(tasks) == 0:
+        raise HTTPException(status_code=400, detail="No tasks available to assign. Please recreate your household.")
     
     # Shuffle member order for fair rotation (different each time)
     shuffled_members = member_ids.copy()
