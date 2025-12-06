@@ -2189,6 +2189,51 @@ async def get_household_tasks(householdId: str, date: str = None):
         
         # Remove MongoDB _id field
         for task in tasks:
+
+
+@api_router.post("/tasks/{task_id}/complete")
+async def complete_task(task_id: str, userId: str):
+    """Mark a task as complete"""
+    try:
+        # Find the task
+        task = await db.tasks.find_one({"taskId": task_id})
+        if not task:
+            raise HTTPException(status_code=404, detail="Task not found")
+        
+        # Verify the user is assigned to this task
+        if task.get("assignedTo") != userId:
+            raise HTTPException(status_code=403, detail="You can only complete tasks assigned to you")
+        
+        # Mark as complete
+        await db.tasks.update_one(
+            {"taskId": task_id},
+            {"$set": {
+                "completed": True,
+                "completedAt": datetime.utcnow(),
+                "completedBy": userId
+            }}
+        )
+        
+        # Award XP to user
+        user = await db.users.find_one({"userId": userId})
+        if user:
+            new_points = user.get("points", 0) + task.get("basePoints", 10)
+            await db.users.update_one(
+                {"userId": userId},
+                {"$set": {"points": new_points}}
+            )
+        
+        return {
+            "message": "Task completed successfully",
+            "xpEarned": task.get("basePoints", 10),
+            "taskId": task_id
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error completing task: {e}")
+        raise HTTPException(status_code=500, detail="Error completing task")
+
             task.pop('_id', None)
         
         return tasks
