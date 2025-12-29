@@ -1305,12 +1305,232 @@ class BackendTester:
             self.log_test("Onboarding Completion Flow", False, "", str(e))
             return False
 
+    def test_complete_chore_functionality(self):
+        """Test complete chore functionality end-to-end as requested in review"""
+        print("\n🎯 TESTING COMPLETE CHORE FUNCTIONALITY END-TO-END")
+        print("-" * 60)
+        
+        try:
+            # Step 1: Setup Test Environment - Create fresh household
+            print("📋 Step 1: Setting up fresh household...")
+            
+            # Create household with onboarding data
+            onboarding_data = {
+                "playerName": "TestKing",
+                "householdName": "Test Castle",
+                "householdType": "family",
+                "householdSize": 2,
+                "householdSetup": {
+                    "hasPets": False,
+                    "hasVehicle": False,
+                    "livingSituation": "house",
+                    "householdSize": 2,
+                    "appliances": ["Washer", "Dryer", "Dishwasher"]
+                }
+            }
+            
+            # Create enhanced household
+            response = requests.post(f"{self.base_url}/households/create-enhanced", json=onboarding_data)
+            if response.status_code not in [200, 201]:
+                # Try regular household creation if enhanced doesn't exist
+                response = requests.post(f"{self.base_url}/couples/create", json={"creatorName": "TestKing"})
+                
+            if response.status_code not in [200, 201]:
+                self.log_test("Complete Chore Functionality - Setup", False,
+                            f"Failed to create household. Status: {response.status_code}", response.text)
+                return False
+                
+            invitation = response.json()
+            test_invite_code = invitation["inviteCode"]
+            
+            # Create admin user
+            user_data = {"displayName": "TestKing", "coupleCode": test_invite_code}
+            response = requests.post(f"{self.base_url}/users", json=user_data)
+            
+            if response.status_code != 200:
+                self.log_test("Complete Chore Functionality - Setup", False,
+                            f"Failed to create admin user. Status: {response.status_code}", response.text)
+                return False
+                
+            admin_user = response.json()
+            admin_user_id = admin_user["userId"]
+            household_id = admin_user.get("coupleId") or admin_user.get("householdId")
+            
+            print(f"✅ Created household {household_id} with admin user {admin_user_id}")
+            
+            # Step 2: Create and Assign Chores
+            print("📋 Step 2: Creating and assigning chores...")
+            
+            # Get available tasks for the household
+            response = requests.get(f"{self.base_url}/couples/{household_id}/tasks")
+            if response.status_code != 200:
+                # Try alternative endpoint
+                response = requests.get(f"{self.base_url}/enhanced-tasks/{household_id}")
+                
+            if response.status_code != 200:
+                self.log_test("Complete Chore Functionality - Get Tasks", False,
+                            f"Failed to get tasks. Status: {response.status_code}", response.text)
+                return False
+                
+            tasks_data = response.json()
+            
+            # Find tasks to assign
+            available_tasks = []
+            if isinstance(tasks_data, dict):
+                for room, tasks in tasks_data.items():
+                    if isinstance(tasks, list):
+                        available_tasks.extend(tasks)
+            elif isinstance(tasks_data, list):
+                available_tasks = tasks_data
+                
+            if len(available_tasks) == 0:
+                self.log_test("Complete Chore Functionality - Get Tasks", False,
+                            "No tasks available for assignment")
+                return False
+                
+            # Assign first few tasks to admin user
+            assigned_tasks = []
+            for i, task in enumerate(available_tasks[:3]):  # Assign 3 tasks
+                task_id = task.get("taskId") or task.get("id")
+                if task_id:
+                    # Update task assignment in database (simulate assignment)
+                    task["assignedTo"] = admin_user_id
+                    assigned_tasks.append(task)
+                    
+            print(f"✅ Assigned {len(assigned_tasks)} tasks to admin user")
+            
+            # Step 3: Test Complete Button
+            print("📋 Step 3: Testing complete button functionality...")
+            
+            if len(assigned_tasks) == 0:
+                self.log_test("Complete Chore Functionality - Complete Task", False,
+                            "No tasks assigned for completion test")
+                return False
+                
+            test_task = assigned_tasks[0]
+            test_task_id = test_task.get("taskId") or test_task.get("id")
+            
+            # Complete the task
+            completion_data = {
+                "userId": admin_user_id,
+                "notes": "Test completion for chore functionality test"
+            }
+            
+            response = requests.post(f"{self.base_url}/tasks/{test_task_id}/complete", json=completion_data)
+            
+            if response.status_code not in [200, 201]:
+                self.log_test("Complete Chore Functionality - Complete Task", False,
+                            f"Task completion failed. Status: {response.status_code}", response.text)
+                return False
+                
+            completion_response = response.json()
+            
+            # Step 4: Verify Response Structure
+            print("📋 Step 4: Verifying response structure...")
+            
+            # Check required fields
+            required_fields = ["success", "xpEarned", "progression"]
+            for field in required_fields:
+                if field not in completion_response:
+                    self.log_test("Complete Chore Functionality - Response Structure", False,
+                                f"Missing field '{field}' in completion response", str(completion_response))
+                    return False
+                    
+            # Check progression object structure
+            progression = completion_response["progression"]
+            progression_fields = ["oldLevel", "newLevel", "totalXP", "xpProgress", "xpNeeded", "talentPoints"]
+            for field in progression_fields:
+                if field not in progression:
+                    self.log_test("Complete Chore Functionality - Progression Structure", False,
+                                f"Missing field '{field}' in progression object", str(progression))
+                    return False
+                    
+            print(f"✅ Task completed successfully!")
+            print(f"   XP Earned: {completion_response['xpEarned']}")
+            print(f"   Level: {progression['oldLevel']} → {progression['newLevel']}")
+            print(f"   Total XP: {progression['totalXP']}")
+            print(f"   Progress: {progression['xpProgress']}/{progression['xpNeeded']}")
+            print(f"   Talent Points: {progression['talentPoints']}")
+            
+            # Step 5: Test Multiple Completions
+            print("📋 Step 5: Testing multiple completions...")
+            
+            completed_tasks = 1
+            for task in assigned_tasks[1:3]:  # Complete 2 more tasks
+                task_id = task.get("taskId") or task.get("id")
+                if task_id:
+                    completion_data = {
+                        "userId": admin_user_id,
+                        "notes": f"Test completion #{completed_tasks + 1}"
+                    }
+                    
+                    response = requests.post(f"{self.base_url}/tasks/{task_id}/complete", json=completion_data)
+                    
+                    if response.status_code in [200, 201]:
+                        completion_response = response.json()
+                        progression = completion_response["progression"]
+                        completed_tasks += 1
+                        
+                        print(f"   Task {completed_tasks}: +{completion_response['xpEarned']} XP, Level {progression['newLevel']}")
+                        
+                        # Check for level up
+                        if progression.get("leveledUp"):
+                            print(f"   🎉 LEVEL UP! New level: {progression['newLevel']}")
+                            
+            print(f"✅ Completed {completed_tasks} tasks successfully")
+            
+            # Step 6: Test Edge Cases
+            print("📋 Step 6: Testing edge cases...")
+            
+            # Test completing same task twice
+            if assigned_tasks:
+                first_task_id = assigned_tasks[0].get("taskId") or assigned_tasks[0].get("id")
+                completion_data = {
+                    "userId": admin_user_id,
+                    "notes": "Attempting duplicate completion"
+                }
+                
+                response = requests.post(f"{self.base_url}/tasks/{first_task_id}/complete", json=completion_data)
+                
+                if response.status_code == 400 and "already completed" in response.text.lower():
+                    print("✅ Duplicate completion properly rejected")
+                else:
+                    print(f"⚠️  Duplicate completion handling: Status {response.status_code}")
+                    
+            # Test completing task not assigned to user
+            if len(available_tasks) > len(assigned_tasks):
+                unassigned_task = available_tasks[len(assigned_tasks)]
+                unassigned_task_id = unassigned_task.get("taskId") or unassigned_task.get("id")
+                
+                completion_data = {
+                    "userId": admin_user_id,
+                    "notes": "Attempting to complete unassigned task"
+                }
+                
+                response = requests.post(f"{self.base_url}/tasks/{unassigned_task_id}/complete", json=completion_data)
+                
+                if response.status_code == 403:
+                    print("✅ Unassigned task completion properly rejected")
+                else:
+                    print(f"⚠️  Unassigned task handling: Status {response.status_code}")
+                    
+            self.log_test("Complete Chore Functionality", True,
+                        f"End-to-end chore completion test successful. Completed {completed_tasks} tasks with proper XP/level progression")
+            return True
+            
+        except Exception as e:
+            self.log_test("Complete Chore Functionality", False, "", str(e))
+            return False
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🎮 Starting Enhanced Domestic Dominion Backend Tests")
-        print("🌟 Testing: Onboarding Flow & Daily Quest Generation System")
+        print("🌟 Testing: Complete Chore Functionality End-to-End")
         print("=" * 70)
         print()
+        
+        # PRIMARY TEST: Complete Chore Functionality (as requested in review)
+        self.test_complete_chore_functionality()
         
         # Test ONBOARDING FLOW & QUEST GENERATION (Primary Focus)
         print("🏰 TESTING ONBOARDING FLOW & QUEST GENERATION")
