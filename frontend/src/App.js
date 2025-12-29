@@ -35,6 +35,30 @@ const MAX_NET_CHORE_SHIFT = 0.07;
 const VERIFICATION_WINDOW = 30; // minutes
 const VERIFY_PROB = 0.10; // 10% random verification
 
+// Utility function to calculate level and talent points from XP (matches backend)
+const calculateLevel = (points) => {
+  const level = Math.floor(points / POINTS_PER_LEVEL) + 1;
+  const talentPoints = Math.floor((level - 1) / LEVELS_PER_TALENT_POINT) * 1.5; // 1.5 points per 5 levels
+  return { level, talentPoints };
+};
+
+// Utility function to calculate XP progress for current level
+const calculateXPProgress = (points) => {
+  const { level } = calculateLevel(points);
+  const xpForCurrentLevel = (level - 1) * POINTS_PER_LEVEL;
+  const xpForNextLevel = level * POINTS_PER_LEVEL;
+  const xpProgress = points - xpForCurrentLevel;
+  const xpNeeded = xpForNextLevel - xpForCurrentLevel;
+  const progressPercent = (xpProgress / xpNeeded) * 100;
+  
+  return {
+    xpProgress,
+    xpNeeded,
+    progressPercent,
+    xpForNextLevel
+  };
+};
+
 // New 10-Tier Talent Tree System (Domestic Dominion)
 const TALENT_TREE_NODES = {
   // ===== HOUSEKEEPING HEROES (Country I: Sanctum of Stewardry) =====
