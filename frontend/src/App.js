@@ -2600,6 +2600,8 @@ function ChoreChampionsApp() {
   }
 
   const levelProgress = (currentUser.points % LEVEL_UP_POINTS / LEVEL_UP_POINTS) * 100;
+  const { xpProgress, xpNeeded, progressPercent } = calculateXPProgress(currentUser.points);
+  const { talentPoints } = calculateLevel(currentUser.points);
 
   // Handle logout
   const handleLogout = () => {
