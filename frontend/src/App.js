@@ -2813,9 +2813,9 @@ function ChoreChampionsApp() {
               <div className="text-center bg-white/20 rounded-lg p-2 md:p-3">
                 <div className="text-lg md:text-2xl font-bold">Level {currentUser.level}</div>
                 <div className="w-16 md:w-32">
-                  <Progress value={levelProgress} className="h-1 md:h-2 bg-purple-300" />
+                  <Progress value={progressPercent} className="h-1 md:h-2 bg-purple-300" />
                 </div>
-                <div className="text-xs md:text-sm opacity-90">{currentUser.points % LEVEL_UP_POINTS}/{LEVEL_UP_POINTS} XP</div>
+                <div className="text-xs md:text-sm opacity-90">{xpProgress}/{xpNeeded} XP</div>
               </div>
               
               {/* Stats - Compact on mobile */}
@@ -2825,7 +2825,7 @@ function ChoreChampionsApp() {
               </div>
               
               <div className="text-center">
-                <div className="text-xl md:text-3xl font-bold">⭐ {currentUser.talentPoints}</div>
+                <div className="text-xl md:text-3xl font-bold">⭐ {talentPoints}</div>
                 <div className="text-xs md:text-sm">Talent Points</div>
               </div>
               
