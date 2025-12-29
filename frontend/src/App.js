@@ -3295,32 +3295,44 @@ function ChoreChampionsApp() {
                             <div className="text-2xl font-bold text-blue-600">+{chore.basePoints} XP</div>
                             <Button 
                               size="sm" 
-                              className="mt-2"
+                              className="mt-2 bg-green-600 hover:bg-green-700"
                               onClick={async () => {
                                 try {
-                                  // Mark task as complete in database
-                                  await axios.post(`${API}/tasks/${chore.taskId}/complete`, {
+                                  // Mark task as complete in database and get progression data
+                                  const response = await axios.post(`${API}/tasks/${chore.taskId}/complete`, {
                                     userId: currentUser.userId
                                   });
                                   
-                                  // Award XP to user
-                                  const newPoints = currentUser.points + chore.basePoints;
-                                  const updatedUser = { ...currentUser, points: newPoints };
+                                  const { progression, xpEarned, message } = response.data;
+                                  
+                                  // Update user with new XP and level
+                                  const updatedUser = { 
+                                    ...currentUser, 
+                                    points: progression.totalXP,
+                                    level: progression.newLevel 
+                                  };
                                   setCurrentUser(updatedUser);
                                   localStorage.setItem('currentUser', JSON.stringify(updatedUser));
                                   
                                   // Remove from list
                                   setMyDailyChores(prev => prev.filter(c => c.taskId !== chore.taskId));
                                   
-                                  // Show success
-                                  alert(`✅ Quest Complete! +${chore.basePoints} XP earned!\n\nTotal XP: ${newPoints}`);
+                                  // Show detailed success message
+                                  const levelUpMsg = progression.leveledUp 
+                                    ? `\n\n🎉 LEVEL UP! You are now Level ${progression.newLevel}!\n🌟 Talent Points: ${progression.talentPoints}` 
+                                    : '';
+                                  
+                                  const xpProgress = `\n\n📊 Progress to Next Level:\n${progression.xpProgress} / ${progression.xpNeeded} XP`;
+                                  
+                                  alert(`${message}\n\n✨ +${xpEarned} XP earned!${levelUpMsg}${xpProgress}`);
                                 } catch (error) {
                                   console.error('Error completing task:', error);
-                                  alert('Error completing task. Please try again.');
+                                  const errorMsg = error.response?.data?.detail || 'Error completing task. Please try again.';
+                                  alert(`❌ ${errorMsg}`);
                                 }
                               }}
                             >
-                              Complete
+                              ✅ Complete
                             </Button>
                           </div>
                         </div>
