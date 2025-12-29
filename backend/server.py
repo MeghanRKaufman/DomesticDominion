@@ -2304,13 +2304,6 @@ async def complete_task(task_id: str, request: CompleteTaskRequest):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error completing task: {str(e)}")
 
-            task.pop('_id', None)
-        
-        return tasks
-    except Exception as e:
-        print(f"Error fetching tasks: {e}")
-        return []
-
 async def respond_to_chore_swap(request: RespondChoreSwapRequest):
     """Accept or decline a chore swap request"""
     swap = await db.chore_swaps.find_one({"swapId": request.swapId})
