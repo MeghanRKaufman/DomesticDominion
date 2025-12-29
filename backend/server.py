@@ -2174,9 +2174,6 @@ async def request_chore_swap(request: RequestChoreSwapRequest):
         "status": "pending"
     }
 
-@api_router.post("/chore-swaps/respond")
-
-
 @api_router.get("/tasks")
 async def get_household_tasks(householdId: str, date: str = None):
     """Get all tasks for a household, optionally filtered by date"""
