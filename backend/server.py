@@ -2451,7 +2451,7 @@ async def create_user(request: CreateUserRequest):
     """Create a new user and link to couple"""
     if request.householdCode:
         # Find couple by invite code
-        couple = await db.couples.find_one({"inviteCode": request.coupleCode})
+        couple = await db.couples.find_one({"inviteCode": request.householdCode})
         if not couple:
             raise HTTPException(status_code=404, detail="Invalid invitation code")
         
