@@ -2192,51 +2192,115 @@ async def get_household_tasks(householdId: str, date: str = None):
 
 
 @api_router.post("/tasks/{task_id}/complete")
-async def complete_task(task_id: str, request: dict):
-    """Mark a task as complete"""
+async def complete_task(task_id: str, request: CompleteTaskRequest):
+    """Complete a task and award XP with progression tracking"""
     try:
-        userId = request.get("userId")
-        if not userId:
-            raise HTTPException(status_code=400, detail="userId is required")
+        # Find the user
+        user = await db.users.find_one({"userId": request.userId}, {"_id": 0})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
         
         # Find the task
-        task = await db.tasks.find_one({"taskId": task_id})
+        task = await db.tasks.find_one({"taskId": task_id}, {"_id": 0})
         if not task:
             raise HTTPException(status_code=404, detail="Task not found")
         
         # Verify the user is assigned to this task
-        if task.get("assignedTo") != userId:
+        if task.get("assignedTo") != request.userId:
             raise HTTPException(status_code=403, detail="You can only complete tasks assigned to you")
         
-        # Mark as complete
+        # Check if already completed
+        if task.get("completed"):
+            raise HTTPException(status_code=400, detail="Task already completed")
+        
+        # Calculate XP earned
+        base_points = task.get("basePoints", 10)
+        bonus_points = request.bonusPoints or 0
+        total_xp_earned = base_points + bonus_points
+        
+        # Calculate old and new progression
+        old_points = user.get("points", 0)
+        new_points = old_points + total_xp_earned
+        
+        old_level, old_talent_points = calculate_level(old_points)
+        new_level, new_talent_points = calculate_level(new_points)
+        
+        # Calculate XP needed for next level
+        xp_for_current_level = (new_level - 1) * GAME_CONSTANTS["LEVELING"]["POINTS_PER_LEVEL"]
+        xp_for_next_level = new_level * GAME_CONSTANTS["LEVELING"]["POINTS_PER_LEVEL"]
+        xp_progress = new_points - xp_for_current_level
+        xp_needed = xp_for_next_level - xp_for_current_level
+        
+        # Check if leveled up
+        leveled_up = new_level > old_level
+        talent_points_gained = new_talent_points - old_talent_points
+        
+        # Update user in database
+        await db.users.update_one(
+            {"userId": request.userId},
+            {"$set": {
+                "points": new_points,
+                "level": new_level
+            }}
+        )
+        
+        # Mark task as complete
         await db.tasks.update_one(
             {"taskId": task_id},
             {"$set": {
                 "completed": True,
-                "completedAt": datetime.utcnow(),
-                "completedBy": userId
+                "completedAt": datetime.now(timezone.utc).isoformat(),
+                "completedBy": request.userId
             }}
         )
         
-        # Award XP to user
-        user = await db.users.find_one({"userId": userId})
-        if user:
-            new_points = user.get("points", 0) + task.get("basePoints", 10)
-            await db.users.update_one(
-                {"userId": userId},
-                {"$set": {"points": new_points}}
-            )
-        
-        return {
-            "message": "Task completed successfully",
-            "xpEarned": task.get("basePoints", 10),
-            "taskId": task_id
+        # Record completion in history
+        completion_record = {
+            "completionId": str(uuid.uuid4()),
+            "userId": request.userId,
+            "taskId": task_id,
+            "householdId": user.get("householdId"),
+            "pointsEarned": base_points,
+            "bonusPoints": bonus_points,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "notes": request.notes,
+            "photo": request.photo
         }
+        await db.task_completions.insert_one(completion_record)
+        
+        # Build response
+        response = {
+            "success": True,
+            "message": "Quest completed! ⚔️" if not leveled_up else f"🎉 LEVEL UP! You are now Level {new_level}!",
+            "xpEarned": total_xp_earned,
+            "basePoints": base_points,
+            "bonusPoints": bonus_points,
+            "progression": {
+                "oldLevel": old_level,
+                "newLevel": new_level,
+                "leveledUp": leveled_up,
+                "totalXP": new_points,
+                "xpProgress": xp_progress,
+                "xpNeeded": xp_needed,
+                "xpForNextLevel": xp_for_next_level,
+                "talentPoints": new_talent_points,
+                "talentPointsGained": talent_points_gained
+            },
+            "task": {
+                "taskId": task_id,
+                "title": task.get("title")
+            }
+        }
+        
+        return response
+        
     except HTTPException:
         raise
     except Exception as e:
         print(f"Error completing task: {e}")
-        raise HTTPException(status_code=500, detail="Error completing task")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Error completing task: {str(e)}")
 
             task.pop('_id', None)
         
