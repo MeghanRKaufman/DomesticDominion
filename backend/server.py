@@ -2189,7 +2189,12 @@ async def get_household_tasks(householdId: str, date: str = None):
         
         # Remove MongoDB _id field
         for task in tasks:
-
+            task.pop('_id', None)
+        
+        return tasks
+    except Exception as e:
+        print(f"Error fetching tasks: {e}")
+        return []
 
 @api_router.post("/tasks/{task_id}/complete")
 async def complete_task(task_id: str, request: CompleteTaskRequest):
