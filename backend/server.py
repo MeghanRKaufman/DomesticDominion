@@ -2494,7 +2494,7 @@ async def create_user(request: CreateUserRequest):
             
             # Update couple with partner ID
             await db.couples.update_one(
-                {"inviteCode": request.coupleCode},
+                {"inviteCode": request.householdCode},
                 {"$set": {"partnerId": partner_user.userId, "isActive": True, "joined_at": datetime.utcnow()}}
             )
             
