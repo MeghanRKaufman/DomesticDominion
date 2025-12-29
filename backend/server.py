@@ -2449,7 +2449,7 @@ async def get_pending_challenges(household_id: str, user_id: str):
 @api_router.post("/users", response_model=User)
 async def create_user(request: CreateUserRequest):
     """Create a new user and link to couple"""
-    if request.coupleCode:
+    if request.householdCode:
         # Find couple by invite code
         couple = await db.couples.find_one({"inviteCode": request.coupleCode})
         if not couple:
