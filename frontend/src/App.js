@@ -3390,9 +3390,9 @@ function ChoreChampionsApp() {
                     
                     <div className="space-y-4">
                       {myDailyChores && myDailyChores.length > 0 ? (
-                        <div>Quests available</div>
-                      ) : (
-                        <div>Quests available</div>
+                        <div className="text-center py-8">
+                          <p className="text-gray-600">Your assigned quests appear here</p>
+                        </div>
                       ) : (
                         <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-6 text-center">
                           <div className="text-6xl mb-4">⚔️</div>
