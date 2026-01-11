@@ -3583,46 +3583,6 @@ function ChoreChampionsApp() {
                         </div>
                       </div>
                       
-                      {/* To-Do List Section */}
-                      <div>
-                        <h4 className="font-semibold text-emerald-700 mb-2">⚔️ Royal Decree Tasks</h4>
-                        <div className="space-y-2">
-                          {sharedTodoList.map((item, index) => (
-                            <div key={index} className="flex items-center space-x-2 p-2 bg-white rounded border">
-                              <input 
-                                type="checkbox" 
-                                checked={item.completed}
-                                onChange={() => toggleTodoItem(index)}
-                                className="text-emerald-600"
-                              />
-                              <span className={item.completed ? 'line-through text-gray-500' : ''}>{item.task}</span>
-                            </div>
-                          ))}
-                        </div>
-                        
-                        <div className="flex space-x-2 mt-2">
-                          <input 
-                            type="text"
-                            placeholder="Add royal decree..."
-                            value={newTodoItem}
-                            onChange={(e) => setNewTodoItem(e.target.value)}
-                            className="flex-1 p-2 border rounded"
-                          />
-                          <Button 
-                            size="sm"
-                            onClick={() => {
-                              if (newTodoItem.trim()) {
-                                setSharedTodoList([...sharedTodoList, { task: newTodoItem, completed: false }]);
-                                setNewTodoItem('');
-                              }
-                            }}
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                          >
-                            ⚔️ Decree
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                   {/* Quest Statistics */}
                   <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border-2 border-gray-200 p-6">
