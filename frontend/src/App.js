@@ -2401,7 +2401,26 @@ function ChoreChampionsApp() {
       
     } catch (error) {
       console.error('Error creating enhanced adventure:', error);
-      alert('Error creating adventure: ' + (error.response?.data?.detail || 'Please try again'));
+      
+      // Better error message handling
+      let errorMessage = 'Unknown error occurred';
+      
+      if (error.response?.data) {
+        // If detail is an object, stringify it
+        if (typeof error.response.data.detail === 'object') {
+          errorMessage = JSON.stringify(error.response.data.detail, null, 2);
+        } else if (error.response.data.detail) {
+          errorMessage = error.response.data.detail;
+        } else if (error.response.data.message) {
+          errorMessage = error.response.data.message;
+        } else {
+          errorMessage = JSON.stringify(error.response.data, null, 2);
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      alert(`Error creating adventure:\n\n${errorMessage}\n\nPlease try again or check console for details.`);
     } finally {
       setLoading(false);
     }
