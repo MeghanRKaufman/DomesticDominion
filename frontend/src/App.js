@@ -3942,8 +3942,9 @@ function ChoreChampionsApp() {
               </div>
             </div>
           )}
+        </div>
 
-          {/* My Teammate */}
+        {/* My Teammate */}
           {activeTab === 'teammate' && (
             <div>
               <div className="flex justify-between items-center mb-6">
