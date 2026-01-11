@@ -987,11 +987,13 @@ class CreateHouseholdRequest(BaseModel):  # Changed from CreateCoupleRequest
     memberLimit: int = 12
 
 class EnhancedHouseholdRequest(BaseModel):  # Changed from EnhancedCoupleRequest
-    playerName: str
+    householdName: str
+    adminName: str
     householdType: HouseholdType = HouseholdType.ROOMMATES
     memberLimit: int = 12
     householdSetup: Dict[str, Any] = Field(default_factory=dict)
-    # NEW: Enhanced onboarding questions
+    # Legacy fields (optional for backward compatibility)
+    playerName: Optional[str] = None
     hasWasherDryer: bool = False
     hasDishwasher: bool = False
     livesUpstairs: bool = False
