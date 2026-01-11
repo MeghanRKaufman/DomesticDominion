@@ -4311,7 +4311,6 @@ function ChoreChampionsApp() {
             </div>
           )}
           
-          </>
           {/* End of Main Content Area */}
           </div>
         
