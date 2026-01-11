@@ -3477,7 +3477,7 @@ function ChoreChampionsApp() {
                             🎯 Generate My Quests
                           </Button>
                         </div>
-                      )}
+                      )
                     </div>
                   </div>
                   
