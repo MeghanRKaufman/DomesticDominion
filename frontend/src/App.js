@@ -4467,8 +4467,8 @@ function ChoreChampionsApp() {
       {/* Onboarding - DISABLED, using EnhancedOnboarding instead */}
       {/* <OnboardingModal isOpen={showOnboarding} onComplete={handleOnboardingComplete} /> */}
       
-      {/* Enhanced Onboarding */}
-      <EnhancedOnboarding 
+      {/* Progressive Onboarding */}
+      <ProgressiveOnboarding 
         isOpen={showEnhancedOnboarding} 
         onComplete={handleEnhancedOnboardingComplete}
         onClose={() => setShowEnhancedOnboarding(false)}
