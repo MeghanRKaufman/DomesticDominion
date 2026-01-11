@@ -3576,7 +3576,6 @@ function ChoreChampionsApp() {
                           </Button>
                         </div>
                       </div>
-                      )
                   </div>
                   {/* Quest Statistics */}
                   <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border-2 border-gray-200 p-6">
