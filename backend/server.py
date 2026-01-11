@@ -1965,19 +1965,8 @@ Share this code with your household members to join the quest!
         creatorName=household.creatorName,
         userId=household.creatorId
     )
-👥 **Household Size:** Up to {request.memberLimit} members
 
-Ready to transform your household into an epic adventure? Join now!
-""".strip()
-    
-    invitation = HouseholdInvitation(
-        inviteCode=household.inviteCode,
-        message=invitation_message,
-        theme=household.adventureTheme,
-        questPhrase=household.questPhrase,
-        creatorName=request.playerName,
-        householdType=request.householdType,
-        currentMembers=1,
+@api_router.post("/households/join")
         maxMembers=request.memberLimit,
         expiresAt=datetime.utcnow() + timedelta(days=7),
         userId=creator_user.userId,  # Return the actual userId from DB
