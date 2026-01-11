@@ -2964,6 +2964,7 @@ function ChoreChampionsApp() {
           
           {/* Main Content Area */}
           <div className="flex-1 p-4 md:p-6 bg-gray-50 min-h-screen">
+          <>
           {/* ADMIN/KINGDOM CONTROL TAB */}
           {activeTab === 'admin' && currentUser?.role === 'admin' && (
             <div className="max-w-6xl mx-auto">
