@@ -1865,6 +1865,9 @@ async def create_enhanced_household(request: EnhancedHouseholdRequest):
     # Generate customized chore list based on comprehensive household setup
     customized_chores = generate_household_chores(request.householdSetup)
     
+    # Extract rooms data for legacy fields
+    rooms_data = request.householdSetup.get('rooms', {})
+    
     # Create household with enhanced data
     household = Household(
         creatorName=player_name,
@@ -1920,7 +1923,6 @@ async def create_enhanced_household(request: EnhancedHouseholdRequest):
         household_features.append("🏢 Shared laundry room tasks")
     
     # Room count
-    rooms_data = request.householdSetup.get('rooms', {})
     household_features.append(f"🏠 {rooms_data.get('bathrooms', 1)} bathroom(s), {rooms_data.get('bedrooms', 1)} bedroom(s)")
     
     # Floors
