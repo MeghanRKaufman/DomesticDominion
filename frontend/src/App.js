@@ -4053,178 +4053,187 @@ function ChoreChampionsApp() {
             </div>
           )}
 
-          {/* AI Messages Tab - ChatGPT-5 Enhanced Communication */}
+          {/* Constructive Concerns Tab - Form-Based Communication */}
           {activeTab === 'ai-messages' && (
-            <div>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold">🤖 AI Message Helper</h2>
-                <p className="text-gray-600">Transform complaints into loving requests with ChatGPT-5</p>
+            <div className="max-w-4xl mx-auto">
+              <div className="mb-6">
+                <h2 className="text-3xl font-bold">💬 Constructive Concerns</h2>
+                <p className="text-gray-600 mt-2">Express concerns with class and constructive solutions</p>
               </div>
 
-              {/* ChatGPT-5 Integration Info */}
-              <div className="bg-gradient-to-r from-blue-50 to-green-50 border-l-4 border-blue-400 p-4 mb-6">
+              {/* Info Banner */}
+              <div className="bg-gradient-to-r from-purple-50 to-blue-50 border-l-4 border-purple-400 p-4 mb-6">
                 <div className="flex items-center">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-blue-800">🚀 ChatGPT-5 Message Enhancement</h3>
-                    <p className="text-blue-700">Transform complaints into loving requests. Write your honest thoughts and let AI help you communicate with love and appreciation.</p>
-                  </div>
-                  <div className="text-green-600 font-semibold">
-                    ✅ Active
+                    <h3 className="text-lg font-semibold text-purple-800">✨ Thoughtful Communication</h3>
+                    <p className="text-purple-700">Transform rude or vulgar complaints into respectful, solution-oriented messages that promote household harmony.</p>
                   </div>
                 </div>
               </div>
 
-              {/* Message Composer */}
-              <div className="bg-white rounded-xl border-2 border-gray-200 p-6 mb-6">
-                <h3 className="text-lg font-semibold mb-4">✍️ Compose Message</h3>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="message-input">Your Message</Label>
-                    <textarea
-                      id="message-input"
-                      className="w-full p-3 border rounded-lg resize-none"
-                      rows={4}
-                      placeholder="Write your message here..."
-                      value={messageText}
-                      onChange={(e) => setMessageText(e.target.value)}
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div>
-                        <Label className="text-sm">Enhancement Level</Label>
-                        <select 
-                          className="ml-2 p-1 border rounded"
-                          value={enhancementLevel}
-                          onChange={(e) => setEnhancementLevel(e.target.value)}
-                        >
-                          <option value="gentle">Gentle & Soft</option>
-                          <option value="supportive">Supportive & Encouraging</option>
-                          <option value="encouraging">Enthusiastic & Motivating</option>
-                        </select>
-                      </div>
-                      
-                      <div className="flex items-center">
-                        <input
-                          type="checkbox"
-                          id="preserve-style"
-                          checked={preserveStyle}
-                          onChange={(e) => setPreserveStyle(e.target.checked)}
-                          className="mr-2"
-                        />
-                        <Label htmlFor="preserve-style" className="text-sm">Preserve my style</Label>
-                      </div>
-                    </div>
-                    
-                    <div className="flex space-x-3">
-                      <Button
-                        onClick={handleEnhanceMessage}
-                        className="bg-purple-600 hover:bg-purple-700"
-                        disabled={!messageText.trim() || isEnhancing}
+              {/* Concern Form */}
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle>📝 Submit a Concern</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <form className="space-y-6" onSubmit={(e) => {
+                    e.preventDefault();
+                    alert('Concern submitted! (Feature coming soon)');
+                  }}>
+                    {/* To Field */}
+                    <div>
+                      <Label htmlFor="concern-to" className="text-lg font-semibold">To: *</Label>
+                      <select 
+                        id="concern-to"
+                        className="w-full p-3 border rounded-lg mt-2"
+                        required
                       >
-                        {isEnhancing ? '✨ Enhancing...' : '✨ Enhance with Pi'}
-                      </Button>
-                      
-                      <Button
-                        onClick={handleSendMessage}
-                        className="bg-blue-600 hover:bg-blue-700"
-                        disabled={!messageText.trim() || isSending}
-                      >
-                        {isSending ? '📤 Sending...' : '📤 Send'}
-                      </Button>
+                        <option value="">Select recipient...</option>
+                        <option value="entire_house">🏠 Entire Household</option>
+                        <option value="member1">Mom</option>
+                        <option value="member2">Dave</option>
+                        <option value="member3">Sarah</option>
+                      </select>
                     </div>
-                  </div>
 
-                  {/* Enhanced Preview */}
-                  {enhancedMessage && (
-                    <div className="mt-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
-                      <h4 className="font-semibold text-purple-800 mb-2">✨ Pi Enhanced Version</h4>
-                      <p className="text-gray-800 mb-3">{enhancedMessage}</p>
-                      
-                      {enhancementData && (
-                        <div className="flex items-center justify-between text-sm">
-                          <div className="flex items-center space-x-4">
-                            <span className="text-purple-600">
-                              Empathy Score: {(enhancementData.confidence_score * 100).toFixed(1)}%
-                            </span>
-                            {enhancementData.enhancements_applied && (
-                              <span className="text-purple-600">
-                                Applied: {enhancementData.enhancements_applied.join(', ')}
-                              </span>
-                            )}
+                    {/* Area of Concern */}
+                    <div>
+                      <Label htmlFor="concern-area" className="text-lg font-semibold">Area of Concern: *</Label>
+                      <select 
+                        id="concern-area"
+                        className="w-full p-3 border rounded-lg mt-2"
+                        required
+                      >
+                        <option value="">Select area...</option>
+                        <option value="dishes">🍽️ Dishes / Kitchen Cleanup</option>
+                        <option value="laundry">🧺 Laundry</option>
+                        <option value="bathroom">🛁 Bathroom Cleanliness</option>
+                        <option value="trash">🗑️ Trash / Recycling</option>
+                        <option value="pets">🐾 Pet Care</option>
+                        <option value="noise">🔊 Noise Levels</option>
+                        <option value="space">📦 Shared Space Organization</option>
+                        <option value="schedule">⏰ Scheduling / Timing</option>
+                        <option value="supplies">🧻 Supplies / Groceries</option>
+                        <option value="other">📋 Other</option>
+                      </select>
+                    </div>
+
+                    {/* Why It's Important */}
+                    <div>
+                      <Label htmlFor="concern-why" className="text-lg font-semibold">Why is this important? *</Label>
+                      <p className="text-sm text-gray-600 mb-2">Explain the impact on you or the household</p>
+                      <textarea
+                        id="concern-why"
+                        className="w-full p-3 border rounded-lg resize-none mt-2"
+                        rows={4}
+                        placeholder="Example: When dishes pile up, it makes it difficult for me to cook meals, and I feel stressed about the mess accumulating..."
+                        required
+                      />
+                    </div>
+
+                    {/* How It Affects You/House */}
+                    <div>
+                      <Label htmlFor="concern-impact" className="text-lg font-semibold">How does this affect you or the household? *</Label>
+                      <textarea
+                        id="concern-impact"
+                        className="w-full p-3 border rounded-lg resize-none mt-2"
+                        rows={3}
+                        placeholder="Example: It creates extra work for me, delays meal prep, and makes the kitchen unpleasant for everyone..."
+                        required
+                      />
+                    </div>
+
+                    {/* Proposed Solution */}
+                    <div>
+                      <Label htmlFor="concern-solution" className="text-lg font-semibold">Your Proposed Solution: *</Label>
+                      <p className="text-sm text-gray-600 mb-2">Required: What specific action would help resolve this?</p>
+                      <textarea
+                        id="concern-solution"
+                        className="w-full p-3 border rounded-lg resize-none mt-2"
+                        rows={4}
+                        placeholder="Example: Could we agree to do dishes immediately after meals, or create a rotating schedule where each person handles cleanup on specific days?"
+                        required
+                      />
+                    </div>
+
+                    {/* AI Rewrite Preview */}
+                    <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg">✨</span>
+                        <span className="font-semibold text-blue-800">AI will rewrite your concern with class and etiquette</span>
+                      </div>
+                      <p className="text-sm text-blue-700">
+                        Your message will be transformed to be respectful, constructive, and solution-focused before being shared with the recipient.
+                      </p>
+                    </div>
+
+                    {/* Submit Button */}
+                    <Button 
+                      type="submit"
+                      className="w-full h-14 text-lg bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                    >
+                      📤 Submit Constructive Concern
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+
+              {/* Previous Concerns */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>📋 Previous Concerns</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {[
+                      {
+                        to: 'Dave',
+                        area: 'Dishes',
+                        original: 'Dude seriously stop leaving your dishes everywhere its disgusting',
+                        rewritten: 'Hey Dave, I wanted to talk about the dishes. When they pile up, it makes the kitchen harder to use for everyone. Could we work on doing them right after meals? I think it would help us both stay on top of things.',
+                        date: '2 days ago'
+                      },
+                      {
+                        to: 'Entire Household',
+                        area: 'Trash',
+                        original: 'WHY IS NOBODY TAKING OUT THE TRASH? I always have to do it',
+                        rewritten: 'Hey everyone, I\'ve noticed the trash has been overflowing lately. I\'ve been handling it most of the time, and I could use some help. Could we set up a rotation so everyone takes a turn? It would really help distribute the work.',
+                        date: '1 week ago'
+                      }
+                    ].map((concern, idx) => (
+                      <div key={idx} className="p-4 border rounded-lg">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <span className="font-semibold text-purple-600">To: {concern.to}</span>
+                            <span className="mx-2 text-gray-400">•</span>
+                            <span className="text-sm text-gray-600">{concern.area}</span>
                           </div>
-                          <Button
-                            size="sm"
-                            onClick={handleUseEnhanced}
-                            className="bg-purple-500 hover:bg-purple-600 text-white"
-                          >
-                            Use Enhanced Version
-                          </Button>
+                          <span className="text-xs text-gray-500">{concern.date}</span>
                         </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Message History */}
-              <div className="bg-white rounded-xl border-2 border-gray-200 p-6">
-                <h3 className="text-lg font-semibold mb-4">📝 Recent Messages</h3>
-                <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {messages.map((message, index) => (
-                    <div key={index} className={`p-4 rounded-lg border-l-4 ${
-                      message.sender === currentUser.userId 
-                        ? 'border-blue-400 bg-blue-50' 
-                        : 'border-green-400 bg-green-50'
-                    }`}>
-                      <div className="flex justify-between items-start mb-2">
-                        <span className={`font-semibold ${
-                          message.sender === currentUser.userId ? 'text-blue-800' : 'text-green-800'
-                        }`}>
-                          {message.sender === currentUser.userId ? 'You' : teammate?.displayName || 'Teammate'}
-                        </span>
-                        <span className="text-sm text-gray-500">
-                          {new Date(message.timestamp).toLocaleString()}
-                        </span>
+                        
+                        <div className="bg-green-50 border-l-4 border-green-400 p-3 rounded">
+                          <p className="text-sm font-medium text-green-800 mb-1">✅ Sent (Rewritten)</p>
+                          <p className="text-sm text-gray-800">{concern.rewritten}</p>
+                        </div>
+                        
+                        <details className="mt-2">
+                          <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-700">Show original message</summary>
+                          <div className="mt-2 p-2 bg-red-50 border-l-4 border-red-400 rounded">
+                            <p className="text-xs text-gray-700 italic">{concern.original}</p>
+                          </div>
+                        </details>
                       </div>
-                      
-                      <p className="text-gray-800 mb-2">{message.content}</p>
-                      
-                      {message.enhanced && (
-                        <div className="text-xs space-y-1">
-                          <p className="text-purple-600">✨ Enhanced by Pi (Empathy: {(message.empathy_score * 100).toFixed(1)}%)</p>
-                          {message.original_content && (
-                            <details className="text-gray-500">
-                              <summary className="cursor-pointer">Show original</summary>
-                              <p className="mt-1 italic">{message.original_content}</p>
-                            </details>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                  
-                  {messages.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      <p>No messages yet. Start a conversation!</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Daily Required Message Reminder */}
-              {!hasDailyMessage && (
-                <div className="mt-6 bg-yellow-50 border-l-4 border-yellow-400 p-4">
-                  <div className="flex items-center">
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-yellow-800">📅 Daily Message Reminder</h4>
-                      <p className="text-yellow-700">Don't forget to send your daily filtered message to keep your connection strong!</p>
-                    </div>
-                    <Badge className="bg-yellow-500 text-white">Required</Badge>
+                    ))}
+                    
+                    {false && (
+                      <div className="text-center py-8 text-gray-500">
+                        <p>No concerns submitted yet.</p>
+                      </div>
+                    )}
                   </div>
-                </div>
-              )}
+                </CardContent>
+              </Card>
             </div>
           )}
 
