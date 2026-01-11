@@ -3634,6 +3634,7 @@ function ChoreChampionsApp() {
                     </Button>
                   </div>
                 </div>
+              )
             </div>
           )}
 
