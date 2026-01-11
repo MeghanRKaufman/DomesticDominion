@@ -3189,63 +3189,37 @@ function ChoreChampionsApp() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {kingdomTodos.map(todo => (
-                        <div key={todo.id} className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
-                          <div className="flex-1">
-                            <p className="font-medium">{todo.task}</p>
-                            <p className="text-xs text-gray-500">
-                              {todo.claimedBy ? `Claimed by ${todo.claimedBy}` : 'Available for any member'}
-                            </p>
+                      {[
+                        { task: '🧺 Gather dirty laundry for tomorrow\'s laundry day', xp: 5 },
+                        { task: '🥗 Check personal food items in fridge (remove spoiled)', xp: 5 },
+                        { task: '🧻 Assess cleaning supplies (TP, dish soap, etc.)', xp: 5 },
+                        { task: '🗑️ Take out trash bins for pickup day', xp: 5 }
+                      ].map((item, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border hover:bg-gray-100 transition">
+                          <div className="flex items-center space-x-3">
+                            <input type="checkbox" className="w-5 h-5" />
+                            <span>{item.task}</span>
                           </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-sm font-bold text-blue-600">+{todo.xp} XP</span>
-                            {!todo.claimedBy ? (
-                              <Button
-                                size="sm"
-                                onClick={() => {
-                                  setKingdomTodos(prev => prev.map(t =>
-                                    t.id === todo.id ? { ...t, claimedBy: currentUser.displayName } : t
-                                  ));
-                                }}
-                                className="bg-green-600 hover:bg-green-700 text-white"
-                              >
-                                Claim
-                              </Button>
-                            ) : todo.claimedBy === currentUser.displayName ? (
-                              <Button
-                                size="sm"
-                                onClick={() => {
-                                  // Award XP and remove todo
-                                  setCurrentUser(prev => ({ ...prev, points: prev.points + todo.xp }));
-                                  setKingdomTodos(prev => prev.filter(t => t.id !== todo.id));
-                                  alert(`+${todo.xp} XP earned! Task completed!`);
-                                }}
-                                className="bg-blue-600 hover:bg-blue-700 text-white"
-                              >
-                                Complete
-                              </Button>
-                            ) : (
-                              <span className="text-xs text-gray-500 px-3">Claimed</span>
-                            )}
-                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-green-600 hover:bg-green-50"
+                          >
+                            Claim +{item.xp} XP
+                          </Button>
                         </div>
                       ))}
                       <Button 
                         variant="outline" 
-                        className="w-full mt-4"
+                        className="w-full mt-3"
                         onClick={() => {
-                          const newTask = prompt('Enter new todo item:');
+                          const newTask = prompt('Add a household reminder:');
                           if (newTask) {
-                            setKingdomTodos(prev => [...prev, {
-                              id: Date.now(),
-                              task: newTask,
-                              xp: 10,
-                              claimedBy: null
-                            }]);
+                            alert('Todo added! (Feature coming soon)');
                           }
                         }}
                       >
-                        + Add Todo
+                        + Add Reminder
                       </Button>
                     </div>
                   </CardContent>
@@ -3253,28 +3227,37 @@ function ChoreChampionsApp() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-xl">📆 Calendar Sync</CardTitle>
+                    <CardTitle className="text-xl">📌 Household Bulletin Board</CardTitle>
+                    <p className="text-sm text-gray-600">Post updates & notes for the house</p>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
-                      <Button variant="outline" className="w-full h-16 flex items-center justify-center gap-2">
-                        <span className="text-2xl">📱</span>
-                        <div className="text-left">
-                          <div className="font-medium">Connect Apple Calendar</div>
-                          <div className="text-xs text-gray-500">Sync household events</div>
+                    <div className="space-y-3 max-h-64 overflow-y-auto">
+                      {[
+                        { author: 'Mom', message: 'Ameren bill came today, I left it on the coffee table', time: '2 hours ago' },
+                        { author: 'Dave', message: 'Cindy came by and left your bio textbook on your bed', time: '5 hours ago' },
+                        { author: 'Admin', message: 'Trash pickup is tomorrow (Wednesday) - don\'t forget!', time: '1 day ago' }
+                      ].map((note, idx) => (
+                        <div key={idx} className="p-3 bg-yellow-50 rounded-lg border-l-4 border-yellow-400">
+                          <div className="flex justify-between items-start mb-1">
+                            <span className="font-semibold text-sm">{note.author}</span>
+                            <span className="text-xs text-gray-500">{note.time}</span>
+                          </div>
+                          <p className="text-sm">{note.message}</p>
                         </div>
-                      </Button>
-                      <Button variant="outline" className="w-full h-16 flex items-center justify-center gap-2">
-                        <span className="text-2xl">📊</span>
-                        <div className="text-left">
-                          <div className="font-medium">Connect Google Calendar</div>
-                          <div className="text-xs text-gray-500">Import shared todos</div>
-                        </div>
-                      </Button>
-                      <p className="text-xs text-gray-500 text-center mt-3">
-                        🔒 Coming soon: Auto-import household events
-                      </p>
+                      ))}
                     </div>
+                    <Button 
+                      variant="outline" 
+                      className="w-full mt-3"
+                      onClick={() => {
+                        const message = prompt('Post to bulletin board:');
+                        if (message) {
+                          alert('Posted! (Feature coming soon)');
+                        }
+                      }}
+                    >
+                      📝 Post Note
+                    </Button>
                   </CardContent>
                 </Card>
               </div>
