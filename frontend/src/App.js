@@ -3392,79 +3392,8 @@ function ChoreChampionsApp() {
                       {myDailyChores && myDailyChores.length > 0 ? (
                         <div>Quests available</div>
                       ) : (
-                        <div key={chore.id} className={`bg-white rounded-lg shadow-md p-5 border-l-4 transition-all hover:shadow-lg ${
-                          chore.completed 
-                            ? 'border-green-400 bg-green-50' 
-                            : 'border-blue-400'
-                        }`}>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-4">
-                              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                                chore.completed 
-                                  ? 'bg-green-200 text-green-800' 
-                                  : 'bg-blue-200 text-blue-800'
-                              }`}>
-                                {chore.completed ? '✓' : index + 1}
-                              </div>
-                              
-                              <div>
-                                <h4 className={`text-xl font-bold ${chore.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>
-                                  {chore.title}
-                                </h4>
-                                <div className="flex items-center space-x-3 text-sm mt-1">
-                                  <span className="flex items-center space-x-1">
-                                    <span>🏠</span>
-                                    <span className="font-medium">{chore.room}</span>
-                                  </span>
-                                  <Badge className={
-                                    chore.difficulty === 'EASY' ? 'bg-green-100 text-green-800 border-green-200' :
-                                    chore.difficulty === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
-                                    'bg-red-100 text-red-800 border-red-200'
-                                  }>
-                                    {chore.difficulty}
-                                  </Badge>
-                                  <span className="text-purple-600 font-bold flex items-center space-x-1">
-                                    <span>💎</span>
-                                    <span>+{chore.points} XP</span>
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                            
-                            <div className="flex space-x-2">
-                              {!chore.completed && (
-                                <Button 
-                                  onClick={() => {
-                                    handleQuestComplete(chore.points);
-                                    setMyDailyChores(prev => prev.map(c => 
-                                      c.id === chore.id ? {...c, completed: true} : c
-                                    ));
-                                  }}
-                                  className="bg-green-600 hover:bg-green-700 text-white font-medium"
-                                >
-                                  ⚔️ Complete Quest
-                                </Button>
-                              )}
-                              <Button 
-                                variant="outline"
-                                size="sm"
-                                className="text-gray-600 hover:text-gray-700"
-                              >
-                                Skip (-50% XP)
-                              </Button>
-                            </div>
-                          </div>
-                          
-                          {chore.completed && (
-                            <div className="mt-3 p-3 bg-green-100 rounded-lg border border-green-200">
-                              <div className="flex items-center space-x-2 text-green-800">
-                                <span className="text-xl">🏆</span>
-                                <span className="font-semibold">Quest completed! +{chore.points} XP earned</span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )) : (
+                        <div>Quests available</div>
+                      ) : (
                         <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-6 text-center">
                           <div className="text-6xl mb-4">⚔️</div>
                           <h3 className="text-xl font-bold text-yellow-800 mb-2">Quest Assignment in Progress</h3>
