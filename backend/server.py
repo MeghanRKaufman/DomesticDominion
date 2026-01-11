@@ -1857,39 +1857,24 @@ async def create_household_invitation(request: CreateHouseholdRequest):
 
 @api_router.post("/households/create-enhanced", response_model=HouseholdInvitation)
 async def create_enhanced_household(request: EnhancedHouseholdRequest):
-    """Create a new household with enhanced onboarding data"""
+    """Create a new household with comprehensive onboarding data"""
     
-    # Prepare onboarding data for chore generation
-    onboarding_data = {
-        'householdType': request.householdType,
-        'householdSize': request.householdSetup.get('householdSize', 1),
-        'appliances': [],
-        'hasPets': request.householdSetup.get('hasPets', False),
-        'petTypes': request.householdSetup.get('petTypes', []),
-        'bathrooms': request.householdSetup.get('bathrooms', 1),
-        'hasYard': request.householdSetup.get('hasYard', False),
-        'environmentalConditions': request.householdSetup.get('environmentalConditions', [])
-    }
+    # Get player name (new or legacy)
+    player_name = request.adminName if request.adminName else request.playerName
     
-    # Build appliances list from old format
-    if request.hasWasherDryer:
-        onboarding_data['appliances'].extend(['Washer', 'Dryer'])
-    if request.hasDishwasher:
-        onboarding_data['appliances'].append('Dishwasher')
-    
-    # Generate customized chore list based on household setup
-    customized_chores = generate_household_chores(onboarding_data)
+    # Generate customized chore list based on comprehensive household setup
+    customized_chores = generate_household_chores(request.householdSetup)
     
     # Create household with enhanced data
     household = Household(
-        creatorName=request.playerName,
+        creatorName=player_name,
         creatorId=f"user_{uuid.uuid4().hex[:8]}",
         householdType=request.householdType,
         memberLimit=request.memberLimit,
         householdSetup=request.householdSetup,
-        hasWasherDryer=request.hasWasherDryer,
-        hasDishwasher=request.hasDishwasher,
-        livesUpstairs=request.livesUpstairs,
+        hasWasherDryer=request.householdSetup.get('laundryType') == 'in_unit',
+        hasDishwasher=rooms_data.get('kitchen', False),  # Kitchen existence implies dishwasher possibility
+        livesUpstairs=request.householdSetup.get('floors') == 'multi-level',
         gamePreferences=request.preferences,
         customizedChores=customized_chores,
         choresAssigned=False,  # Admin must manually assign
@@ -1898,7 +1883,7 @@ async def create_enhanced_household(request: EnhancedHouseholdRequest):
     
     # Create user for the creator (as admin)
     creator_user = User(
-        displayName=request.playerName,
+        displayName=player_name,
         householdId=household.householdId,
         userId=household.creatorId,
         role=UserRole.ADMIN
@@ -1913,46 +1898,49 @@ async def create_enhanced_household(request: EnhancedHouseholdRequest):
     
     # Create enhanced invitation message
     household_features = []
-    if request.householdSetup.get('hasPets'):
-        pet_types = request.householdSetup.get('petTypes', [])
-        household_features.append(f"🐾 Pet care tasks for your {', '.join(pet_types)}")
     
-    if request.householdSetup.get('vehicleSharing') != 'none':
-        household_features.append("🚗 Vehicle maintenance and care")
+    # Pets
+    pets = request.householdSetup.get('pets', [])
+    if pets:
+        pet_summary = ', '.join([f"{p['count']} {p['type']}(s)" for p in pets])
+        household_features.append(f"🐾 Pet care tasks for: {pet_summary}")
     
-    if request.hasWasherDryer:
+    # Vehicles
+    vehicles = request.householdSetup.get('vehicles', [])
+    if vehicles:
+        household_features.append(f"🚗 {len(vehicles)} vehicle maintenance tasks")
+    
+    # Laundry
+    laundry_type = request.householdSetup.get('laundryType', 'in_unit')
+    if laundry_type == 'in_unit':
         household_features.append("🧺 In-home laundry tasks")
-    else:
+    elif laundry_type == 'laundromat':
         household_features.append("🏪 Laundromat trip quests")
-    
-    if request.hasDishwasher:
-        household_features.append("🍽️ Dishwasher loading/unloading")
     else:
-        household_features.append("🧽 Hand-washing dish quests")
+        household_features.append("🏢 Shared laundry room tasks")
     
-    if request.livesUpstairs:
-        household_features.append("🏢 Upstairs living adjustments (trash, groceries)")
-        
-    living_situation = request.householdSetup.get('livingSituation', 'home')
-    household_features.append(f"🏠 {living_situation.title()} specific tasks")
+    # Room count
+    rooms_data = request.householdSetup.get('rooms', {})
+    household_features.append(f"🏠 {rooms_data.get('bathrooms', 1)} bathroom(s), {rooms_data.get('bedrooms', 1)} bedroom(s)")
     
-    type_label = {
-        "family": "family adventure",
-        "roommates": "roommate quest",
-        "couple": "duo adventure",
-        "other": "household quest",
-        "Apartment": "apartment adventure",
-        "House": "house adventure",
-        "Shared Housing / Dorm": "shared living quest"
+    # Floors
+    if request.householdSetup.get('floors') == 'multi-level':
+        household_features.append("🏢 Multi-level home adjustments")
+    
+    # Talent spec
+    initial_spec = request.householdSetup.get('initialTalentSpec', '')
+    spec_names = {
+        'self_care': 'Self-Care Specialist',
+        'teamwork': 'Teamwork Champion',
+        'housework': 'Housework Master'
     }
-    
-    # Get the string value from enum
-    household_type_str = request.householdType if isinstance(request.householdType, str) else request.householdType.value
+    if initial_spec:
+        household_features.append(f"⚔️ Starting as: {spec_names.get(initial_spec, initial_spec)}")
     
     invitation_message = f"""
-🏰 **EPIC HOUSEHOLD ADVENTURE AWAITS!** 🏰
+🏰 **{request.householdName or 'EPIC HOUSEHOLD'} ADVENTURE AWAITS!** 🏰
 
-{request.playerName} has crafted a legendary {type_label.get(household_type_str, 'household quest')} for up to {request.memberLimit} members! 
+{player_name} has crafted a legendary household quest for up to {request.memberLimit} members! 
 
 🎯 **Your Customized Quest Includes:**
 {chr(10).join('• ' + feature for feature in household_features)}
@@ -1961,7 +1949,20 @@ async def create_enhanced_household(request: EnhancedHouseholdRequest):
 • 🌳 Talent trees for personal growth
 • 💬 Constructive communication tools
 
+📋 **Chores Generated:** {len(customized_chores)} personalized tasks!
+
 🎪 **Adventure Code:** {household.inviteCode}
+
+Share this code with your household members to join the quest!
+"""
+    
+    return HouseholdInvitation(
+        householdId=household.householdId,
+        inviteCode=household.inviteCode,
+        message=invitation_message,
+        creatorName=household.creatorName,
+        userId=household.creatorId
+    )
 👥 **Household Size:** Up to {request.memberLimit} members
 
 Ready to transform your household into an epic adventure? Join now!
