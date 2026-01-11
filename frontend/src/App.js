@@ -3366,9 +3366,6 @@ function ChoreChampionsApp() {
           )}
 
 
-          )}
-
-
           {/* My Quest Log - Enhanced */}
           {activeTab === 'my-chores' && (
             <div>
