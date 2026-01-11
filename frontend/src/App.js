@@ -3389,7 +3389,7 @@ function ChoreChampionsApp() {
                     <p className="text-blue-600 mb-4">Your assigned half of the household duties</p>
                     
                     <div className="space-y-4">
-                      {myDailyChores && myDailyChores.length > 0 ? 
+                      {myDailyChores && myDailyChores.length > 0 ? (
                         myDailyChores
                         .filter(chore => selectedRoom === 'all' || chore.room.toLowerCase().includes(selectedRoom.toLowerCase()))
                         .map((chore, index) => (
