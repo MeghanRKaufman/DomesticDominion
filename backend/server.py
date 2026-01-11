@@ -1962,7 +1962,13 @@ Share this code with your household members to join the quest!
         householdId=household.householdId,
         inviteCode=household.inviteCode,
         message=invitation_message,
+        theme="epic_household",
+        questPhrase=f"{request.householdName or 'Your Kingdom'} awaits!",
         creatorName=household.creatorName,
+        householdType=request.householdType,
+        currentMembers=1,
+        maxMembers=request.memberLimit,
+        expiresAt=datetime.now(timezone.utc) + timedelta(days=7),
         userId=household.creatorId
     )
 
