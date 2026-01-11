@@ -3180,68 +3180,12 @@ function ChoreChampionsApp() {
                 <p className="text-gray-600 mt-2">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
               </div>
 
-              {/* Daily Trivia Question */}
-              <Card className="mb-6 bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-purple-200">
-                <CardHeader>
-                  <CardTitle className="text-2xl flex items-center gap-2">
-                    🎯 Daily Trivia Challenge
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="bg-white rounded-lg p-6 border-2 border-purple-200">
-                      <h3 className="text-xl font-bold mb-4">Question of the Day:</h3>
-                      <p className="text-lg mb-6">What is the capital of France?</p>
-                      
-                      <div className="grid grid-cols-2 gap-3">
-                        {['London', 'Paris', 'Berlin', 'Madrid'].map((answer, idx) => (
-                          <Button
-                            key={answer}
-                            variant={triviaAnswer === answer ? 'default' : 'outline'}
-                            onClick={() => !triviaLocked && setTriviaAnswer(answer)}
-                            disabled={triviaLocked}
-                            className={`h-16 text-lg ${
-                              triviaAnswer === answer ? 'bg-blue-600 text-white' : ''
-                            } ${triviaLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          >
-                            {String.fromCharCode(65 + idx)}) {answer}
-                            {triviaAnswer === answer && ' ✓'}
-                          </Button>
-                        ))}
-                      </div>
-                      
-                      {triviaAnswer && !triviaLocked && (
-                        <Button
-                          onClick={() => setTriviaLocked(true)}
-                          className="w-full mt-4 bg-green-600 hover:bg-green-700 text-white"
-                        >
-                          🔒 Lock In Answer
-                        </Button>
-                      )}
-                      
-                      {triviaLocked && (
-                        <div className="mt-4 p-3 bg-green-100 border border-green-400 rounded-lg text-center">
-                          <p className="text-green-800 font-bold">✅ Answer Locked: {triviaAnswer}</p>
-                          <p className="text-sm text-green-700">Waiting for other players...</p>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-purple-600 font-medium">💎 Worth 5 XP</span>
-                      <span className="text-gray-600">
-                        {triviaLocked ? 'Answer submitted!' : 'Select an answer to continue'}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Kingdom Todo List + Calendar Integration */}
+              {/* Kingdom Todo List + Household Bulletin Board */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-xl">📅 Kingdom Todo List</CardTitle>
+                    <CardTitle className="text-xl">📋 Kingdom To-Do List</CardTitle>
+                    <p className="text-sm text-gray-600">Household-level reminders</p>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
