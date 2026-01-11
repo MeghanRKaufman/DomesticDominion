@@ -3634,16 +3634,9 @@ function ChoreChampionsApp() {
                     </Button>
                   </div>
                 </div>
-              )
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-500">Please log in to view your quests.</p>
-          </div>
-        )}
-      </div>
-    )}
+          )}
 
           {/* All Quests Management - Tabbed Categories */}
           {activeTab === 'all-chores' && (
