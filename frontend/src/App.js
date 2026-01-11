@@ -2333,23 +2333,43 @@ function ChoreChampionsApp() {
     setLoading(true);
     
     try {
-      // Create enhanced household with new onboarding data format
+      // Create enhanced household with comprehensive onboarding data
       const response = await axios.post(`${API}/households/create-enhanced`, {
-        playerName: onboardingData.playerName,
-        householdType: onboardingData.householdType || 'Apartment',
-        memberLimit: onboardingData.householdSize || 4,
+        householdName: onboardingData.householdName,
+        adminName: onboardingData.adminName,
+        householdType: 'Custom', // Always custom now
+        memberLimit: onboardingData.householdSize,
         householdSetup: {
+          // Step 1: Basics
           householdSize: onboardingData.householdSize,
-          hasPets: onboardingData.hasPets,
-          petTypes: onboardingData.petTypes,
-          bathrooms: onboardingData.bathrooms,
-          hasYard: onboardingData.hasYard,
-          environmentalConditions: onboardingData.environmentalConditions
-        },
-        hasWasherDryer: onboardingData.appliances?.includes('Washer') && onboardingData.appliances?.includes('Dryer'),
-        hasDishwasher: onboardingData.appliances?.includes('Dishwasher'),
-        livesUpstairs: false, // Not in new onboarding
-        preferences: {}
+          hasPrivateBedrooms: onboardingData.hasPrivateBedrooms,
+          
+          // Step 2: Layout
+          rooms: onboardingData.rooms,
+          floors: onboardingData.floors,
+          
+          // Step 3: Utilities
+          laundryType: onboardingData.laundryType,
+          dryingMethod: onboardingData.dryingMethod,
+          laundromat_runs_per_week: onboardingData.laundromat_runs_per_week,
+          trashDays: onboardingData.trashDays,
+          hasCleaningSupplies: onboardingData.hasCleaningSupplies,
+          
+          // Step 4: Pets & Vehicles
+          pets: onboardingData.pets,
+          vehicles: onboardingData.vehicles,
+          
+          // Step 5: Time Reality
+          availability: onboardingData.availability,
+          
+          // Step 6: Personal Limits
+          choreAversions: onboardingData.choreAversions,
+          preferredTasks: onboardingData.preferredTasks,
+          maxDailyChoreLoad: onboardingData.maxDailyChoreLoad,
+          
+          // Step 7: Talent Spec
+          initialTalentSpec: onboardingData.initialTalentSpec,
+        }
       });
       
       const householdData = response.data;
@@ -2357,13 +2377,14 @@ function ChoreChampionsApp() {
       // Use the userId and householdId from backend response
       const currentUserData = {
         userId: householdData.userId,  // From backend
-        displayName: onboardingData.playerName,
+        displayName: onboardingData.adminName,
         householdId: householdData.householdId,  // From backend
         role: 'admin',
         points: 0,
         level: 1,
         talentPoints: 0,
-        talentBuild: { nodeIds: [] }
+        talentBuild: { nodeIds: [] },
+        initialTalentSpec: onboardingData.initialTalentSpec
       };
       
       localStorage.setItem('currentUser', JSON.stringify(currentUserData));
