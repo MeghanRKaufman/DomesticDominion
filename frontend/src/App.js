@@ -3645,8 +3645,8 @@ function ChoreChampionsApp() {
       </div>
     )}
 
-    {/* All Quests Management - Tabbed Categories */}
-    {activeTab === 'all-chores' && (
+          {/* All Quests Management - Tabbed Categories */}
+          {activeTab === 'all-chores' && (
             <div>
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-3xl font-bold">📋 All Quests</h2>
