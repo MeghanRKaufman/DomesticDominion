@@ -715,125 +715,187 @@ COUPLE_QUESTION_TEMPLATES = [
 # Dynamic Chore Generation based on Household Data
 def generate_household_chores(onboarding_data: dict) -> List[dict]:
     """
-    Generate personalized chore list based on household onboarding data
-    Following the CHORE_MAPPING specification
+    Generate comprehensive personalized chore list based on progressive onboarding data
+    Implements room-based, weighted chore generation with metadata
     """
     chores = []
     chore_id_counter = 1
     
-    def add_chore(title: str, room: str = "General", difficulty: str = "MEDIUM", category: str = "household"):
+    def add_chore(title: str, room: str, difficulty: str, category: str = "household", 
+                  time_estimate: int = 15, grossness_level: int = 0, verification_eligible: bool = True):
+        """Add a chore with full metadata"""
         nonlocal chore_id_counter
+        base_points = {"EASY": 5, "MEDIUM": 10, "HARD": 20}.get(difficulty, 10)
         chores.append({
             "taskId": f"task_{chore_id_counter}",
             "title": title,
             "room": room,
-            "basePoints": {"EASY": 5, "MEDIUM": 10, "HARD": 15}.get(difficulty, 10),
             "difficulty": difficulty,
+            "basePoints": base_points,
             "category": category,
+            "time_estimate": time_estimate,  # minutes
+            "grossness_level": grossness_level,  # 0-3
+            "verification_eligible": verification_eligible,
             "icon": "📋"
         })
         chore_id_counter += 1
     
-    # ---------- Laundry ----------
-    appliances = onboarding_data.get('appliances', [])
-    if "Washer" in appliances:
-        add_chore("Sort laundry by color or fabric", "Laundry Room", "EASY")
-        add_chore("Start a load of laundry", "Laundry Room", "EASY")
+    # Extract comprehensive setup data
+    rooms = onboarding_data.get('rooms', {})
+    laundry_type = onboarding_data.get('laundryType', 'in_unit')
+    drying_method = onboarding_data.get('dryingMethod', ['dryer'])
+    pets = onboarding_data.get('pets', [])
+    vehicles = onboarding_data.get('vehicles', [])
+    trash_days = onboarding_data.get('trashDays', [])
+    
+    # ========== LIVING ROOM / SHARED SPACES ==========
+    # Light
+    add_chore("Tidy surfaces", "Living Room", "EASY", time_estimate=10, grossness_level=0)
+    add_chore("Return items to proper rooms", "Living Room", "EASY", time_estimate=10, grossness_level=0)
+    add_chore("Trash pickup", "Living Room", "EASY", time_estimate=5, grossness_level=1)
+    
+    # Standard
+    add_chore("Vacuum or sweep", "Living Room", "MEDIUM", time_estimate=20, grossness_level=1)
+    add_chore("Dust shelves / electronics", "Living Room", "MEDIUM", time_estimate=15, grossness_level=1)
+    add_chore("Organize clutter zones", "Living Room", "MEDIUM", time_estimate=25, grossness_level=0)
+    
+    # Heavy
+    add_chore("Deep vacuum (under furniture)", "Living Room", "HARD", time_estimate=40, grossness_level=2)
+    add_chore("Spot clean upholstery", "Living Room", "HARD", time_estimate=30, grossness_level=2)
+    add_chore("Window cleaning", "Living Room", "HARD", time_estimate=35, grossness_level=1)
+    
+    # ========== KITCHEN ==========
+    # Light
+    add_chore("Load/unload dishwasher", "Kitchen", "EASY", time_estimate=10, grossness_level=1)
+    add_chore("Wipe counters", "Kitchen", "EASY", time_estimate=10, grossness_level=1)
+    add_chore("Kitchen trash/recycling", "Kitchen", "EASY", time_estimate=5, grossness_level=2)
+    
+    # Standard
+    add_chore("Hand wash dishes", "Kitchen", "MEDIUM", time_estimate=20, grossness_level=2)
+    add_chore("Clean sink & stove", "Kitchen", "MEDIUM", time_estimate=20, grossness_level=2)
+    add_chore("Sweep kitchen floor", "Kitchen", "MEDIUM", time_estimate=15, grossness_level=1)
+    
+    # Heavy
+    add_chore("Mop kitchen floor", "Kitchen", "HARD", time_estimate=30, grossness_level=2)
+    add_chore("Fridge clean-out", "Kitchen", "HARD", time_estimate=40, grossness_level=3)
+    add_chore("Pantry reorganization", "Kitchen", "HARD", time_estimate=45, grossness_level=1)
+    
+    # ========== BATHROOMS ==========
+    bathrooms_count = rooms.get('bathrooms', 1)
+    for i in range(1, bathrooms_count + 1):
+        bath_label = f"Bathroom {i}" if bathrooms_count > 1 else "Bathroom"
         
-        if "Dryer" in appliances:
-            add_chore("Move laundry to dryer", "Laundry Room", "EASY")
-        else:
-            add_chore("Hang laundry to dry", "Laundry Room", "MEDIUM")
+        # Light
+        add_chore(f"Replace towels - {bath_label}", bath_label, "EASY", time_estimate=5, grossness_level=0)
+        add_chore(f"Empty trash - {bath_label}", bath_label, "EASY", time_estimate=3, grossness_level=2)
+        add_chore(f"Quick wipe sink/mirror - {bath_label}", bath_label, "EASY", time_estimate=10, grossness_level=1)
         
-        add_chore("Fold laundry", "Laundry Room", "MEDIUM")
-        add_chore("Put away clothing", "Bedroom", "EASY")
-    
-    # ---------- Kitchen ----------
-    add_chore("Wash dishes", "Kitchen", "MEDIUM")
-    
-    if "Dishwasher" in appliances:
-        add_chore("Load dishwasher", "Kitchen", "EASY")
-        add_chore("Unload dishwasher", "Kitchen", "EASY")
-    
-    add_chore("Wipe countertops", "Kitchen", "EASY")
-    add_chore("Sanitize high-touch surfaces", "Kitchen", "MEDIUM")
-    add_chore("Take out kitchen trash", "Kitchen", "EASY")
-    
-    # ---------- Bathrooms ----------
-    bathrooms = onboarding_data.get('bathrooms', 1)
-    for i in range(1, bathrooms + 1):
-        bath_label = f"Bathroom {i}" if bathrooms > 1 else "Bathroom"
-        add_chore(f"Clean {bath_label.lower()} sink", "Bathroom", "EASY")
-        add_chore(f"Clean {bath_label.lower()} toilet", "Bathroom", "MEDIUM")
-        add_chore(f"Scrub bathtub/shower in {bath_label.lower()}", "Bathroom", "HARD")
-        add_chore(f"Wipe {bath_label.lower()} counters", "Bathroom", "EASY")
-        add_chore(f"Mop {bath_label.lower()} floor", "Bathroom", "MEDIUM")
-    
-    # ---------- Pets ----------
-    has_pets = onboarding_data.get('hasPets', False)
-    if has_pets:
-        pet_types = onboarding_data.get('petTypes', [])
+        # Standard
+        add_chore(f"Toilet cleaning - {bath_label}", bath_label, "MEDIUM", time_estimate=15, grossness_level=3)
+        add_chore(f"Shower wipe-down - {bath_label}", bath_label, "MEDIUM", time_estimate=20, grossness_level=2)
+        add_chore(f"Floor sweep/mop - {bath_label}", bath_label, "MEDIUM", time_estimate=20, grossness_level=2)
         
-        if "Dogs" in pet_types:
-            add_chore("Walk dog", "Outdoor", "MEDIUM", "pet")
-            add_chore("Feed dog", "Kitchen", "EASY", "pet")
-            add_chore("Pick up dog waste", "Outdoor", "EASY", "pet")
+        # Heavy
+        add_chore(f"Deep scrub tub/shower - {bath_label}", bath_label, "HARD", time_estimate=40, grossness_level=3)
+        add_chore(f"Mold/mildew treatment - {bath_label}", bath_label, "HARD", time_estimate=35, grossness_level=3)
+    
+    # ========== BEDROOMS ==========
+    bedrooms_count = rooms.get('bedrooms', 1)
+    for i in range(1, bedrooms_count + 1):
+        bed_label = f"Bedroom {i}" if bedrooms_count > 1 else "Bedroom"
         
-        if "Cats" in pet_types:
-            add_chore("Clean litter box", "Bathroom", "MEDIUM", "pet")
-            add_chore("Feed cat", "Kitchen", "EASY", "pet")
+        # Light
+        add_chore(f"Make bed - {bed_label}", bed_label, "EASY", time_estimate=5, grossness_level=0)
+        add_chore(f"Tidy floor - {bed_label}", bed_label, "EASY", time_estimate=10, grossness_level=0)
+        add_chore(f"Trash removal - {bed_label}", bed_label, "EASY", time_estimate=3, grossness_level=1)
         
-        if "Other small pets" in pet_types:
-            add_chore("Clean pet habitat", "General", "MEDIUM", "pet")
-            add_chore("Feed small pet", "General", "EASY", "pet")
+        # Standard
+        add_chore(f"Vacuum/sweep - {bed_label}", bed_label, "MEDIUM", time_estimate=15, grossness_level=1)
+        add_chore(f"Dust surfaces - {bed_label}", bed_label, "MEDIUM", time_estimate=15, grossness_level=1)
+        add_chore(f"Change bedding - {bed_label}", bed_label, "MEDIUM", time_estimate=20, grossness_level=1)
+        
+        # Heavy
+        add_chore(f"Closet organization - {bed_label}", bed_label, "HARD", time_estimate=60, grossness_level=1)
     
-    # ---------- Household Size Scaling ----------
-    household_size = onboarding_data.get('householdSize', 1)
-    if household_size > 2:
-        # Scale frequency of dishes and laundry
-        add_chore("Extra dish washing cycle", "Kitchen", "MEDIUM")
-        if "Washer" in appliances:
-            add_chore("Additional laundry load", "Laundry Room", "MEDIUM")
+    # ========== LAUNDRY (SYSTEM-AWARE) ==========
+    if laundry_type == 'in_unit':
+        # Light
+        add_chore("Sort laundry", "Laundry Room", "EASY", time_estimate=10, grossness_level=1)
+        add_chore("Fold clothes", "Laundry Room", "EASY", time_estimate=20, grossness_level=0)
+        
+        # Standard
+        add_chore("Wash & dry loads", "Laundry Room", "MEDIUM", time_estimate=90, grossness_level=1)
+        add_chore("Put away shared items", "Laundry Room", "MEDIUM", time_estimate=15, grossness_level=0)
+        
+        if 'line_dry' in drying_method:
+            add_chore("Line-drying management", "Laundry Room", "MEDIUM", time_estimate=30, grossness_level=0)
     
-    # ---------- Household Type ----------
-    household_type = onboarding_data.get('householdType', 'Apartment')
+    elif laundry_type == 'laundromat':
+        # Heavy (time + cost aware)
+        runs_per_week = onboarding_data.get('laundromat_runs_per_week', 1)
+        add_chore("Laundromat run (includes travel)", "Outdoor", "HARD", time_estimate=120, grossness_level=1)
     
-    if household_type == "House":
-        add_chore("Sweep entryway", "Entryway", "EASY")
-        add_chore("Mop entryway", "Entryway", "MEDIUM")
-        add_chore("Vacuum living room", "Living Room", "MEDIUM")
-        add_chore("Dust furniture", "Living Room", "EASY")
+    # ========== PETS (CONDITIONAL) ==========
+    for pet in pets:
+        pet_type = pet.get('type', '')
+        pet_count = pet.get('count', 1)
+        
+        if pet_type == 'dog':
+            # Light
+            add_chore(f"Feed dogs ({pet_count}x)", "Kitchen", "EASY", "pet", time_estimate=5, grossness_level=0)
+            add_chore("Water refresh", "Kitchen", "EASY", "pet", time_estimate=3, grossness_level=0)
+            
+            # Standard
+            add_chore("Walk dog", "Outdoor", "MEDIUM", "pet", time_estimate=30, grossness_level=1)
+            add_chore("Pick up dog waste", "Outdoor", "MEDIUM", "pet", time_estimate=10, grossness_level=3)
+        
+        elif pet_type == 'cat':
+            # Light
+            add_chore(f"Feed cats ({pet_count}x)", "Kitchen", "EASY", "pet", time_estimate=5, grossness_level=0)
+            
+            # Standard
+            add_chore("Litter box cleaning", "Bathroom", "MEDIUM", "pet", time_estimate=15, grossness_level=3)
+        
+        elif pet_type in ['bird', 'small_pet']:
+            # Standard
+            add_chore(f"Clean pet habitat ({pet_type})", "General", "MEDIUM", "pet", time_estimate=25, grossness_level=2)
+            add_chore(f"Feed small pet ({pet_type})", "General", "EASY", "pet", time_estimate=5, grossness_level=0)
     
-    if household_type == "Shared Housing / Dorm":
-        add_chore("Organize personal space", "Bedroom", "EASY")
-        add_chore("Clean shared kitchen area", "Kitchen", "MEDIUM")
+    # ========== VEHICLES (CONDITIONAL) ==========
+    for vehicle in vehicles:
+        v_type = vehicle.get('type', 'Car')
+        shared = vehicle.get('shared', True)
+        label = f"{v_type} ({'Shared' if shared else 'Personal'})"
+        
+        # Light
+        add_chore(f"Remove trash - {label}", "Garage", "EASY", "vehicle", time_estimate=5, grossness_level=1)
+        add_chore(f"Windshield wipe - {label}", "Garage", "EASY", "vehicle", time_estimate=10, grossness_level=1)
+        
+        # Standard
+        add_chore(f"Interior vacuum - {label}", "Garage", "MEDIUM", "vehicle", time_estimate=25, grossness_level=2)
+        
+        # Heavy
+        add_chore(f"Wash/detail - {label}", "Garage", "HARD", "vehicle", time_estimate=60, grossness_level=2)
     
-    # Always add some general chores
-    add_chore("Vacuum floors", "Living Room", "MEDIUM")
-    add_chore("Dust all surfaces", "Living Room", "EASY")
-    add_chore("Take out trash", "General", "EASY")
+    # ========== ADDITIONAL SPACES ==========
+    if rooms.get('basement'):
+        add_chore("Basement tidying", "Basement", "MEDIUM", time_estimate=30, grossness_level=1)
+        add_chore("Basement deep clean", "Basement", "HARD", time_estimate=60, grossness_level=2)
     
-    # ---------- Optional: Yard ----------
-    has_yard = onboarding_data.get('hasYard', False)
-    if has_yard:
-        add_chore("Mow lawn", "Outdoor", "HARD")
-        add_chore("Rake leaves", "Outdoor", "MEDIUM")
-        add_chore("Water plants", "Outdoor", "EASY")
-        add_chore("Trim bushes or hedges", "Outdoor", "HARD")
-        add_chore("Sweep patio or porch", "Outdoor", "EASY")
+    if rooms.get('attic'):
+        add_chore("Attic organization", "Attic", "HARD", time_estimate=90, grossness_level=2)
     
-    # ---------- Optional: Environmental Conditions ----------
-    env_conditions = onboarding_data.get('environmentalConditions', [])
+    if rooms.get('office'):
+        add_chore("Office desk organization", "Office", "EASY", time_estimate=15, grossness_level=0)
+        add_chore("Office dusting", "Office", "EASY", time_estimate=10, grossness_level=1)
     
-    if "High dust" in env_conditions:
-        add_chore("Deep dust all surfaces", "Living Room", "MEDIUM")
-        add_chore("Vacuum carpets thoroughly", "Living Room", "MEDIUM")
-        add_chore("Clean air vents", "General", "HARD")
+    if rooms.get('garage'):
+        add_chore("Garage sweep", "Garage", "MEDIUM", time_estimate=20, grossness_level=1)
     
-    if "Snowfall" in env_conditions:
-        add_chore("Shovel driveway and sidewalk", "Outdoor", "HARD")
-        add_chore("Salt driveway and walkway", "Outdoor", "MEDIUM")
-        add_chore("Clear snow from porch", "Outdoor", "MEDIUM")
+    # ========== TRASH SCHEDULE CHORES ==========
+    if trash_days:
+        add_chore(f"Take out trash (Days: {', '.join(trash_days)})", "General", "EASY", time_estimate=10, grossness_level=2)
+        add_chore(f"Recycling out (Days: {', '.join(trash_days)})", "General", "EASY", time_estimate=10, grossness_level=1)
     
     return chores
 
