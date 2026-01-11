@@ -1685,9 +1685,6 @@ function ChoreChampionsApp() {
   const [celebrationMessage, setCelebrationMessage] = useState('');
   const [selectedRoom, setSelectedRoom] = useState('my-chores');
   
-  // Daily Trivia State
-  const [triviaAnswer, setTriviaAnswer] = useState(null);
-  const [triviaLocked, setTriviaLocked] = useState(false);
   
   // Kingdom Todos State
   const [kingdomTodos, setKingdomTodos] = useState([
