@@ -2401,6 +2401,11 @@ function ChoreChampionsApp() {
       
     } catch (error) {
       console.error('Error creating enhanced adventure:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
       
       // Better error message handling
       let errorMessage = 'Unknown error occurred';
@@ -2420,7 +2425,7 @@ function ChoreChampionsApp() {
         errorMessage = error.message;
       }
       
-      alert(`Error creating adventure:\n\n${errorMessage}\n\nPlease try again or check console for details.`);
+      alert(`Error creating adventure:\n\n${errorMessage}\n\nCheck browser console for more details.`);
     } finally {
       setLoading(false);
     }
