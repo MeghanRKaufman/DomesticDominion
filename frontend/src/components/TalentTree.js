@@ -112,7 +112,7 @@ const TalentTree = ({ currentUser, onTalentSelected }) => {
   };
 
   const canSelectTalent = (talent, specKey) => {
-    if (!userTalents) return false;
+    if (!userTalents || !currentUser) return false;
 
     // Check if already selected
     if (userTalents.selectedTalents?.includes(talent.id)) {
@@ -125,11 +125,12 @@ const TalentTree = ({ currentUser, onTalentSelected }) => {
     }
 
     // Check level requirement
+    const userLevel = currentUser?.level || userTalents?.level || 1;
     if (specKey !== 'hybrid' && talentTree) {
       const spec = talentTree.talents[specKey];
       for (const [tierNum, tierData] of Object.entries(spec.tiers)) {
         const talentInTier = tierData.talents.find(t => t.id === talent.id);
-        if (talentInTier && currentUser.level < tierData.level_required) {
+        if (talentInTier && userLevel < tierData.level_required) {
           return false;
         }
       }
