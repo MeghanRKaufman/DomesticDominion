@@ -213,10 +213,16 @@ const TalentTree = ({ currentUser, onTalentSelected }) => {
 
   if (loading || !talentTree || !userTalents) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="text-4xl mb-4">🌳</div>
-          <p className="text-gray-600">Loading talent tree...</p>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-800 via-purple-900 to-slate-900">
+        <div className="text-center bg-gray-900/80 p-8 rounded-xl border-2 border-purple-500">
+          <div className="text-6xl mb-4">🌳</div>
+          <p className="text-white text-xl mb-2">Loading talent tree...</p>
+          {!currentUser && (
+            <p className="text-yellow-300 text-sm">Please complete onboarding first</p>
+          )}
+          <div className="mt-4 text-gray-400 text-xs">
+            Tree: {talentTree ? '✓' : '⏳'} | User: {userTalents ? '✓' : '⏳'}
+          </div>
         </div>
       </div>
     );
