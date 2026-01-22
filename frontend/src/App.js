@@ -4067,10 +4067,15 @@ function ChoreChampionsApp() {
 
           {/* Talent Tree */}
           {activeTab === 'talent-tree' && (
-            <WoWTalentTree 
+            <TalentTree 
               currentUser={currentUser}
-              talentNodes={TALENT_TREE_NODES}
-              onNodeUnlock={handleNodeUnlock}
+              onTalentSelected={(data) => {
+                // Reload user data after talent selection
+                setCurrentUser({
+                  ...currentUser,
+                  ...data.talentBuild
+                });
+              }}
             />
           )}
           {false && activeTab === 'games' && (
