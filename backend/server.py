@@ -2105,9 +2105,9 @@ def apply_talent_modifications(odds: Dict, tasks: List, user1_talents: Dict, use
     
     for task in tasks:
         task_id = task["taskId"]
-        room = task["room"]
-        difficulty = task["difficulty"]
-        title = task["title"].lower()
+        room = task.get("room", "General")
+        difficulty = task.get("difficulty", "MEDIUM")
+        title = task.get("title", "").lower()
         
         # User 1 talent effects
         user1_modifier = 0
