@@ -3322,7 +3322,7 @@ async def get_tasks(couple_id: str):
     # Organize by room
     organized_tasks = {}
     for task in tasks:
-        room = task["room"]
+        room = task.get("room", "General")  # Default to "General" if room not specified
         if room not in organized_tasks:
             organized_tasks[room] = []
         organized_tasks[room].append(task)
