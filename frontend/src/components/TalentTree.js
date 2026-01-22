@@ -25,13 +25,28 @@ const TalentTree = ({ currentUser, onTalentSelected }) => {
       const treeResponse = await axios.get(`${API}/talents/tree`);
       setTalentTree(treeResponse.data);
       
-      // Fetch user's talents
+      // Fetch user's talents (only if user is logged in)
       if (currentUser?.userId) {
         const userResponse = await axios.get(`${API}/talents/user/${currentUser.userId}`);
         setUserTalents(userResponse.data);
+      } else {
+        // Set default user talents if no user
+        setUserTalents({
+          userId: null,
+          level: 1,
+          points: 0,
+          talentPointsTotal: 0,
+          talentPointsSpent: 0,
+          talentPointsAvailable: 0,
+          selectedTalents: [],
+          chosenRoom: null,
+          capstone: null,
+          trustLevel: 'standard'
+        });
       }
     } catch (error) {
       console.error('Error loading talent data:', error);
+      alert('Failed to load talent tree. Please refresh the page.');
     } finally {
       setLoading(false);
     }
