@@ -1844,9 +1844,17 @@ function ChoreChampionsApp() {
   // Load game data
   const loadGameData = async (user) => {
     try {
+      // Use householdId (new structure) or fall back to coupleId (old structure)
+      const householdId = user.householdId || user.coupleId;
+      
+      if (!householdId) {
+        console.warn('No household ID found for user');
+        return;
+      }
+      
       // Load only tasks assigned to this user for today
       const today = new Date().toISOString().split('T')[0];
-      const myTasksResponse = await axios.get(`${API}/couples/${user.coupleId}/my-tasks/${user.userId}?date=${today}`);
+      const myTasksResponse = await axios.get(`${API}/couples/${householdId}/my-tasks/${user.userId}?date=${today}`);
       setTasks(myTasksResponse.data);
 
       // Load teammate info if exists
@@ -1863,13 +1871,8 @@ function ChoreChampionsApp() {
       }
     } catch (error) {
       console.error('Error loading game data:', error);
-      // Fallback to all tasks if assignment system fails
-      try {
-        const tasksResponse = await axios.get(`${API}/couples/${user.coupleId}/tasks`);
-        setTasks(tasksResponse.data);
-      } catch (fallbackError) {
-        console.error('Error loading fallback tasks:', fallbackError);
-      }
+      // Don't try fallback for now - just log the error
+      // The user can still use the app without initial task load
     }
   };
 
