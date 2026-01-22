@@ -149,6 +149,509 @@ GAME_CONSTANTS = {
     "UI_THEME": "NES_PIXEL_ART"
 }
 
+# Talent Tree Structure - Domestic Dominion
+TALENT_TREE = {
+    "self_care": {
+        "name": "Self-Care Specialist",
+        "icon": "💚",
+        "description": "Trust, flexibility, dignity - reduces penalties and friction",
+        "tiers": {
+            1: {
+                "name": "Personal Trust",
+                "level_required": 1,
+                "talents": [
+                    {
+                        "id": "sc_self_report",
+                        "name": "Self-Report",
+                        "cost": 1,
+                        "description": "One routine chore per day may be marked complete without verification",
+                        "effect_type": "verification_skip",
+                        "effect_value": 1
+                    },
+                    {
+                        "id": "sc_soft_miss",
+                        "name": "Soft Miss",
+                        "cost": 1,
+                        "description": "Miss one chore per week without penalty or streak loss",
+                        "effect_type": "miss_protection",
+                        "effect_value": 1
+                    }
+                ]
+            },
+            2: {
+                "name": "Flexibility",
+                "level_required": 10,
+                "talents": [
+                    {
+                        "id": "sc_time_shift",
+                        "name": "Time Shift",
+                        "cost": 1,
+                        "description": "Move chores freely within the same calendar day",
+                        "effect_type": "schedule_flexibility",
+                        "effect_value": "same_day"
+                    },
+                    {
+                        "id": "sc_wide_window",
+                        "name": "Wide Window",
+                        "cost": 1,
+                        "description": "Move chores across a 3-day window without approval",
+                        "effect_type": "schedule_flexibility",
+                        "effect_value": "3_day"
+                    }
+                ]
+            },
+            3: {
+                "name": "Consistency Protection",
+                "level_required": 20,
+                "talents": [
+                    {
+                        "id": "sc_bounce_back",
+                        "name": "Bounce Back",
+                        "cost": 1,
+                        "description": "Completing a chore after a miss restores your streak",
+                        "effect_type": "streak_protection",
+                        "effect_value": True
+                    },
+                    {
+                        "id": "sc_expectation_lock",
+                        "name": "Expectation Lock",
+                        "cost": 1,
+                        "description": "Chore requirements cannot change after assignment",
+                        "effect_type": "requirement_lock",
+                        "effect_value": True
+                    }
+                ]
+            },
+            4: {
+                "name": "Reduced Oversight",
+                "level_required": 30,
+                "talents": [
+                    {
+                        "id": "sc_verification_grace",
+                        "name": "Verification Grace",
+                        "cost": 1,
+                        "description": "Verification rate is reduced for routine chores",
+                        "effect_type": "verification_rate_reduction",
+                        "effect_value": 0.15  # 20% -> 15%
+                    },
+                    {
+                        "id": "sc_proof_simplification",
+                        "name": "Proof Simplification",
+                        "cost": 1,
+                        "description": "Certain chores require fewer proof steps",
+                        "effect_type": "proof_reduction",
+                        "effect_value": True
+                    }
+                ]
+            },
+            5: {
+                "name": "Earned Trust",
+                "level_required": 40,
+                "talents": [
+                    {
+                        "id": "sc_verification_immunity",
+                        "name": "Verification Immunity",
+                        "cost": 1,
+                        "description": "One chore per week auto-approved",
+                        "effect_type": "auto_approve",
+                        "effect_value": 1
+                    },
+                    {
+                        "id": "sc_failure_shield",
+                        "name": "Failure Shield",
+                        "cost": 1,
+                        "description": "One failed verification per month does not reduce status",
+                        "effect_type": "failure_protection",
+                        "effect_value": 1
+                    }
+                ]
+            },
+            6: {
+                "name": "Autonomy",
+                "level_required": 50,
+                "talents": [
+                    {
+                        "id": "sc_flexible_deadlines",
+                        "name": "Flexible Deadlines",
+                        "cost": 1,
+                        "description": "One automatic 24-hour extension per week",
+                        "effect_type": "deadline_extension",
+                        "effect_value": 1
+                    },
+                    {
+                        "id": "sc_chore_refusal",
+                        "name": "Chore Refusal",
+                        "cost": 1,
+                        "description": "Decline one assigned chore per week with no penalty",
+                        "effect_type": "refusal_allowance",
+                        "effect_value": 1
+                    }
+                ]
+            },
+            7: {
+                "name": "CAPSTONE: Honor System",
+                "level_required": 60,
+                "talents": [
+                    {
+                        "id": "sc_honor_system",
+                        "name": "Honor System",
+                        "cost": 2,
+                        "description": "Routine chores rarely verified. Status marked as Trusted. Random audits still apply.",
+                        "effect_type": "capstone",
+                        "effect_value": "honor_system",
+                        "is_capstone": True
+                    }
+                ]
+            }
+        }
+    },
+    "housework": {
+        "name": "Housework Master",
+        "icon": "🏆",
+        "description": "Competence, specialization, clarity - makes work clearer and more efficient",
+        "tiers": {
+            1: {
+                "name": "Familiarity",
+                "level_required": 1,
+                "talents": [
+                    {
+                        "id": "hw_room_bias",
+                        "name": "Room Bias",
+                        "cost": 1,
+                        "description": "You are preferentially assigned chores in one chosen room",
+                        "effect_type": "room_preference",
+                        "effect_value": "select_room"
+                    },
+                    {
+                        "id": "hw_routine_recognition",
+                        "name": "Routine Recognition",
+                        "cost": 1,
+                        "description": "Repeating the same chore weekly reduces verification",
+                        "effect_type": "routine_verification_reduction",
+                        "effect_value": 0.5
+                    }
+                ]
+            },
+            2: {
+                "name": "Scope Control",
+                "level_required": 10,
+                "talents": [
+                    {
+                        "id": "hw_chore_bundling",
+                        "name": "Chore Bundling",
+                        "cost": 1,
+                        "description": "Related chores can be grouped and verified together",
+                        "effect_type": "bundle_verification",
+                        "effect_value": True
+                    },
+                    {
+                        "id": "hw_partial_credit",
+                        "name": "Partial Credit",
+                        "cost": 1,
+                        "description": "Incomplete heavy chores earn partial XP instead of failure",
+                        "effect_type": "partial_xp",
+                        "effect_value": True
+                    }
+                ]
+            },
+            3: {
+                "name": "Specialization",
+                "level_required": 20,
+                "talents": [
+                    {
+                        "id": "hw_soft_ownership",
+                        "name": "Soft Room Ownership",
+                        "cost": 1,
+                        "description": "You are first-offered chores in your chosen room",
+                        "effect_type": "room_ownership",
+                        "effect_value": "soft"
+                    },
+                    {
+                        "id": "hw_repeat_bonus",
+                        "name": "Repeat Bonus",
+                        "cost": 1,
+                        "description": "Consistent completion of the same chore earns bonus XP",
+                        "effect_type": "xp_bonus",
+                        "effect_value": 0.15
+                    }
+                ]
+            },
+            4: {
+                "name": "Efficiency (Real)",
+                "level_required": 30,
+                "talents": [
+                    {
+                        "id": "hw_batch_bonus",
+                        "name": "Batch Bonus",
+                        "cost": 1,
+                        "description": "Completing multiple chores in the same area grants XP multiplier",
+                        "effect_type": "xp_bonus",
+                        "effect_value": 0.20
+                    },
+                    {
+                        "id": "hw_verification_streamline",
+                        "name": "Verification Streamline",
+                        "cost": 1,
+                        "description": "Entire batches may be verified together",
+                        "effect_type": "batch_verification",
+                        "effect_value": True
+                    }
+                ]
+            },
+            5: {
+                "name": "Trust & Difficulty",
+                "level_required": 40,
+                "talents": [
+                    {
+                        "id": "hw_reduced_proof",
+                        "name": "Reduced Proof",
+                        "cost": 1,
+                        "description": "Some chores no longer require photo proof",
+                        "effect_type": "proof_exemption",
+                        "effect_value": True
+                    },
+                    {
+                        "id": "hw_unpopular_bonus",
+                        "name": "Unpopular Chore Bonus",
+                        "cost": 1,
+                        "description": "Low-demand chores grant extra XP",
+                        "effect_type": "xp_bonus",
+                        "effect_value": 0.25
+                    }
+                ]
+            },
+            6: {
+                "name": "Authority",
+                "level_required": 50,
+                "talents": [
+                    {
+                        "id": "hw_hard_ownership",
+                        "name": "Hard Room Ownership",
+                        "cost": 1,
+                        "description": "You permanently own a room unless you opt out",
+                        "effect_type": "room_ownership",
+                        "effect_value": "hard"
+                    },
+                    {
+                        "id": "hw_definition_input",
+                        "name": "Definition Input",
+                        "cost": 1,
+                        "description": "You help define completion standards for owned chores",
+                        "effect_type": "standard_definition",
+                        "effect_value": True
+                    }
+                ]
+            },
+            7: {
+                "name": "CAPSTONE: Domain Expert",
+                "level_required": 60,
+                "talents": [
+                    {
+                        "id": "hw_domain_expert",
+                        "name": "Domain Expert",
+                        "cost": 2,
+                        "description": "Bonus XP for all chores in owned room. Default standards set by you. Others defer to your definitions.",
+                        "effect_type": "capstone",
+                        "effect_value": "domain_expert",
+                        "is_capstone": True
+                    }
+                ]
+            }
+        }
+    },
+    "teamwork": {
+        "name": "Teamwork Champion",
+        "icon": "🤝",
+        "description": "Coordination, sequencing, reliability - reduces friction for others",
+        "tiers": {
+            1: {
+                "name": "Reliability",
+                "level_required": 1,
+                "talents": [
+                    {
+                        "id": "tw_coverage_ready",
+                        "name": "Coverage Ready",
+                        "cost": 1,
+                        "description": "You may claim unassigned chores first",
+                        "effect_type": "priority_claim",
+                        "effect_value": True
+                    },
+                    {
+                        "id": "tw_swap_fast_track",
+                        "name": "Swap Fast-Track",
+                        "cost": 1,
+                        "description": "Your chore swaps bypass approval delays",
+                        "effect_type": "instant_swap",
+                        "effect_value": True
+                    }
+                ]
+            },
+            2: {
+                "name": "Sequencing",
+                "level_required": 10,
+                "talents": [
+                    {
+                        "id": "tw_advance_prep",
+                        "name": "Advance Prep Credit",
+                        "cost": 1,
+                        "description": "Completing prerequisite chores grants bonus XP",
+                        "effect_type": "xp_bonus",
+                        "effect_value": 0.15
+                    },
+                    {
+                        "id": "tw_sequence_bonus",
+                        "name": "Sequence Bonus",
+                        "cost": 1,
+                        "description": "Completing chores in proper order grants bonus XP",
+                        "effect_type": "xp_bonus",
+                        "effect_value": 0.15
+                    }
+                ]
+            },
+            3: {
+                "name": "Load Sharing",
+                "level_required": 20,
+                "talents": [
+                    {
+                        "id": "tw_chore_takeover",
+                        "name": "Formal Chore Takeover",
+                        "cost": 1,
+                        "description": "You may absorb another chore into yours (visible transfer)",
+                        "effect_type": "takeover",
+                        "effect_value": True
+                    },
+                    {
+                        "id": "tw_shared_proof",
+                        "name": "Shared Proof",
+                        "cost": 1,
+                        "description": "One proof can satisfy multiple related chores",
+                        "effect_type": "shared_verification",
+                        "effect_value": True
+                    }
+                ]
+            },
+            4: {
+                "name": "Coverage",
+                "level_required": 30,
+                "talents": [
+                    {
+                        "id": "tw_overflow_catcher",
+                        "name": "Overflow Catcher",
+                        "cost": 1,
+                        "description": "When others exceed limits, you are offered work first",
+                        "effect_type": "overflow_priority",
+                        "effect_value": True
+                    },
+                    {
+                        "id": "tw_coverage_agreements",
+                        "name": "Coverage Agreements",
+                        "cost": 1,
+                        "description": "Pre-arranged coverage for illness or absence",
+                        "effect_type": "coverage_system",
+                        "effect_value": True
+                    }
+                ]
+            },
+            5: {
+                "name": "Leadership",
+                "level_required": 40,
+                "talents": [
+                    {
+                        "id": "tw_volunteer_authority",
+                        "name": "Volunteer Authority",
+                        "cost": 1,
+                        "description": "Take extra chores without penalty stacking",
+                        "effect_type": "extra_chore_protection",
+                        "effect_value": True
+                    },
+                    {
+                        "id": "tw_temp_assignment",
+                        "name": "Temporary Assignment Control",
+                        "cost": 1,
+                        "description": "Assign chores with recipient consent",
+                        "effect_type": "assignment_permission",
+                        "effect_value": True
+                    }
+                ]
+            },
+            6: {
+                "name": "Stability",
+                "level_required": 50,
+                "talents": [
+                    {
+                        "id": "tw_team_streak",
+                        "name": "Team Streak Bonus",
+                        "cost": 1,
+                        "description": "If all chores complete on time, you gain bonus XP",
+                        "effect_type": "xp_bonus",
+                        "effect_value": 0.30
+                    },
+                    {
+                        "id": "tw_trust_anchor",
+                        "name": "Trust Anchor",
+                        "cost": 1,
+                        "description": "Your participation reduces verification for others",
+                        "effect_type": "team_verification_reduction",
+                        "effect_value": 0.05
+                    }
+                ]
+            },
+            7: {
+                "name": "CAPSTONE: Coordinator",
+                "level_required": 60,
+                "talents": [
+                    {
+                        "id": "tw_coordinator",
+                        "name": "Coordinator",
+                        "cost": 2,
+                        "description": "Unlocks multi-person chore chains. Enables household projects. Visible status as coordination lead.",
+                        "effect_type": "capstone",
+                        "effect_value": "coordinator",
+                        "is_capstone": True
+                    }
+                ]
+            }
+        }
+    },
+    "hybrid": {
+        "name": "Hybrid Talents",
+        "icon": "🌈",
+        "description": "Unlock after Tier 3 in any two specs",
+        "talents": [
+            {
+                "id": "hy_prepared_ally",
+                "name": "Prepared Ally",
+                "cost": 1,
+                "description": "Prerequisite + follow-up chores grant bonus XP",
+                "requires_specs": ["teamwork", "housework"],
+                "requires_tier": 3,
+                "effect_type": "xp_bonus",
+                "effect_value": 0.20
+            },
+            {
+                "id": "hy_reliable_adult",
+                "name": "Reliable Adult",
+                "cost": 1,
+                "description": "Coverage actions never penalize you",
+                "requires_specs": ["self_care", "teamwork"],
+                "requires_tier": 3,
+                "effect_type": "coverage_protection",
+                "effect_value": True
+            },
+            {
+                "id": "hy_sustainable_specialist",
+                "name": "Sustainable Specialist",
+                "cost": 1,
+                "description": "Repeated work never increases verification",
+                "requires_specs": ["self_care", "housework"],
+                "requires_tier": 3,
+                "effect_type": "verification_protection",
+                "effect_value": True
+            }
+        ]
+    }
+}
+
 # WebSocket connection manager
 class ConnectionManager:
     def __init__(self):
