@@ -2160,7 +2160,7 @@ def apply_room_balancing(odds: Dict, tasks: List) -> Dict:
     # Group tasks by room
     rooms = {}
     for task in tasks:
-        room = task["room"]
+        room = task.get("room", "General")
         if room not in rooms:
             rooms[room] = []
         rooms[room].append(task["taskId"])
