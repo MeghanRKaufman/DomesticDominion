@@ -298,7 +298,8 @@ const TalentTree = ({ currentUser, onTalentSelected }) => {
           {/* Tiers */}
           <div className="space-y-8">
             {Object.entries(currentSpec.tiers).map(([tierNum, tierData]) => {
-              const isLocked = currentUser.level < tierData.level_required;
+              const userLevel = currentUser?.level || userTalents?.level || 1;
+              const isLocked = userLevel < tierData.level_required;
               
               return (
                 <div key={tierNum} className="relative">
