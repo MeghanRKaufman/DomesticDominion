@@ -2859,6 +2859,229 @@ async def complete_task(task_id: str, request: CompleteTaskRequest):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error completing task: {str(e)}")
 
+@api_router.get("/talents/tree")
+async def get_talent_tree():
+    """Get the complete talent tree structure"""
+    return {
+        "talents": TALENT_TREE,
+        "rules": {
+            "points_per_5_levels": GAME_CONSTANTS["LEVELING"]["TALENT_POINTS_PER_5_LEVELS"],
+            "respec_cost": 10000,
+            "capstones_exclusive": True
+        }
+    }
+
+@api_router.get("/talents/user/{user_id}")
+async def get_user_talents(user_id: str):
+    """Get user's current talent selections and available points"""
+    user = await db.users.find_one({"userId": user_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Calculate talent points
+    level = user.get("level", 1)
+    talent_points_earned = math.floor((level - 1) / GAME_CONSTANTS["LEVELING"]["LEVELS_PER_TALENT_POINT"]) * GAME_CONSTANTS["LEVELING"]["TALENT_POINTS_PER_5_LEVELS"]
+    
+    # Get selected talents
+    talent_build = user.get("talentBuild", {})
+    selected_talents = talent_build.get("selected_talents", [])
+    
+    # Calculate spent points
+    spent_points = sum([
+        next((t["cost"] for spec in TALENT_TREE.values() if "tiers" in spec for tier in spec["tiers"].values() for t in tier["talents"] if t["id"] == talent_id), 0)
+        for talent_id in selected_talents
+    ])
+    
+    # Add hybrid talents
+    if "hybrid" in TALENT_TREE:
+        spent_points += sum([
+            next((t["cost"] for t in TALENT_TREE["hybrid"]["talents"] if t["id"] == talent_id), 0)
+            for talent_id in selected_talents
+        ])
+    
+    available_points = talent_points_earned - spent_points
+    
+    return {
+        "userId": user_id,
+        "level": level,
+        "points": user.get("points", 0),
+        "talentPointsTotal": talent_points_earned,
+        "talentPointsSpent": spent_points,
+        "talentPointsAvailable": available_points,
+        "selectedTalents": selected_talents,
+        "chosenRoom": user.get("chosenRoom"),
+        "capstone": talent_build.get("capstone"),
+        "trustLevel": user.get("trustLevel", "standard")
+    }
+
+@api_router.post("/talents/select")
+async def select_talent(request: dict):
+    """Select a talent for a user"""
+    try:
+        user_id = request.get("userId")
+        talent_id = request.get("talentId")
+        chosen_room = request.get("chosenRoom")  # Optional, for room_bias talent
+        
+        if not user_id or not talent_id:
+            raise HTTPException(status_code=400, detail="userId and talentId required")
+        
+        # Get user
+        user = await db.users.find_one({"userId": user_id}, {"_id": 0})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Check if talent exists
+        talent = None
+        spec_name = None
+        tier_num = None
+        
+        # Search in main specs
+        for spec_key, spec_data in TALENT_TREE.items():
+            if "tiers" in spec_data:
+                for tier_key, tier_data in spec_data["tiers"].items():
+                    for t in tier_data["talents"]:
+                        if t["id"] == talent_id:
+                            talent = t
+                            spec_name = spec_key
+                            tier_num = tier_key
+                            break
+                    if talent:
+                        break
+            if talent:
+                break
+        
+        # Check hybrid talents
+        if not talent and "hybrid" in TALENT_TREE:
+            for t in TALENT_TREE["hybrid"]["talents"]:
+                if t["id"] == talent_id:
+                    talent = t
+                    spec_name = "hybrid"
+                    break
+        
+        if not talent:
+            raise HTTPException(status_code=404, detail="Talent not found")
+        
+        # Check level requirement
+        level = user.get("level", 1)
+        if spec_name != "hybrid":
+            tier_data = TALENT_TREE[spec_name]["tiers"][tier_num]
+            if level < tier_data["level_required"]:
+                raise HTTPException(status_code=400, detail=f"Level {tier_data['level_required']} required")
+        
+        # Check if user has enough talent points
+        talent_build = user.get("talentBuild", {})
+        selected_talents = talent_build.get("selected_talents", [])
+        
+        # Calculate available points
+        talent_points_earned = math.floor((level - 1) / GAME_CONSTANTS["LEVELING"]["LEVELS_PER_TALENT_POINT"]) * GAME_CONSTANTS["LEVELING"]["TALENT_POINTS_PER_5_LEVELS"]
+        
+        spent_points = sum([
+            next((t["cost"] for spec in TALENT_TREE.values() if "tiers" in spec for tier in spec["tiers"].values() for t in tier["talents"] if t["id"] == tid), 0)
+            for tid in selected_talents
+        ])
+        
+        if "hybrid" in TALENT_TREE:
+            spent_points += sum([
+                next((t["cost"] for t in TALENT_TREE["hybrid"]["talents"] if t["id"] == tid), 0)
+                for tid in selected_talents
+            ])
+        
+        available_points = talent_points_earned - spent_points
+        
+        if available_points < talent.get("cost", 1):
+            raise HTTPException(status_code=400, detail="Not enough talent points")
+        
+        # Check capstone exclusivity
+        if talent.get("is_capstone") and talent_build.get("capstone"):
+            raise HTTPException(status_code=400, detail="You already have a capstone talent")
+        
+        # Add talent to user's build
+        if talent_id not in selected_talents:
+            selected_talents.append(talent_id)
+        
+        talent_build["selected_talents"] = selected_talents
+        
+        if talent.get("is_capstone"):
+            talent_build["capstone"] = talent_id
+        
+        # Update chosen room if applicable
+        if chosen_room and talent.get("effect_type") == "room_preference":
+            await db.users.update_one(
+                {"userId": user_id},
+                {"$set": {"chosenRoom": chosen_room}}
+            )
+        
+        # Update trust level if honor system capstone
+        if talent_id == "sc_honor_system":
+            await db.users.update_one(
+                {"userId": user_id},
+                {"$set": {"trustLevel": "honor_system"}}
+            )
+        
+        # Save talent build
+        await db.users.update_one(
+            {"userId": user_id},
+            {"$set": {"talentBuild": talent_build}}
+        )
+        
+        return {
+            "success": True,
+            "message": f"Talent '{talent['name']}' selected!",
+            "talentBuild": talent_build,
+            "pointsRemaining": available_points - talent.get("cost", 1)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error selecting talent: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/talents/respec")
+async def respec_talents(request: dict):
+    """Reset all talents for a user (costs 10,000 XP)"""
+    try:
+        user_id = request.get("userId")
+        
+        if not user_id:
+            raise HTTPException(status_code=400, detail="userId required")
+        
+        user = await db.users.find_one({"userId": user_id}, {"_id": 0})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Check if user has enough XP
+        respec_cost = 10000
+        if user.get("points", 0) < respec_cost:
+            raise HTTPException(status_code=400, detail=f"Need {respec_cost} XP to respec")
+        
+        # Deduct XP and reset talents
+        new_points = user["points"] - respec_cost
+        
+        await db.users.update_one(
+            {"userId": user_id},
+            {"$set": {
+                "points": new_points,
+                "talentBuild": {"selected_talents": [], "capstone": None},
+                "chosenRoom": None,
+                "trustLevel": "standard"
+            }}
+        )
+        
+        return {
+            "success": True,
+            "message": "Talents reset successfully",
+            "xpRemaining": new_points
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error respeccing talents: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 async def respond_to_chore_swap(request: RespondChoreSwapRequest):
     """Accept or decline a chore swap request"""
     swap = await db.chore_swaps.find_one({"swapId": request.swapId})
