@@ -3401,7 +3401,7 @@ async def get_my_daily_tasks(couple_id: str, user_id: str, date: str = None):
     for task_id, assigned_to in user_assignments.items():
         if assigned_to == user_key and task_id in tasks_by_id:
             task = tasks_by_id[task_id]
-            room = task["room"]
+            room = task.get("room", "General")
             if room not in my_tasks:
                 my_tasks[room] = []
             my_tasks[room].append(task)
