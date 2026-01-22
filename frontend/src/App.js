@@ -9,7 +9,7 @@ import BoardGames from './components/BoardGames';
 import VerificationSystem from './components/VerificationSystem';
 import NESGameInterface from './components/NESGameInterface';
 import ProgressiveOnboarding from './components/ProgressiveOnboarding';
-import WoWTalentTree from './components/WoWTalentTree';
+import TalentTree from './components/TalentTree';
 
 // Import UI components
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
