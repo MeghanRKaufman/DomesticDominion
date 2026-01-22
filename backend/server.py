@@ -1412,9 +1412,16 @@ class User(BaseModel):
     points: int = 0
     level: int = 1
     talentPoints: int = 0
-    talentBuild: Dict[str, Any] = Field(default_factory=dict)
+    talentBuild: Dict[str, Any] = Field(default_factory=dict)  # {"selected_talents": [...], "chosen_room": "Kitchen", "capstone": None}
     dailyActions: Dict[str, Any] = Field(default_factory=dict)
     householdPoints: int = 0  # Changed from couplePoints
+    # Talent tracking
+    missedChoresThisWeek: int = 0
+    verificationsSkippedThisWeek: int = 0
+    deadlineExtensionsThisWeek: int = 0
+    failedVerificationsThisMonth: int = 0
+    chosenRoom: Optional[str] = None  # For Housework spec
+    trustLevel: str = "standard"  # standard, trusted, honor_system
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class Task(BaseModel):
