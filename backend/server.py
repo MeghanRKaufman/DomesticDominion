@@ -3393,8 +3393,22 @@ async def get_my_daily_tasks(couple_id: str, user_id: str, date: str = None):
     tasks_by_id = {task["taskId"]: task for task in tasks}
     
     # Get couple users to determine which user is "user1" or "user2"
-    users = await db.users.find({"coupleId": couple_id}).to_list(2)
-    user_key = "user1" if users[0]["userId"] == user_id else "user2"
+    users = await db.users.find({"householdId": couple_id}).to_list(100)  # Changed from coupleId
+    
+    if not users:
+        # Return empty if no users found
+        return {}
+    
+    # Find user in the list
+    user_key = None
+    for idx, user in enumerate(users):
+        if user["userId"] == user_id:
+            user_key = f"user{idx+1}"
+            break
+    
+    if not user_key:
+        # User not found in household
+        return {}
     
     # Filter tasks assigned to this user
     my_tasks = {}
