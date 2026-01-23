@@ -22,12 +22,12 @@ const TalentTree = ({ currentUser, onTalentSelected }) => {
       setLoading(true);
       
       // Fetch talent tree structure
-      const treeResponse = await axios.get(`${API}/talents/tree`);
+      const treeResponse = await axios.get(`${API}/api/talents/tree`);
       setTalentTree(treeResponse.data);
       
       // Fetch user's talents (only if user is logged in)
       if (currentUser?.userId) {
-        const userResponse = await axios.get(`${API}/talents/user/${currentUser.userId}`);
+        const userResponse = await axios.get(`${API}/api/talents/user/${currentUser.userId}`);
         setUserTalents(userResponse.data);
       } else {
         // Set default user talents if no user
@@ -68,7 +68,7 @@ const TalentTree = ({ currentUser, onTalentSelected }) => {
 
   const selectTalent = async (talentId, specKey, chosenRoom = null) => {
     try {
-      const response = await axios.post(`${API}/talents/select`, {
+      const response = await axios.post(`${API}/api/talents/select`, {
         userId: currentUser.userId,
         talentId: talentId,
         chosenRoom: chosenRoom
@@ -97,7 +97,7 @@ const TalentTree = ({ currentUser, onTalentSelected }) => {
     }
 
     try {
-      const response = await axios.post(`${API}/talents/respec`, {
+      const response = await axios.post(`${API}/api/talents/respec`, {
         userId: currentUser.userId
       });
 

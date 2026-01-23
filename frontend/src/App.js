@@ -2337,7 +2337,7 @@ function ChoreChampionsApp() {
       const response = await axios.post(`${API}/households/create-enhanced`, {
         householdName: onboardingData.householdName,
         adminName: onboardingData.adminName,
-        householdType: 'ROOMMATES', // Use valid enum value
+        householdType: 'roommates', // Use valid enum value (lowercase)
         memberLimit: onboardingData.householdSize,
         householdSetup: {
           // Step 1: Basics
