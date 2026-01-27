@@ -2991,22 +2991,22 @@ function ChoreChampionsApp() {
             
             <div className="flex items-center space-x-2 md:space-x-6">
               {/* Level Display - Compact on mobile */}
-              <div className="text-center bg-white/20 rounded-lg p-2 md:p-3">
-                <div className="text-lg md:text-2xl font-bold">Level {currentUser.level}</div>
+              <div className="text-center bg-white/20 rounded-lg p-2 md:p-3" title="Your level increases as you earn XP from completing quests">
+                <div className="text-lg md:text-2xl font-bold">Level {currentUser.level || 1}</div>
                 <div className="w-16 md:w-32">
                   <Progress value={progressPercent} className="h-1 md:h-2 bg-purple-300" />
                 </div>
-                <div className="text-xs md:text-sm opacity-90">{xpProgress}/{xpNeeded} XP</div>
+                <div className="text-xs md:text-sm opacity-90">{xpProgress}/{xpNeeded} XP to next</div>
               </div>
               
               {/* Stats - Compact on mobile */}
-              <div className="text-center">
-                <div className="text-xl md:text-3xl font-bold">💎 {currentUser.points}</div>
+              <div className="text-center" title="Total experience points earned from all quests">
+                <div className="text-xl md:text-3xl font-bold">💎 {currentUser.points || 0}</div>
                 <div className="text-xs md:text-sm">Total XP</div>
               </div>
               
-              <div className="text-center">
-                <div className="text-xl md:text-3xl font-bold">⭐ {talentPoints}</div>
+              <div className="text-center" title="Spend talent points in the Talent Tree to unlock special abilities. Earn 1 point every 5 levels.">
+                <div className="text-xl md:text-3xl font-bold">⭐ {talentPoints || 0}</div>
                 <div className="text-xs md:text-sm">Talent Points</div>
               </div>
               
