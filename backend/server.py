@@ -2748,6 +2748,36 @@ async def get_household_tasks(householdId: str, date: str = None):
         print(f"Error fetching tasks: {e}")
         return []
 
+@api_router.get("/households/{household_id}/my-tasks/{user_id}")
+async def get_user_tasks(household_id: str, user_id: str, date: str = None):
+    """Get tasks assigned to a specific user in a household"""
+    try:
+        if not date:
+            date = datetime.utcnow().strftime('%Y-%m-%d')
+        
+        # Query tasks assigned to this user
+        query = {
+            "householdId": household_id,
+            "assignedTo": user_id,
+            "date": date
+        }
+        
+        tasks = await db.tasks.find(query).to_list(1000)
+        
+        # Group tasks by room and remove _id
+        tasks_by_room = {}
+        for task in tasks:
+            task.pop('_id', None)
+            room = task.get("room", "General")
+            if room not in tasks_by_room:
+                tasks_by_room[room] = []
+            tasks_by_room[room].append(task)
+        
+        return tasks_by_room
+    except Exception as e:
+        print(f"Error fetching user tasks: {e}")
+        return {}
+
 @api_router.post("/tasks/{task_id}/complete")
 async def complete_task(task_id: str, request: CompleteTaskRequest):
     """Complete a task and award XP with progression tracking"""

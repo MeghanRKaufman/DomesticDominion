@@ -1854,7 +1854,7 @@ function ChoreChampionsApp() {
       
       // Load only tasks assigned to this user for today
       const today = new Date().toISOString().split('T')[0];
-      const myTasksResponse = await axios.get(`${API}/couples/${householdId}/my-tasks/${user.userId}?date=${today}`);
+      const myTasksResponse = await axios.get(`${API}/api/households/${householdId}/my-tasks/${user.userId}?date=${today}`);
       setTasks(myTasksResponse.data);
 
       // Load teammate info if exists
