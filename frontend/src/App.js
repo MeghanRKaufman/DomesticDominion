@@ -3398,8 +3398,34 @@ function ChoreChampionsApp() {
                     
                     <div className="space-y-4">
                       {myDailyChores && myDailyChores.length > 0 ? (
-                        <div className="text-center py-8">
-                          <p className="text-gray-600">Your assigned quests appear here</p>
+                        <div className="space-y-3">
+                          {myDailyChores.map((chore, idx) => (
+                            <div 
+                              key={chore.taskId || idx} 
+                              className={`p-4 rounded-lg border-2 ${chore.completed ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200 hover:border-blue-300'}`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <input 
+                                    type="checkbox" 
+                                    checked={chore.completed || false}
+                                    onChange={() => handleCompleteTask(chore)}
+                                    className="w-5 h-5 rounded"
+                                    disabled={chore.completed}
+                                  />
+                                  <div>
+                                    <span className={`font-medium ${chore.completed ? 'line-through text-gray-400' : ''}`}>
+                                      {chore.title || chore.name}
+                                    </span>
+                                    {chore.room && (
+                                      <span className="ml-2 text-xs text-gray-500">({chore.room})</span>
+                                    )}
+                                  </div>
+                                </div>
+                                <span className="text-sm font-bold text-blue-600">+{chore.basePoints || chore.points || 10} XP</span>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       ) : (
                         <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-6 text-center">
