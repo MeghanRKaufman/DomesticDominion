@@ -3,7 +3,7 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import axios from 'axios';
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const TalentTree = ({ currentUser, onTalentSelected }) => {
   const [talentTree, setTalentTree] = useState(null);
