@@ -169,8 +169,14 @@ const ProgressiveOnboarding = ({ isOpen, onComplete, onClose }) => {
   const renderStep1 = () => (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-3xl font-bold mb-2">🏰 Household Basics</h2>
-        <p className="text-gray-600">Let's start with the fundamentals</p>
+        <h2 className="text-3xl font-bold mb-2">🏰 Welcome to Domestic Dominion!</h2>
+        <p className="text-gray-600 mb-4">Let's set up your household kingdom</p>
+        <div className="text-left bg-purple-50 rounded-lg p-4 mb-4">
+          <p className="text-sm text-purple-800">
+            Transform your household chores into epic quests! We'll customize your experience based on your home setup, 
+            so every task feels like an adventure. Just a few questions and you'll be ready to rule your domain.
+          </p>
+        </div>
       </div>
       
       <div>
