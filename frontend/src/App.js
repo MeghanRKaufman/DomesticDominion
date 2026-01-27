@@ -4032,7 +4032,7 @@ function ChoreChampionsApp() {
 
                     {/* Area of Concern */}
                     <div>
-                      <Label htmlFor="concern-area" className="text-lg font-semibold">Area of Concern: *</Label>
+                      <Label htmlFor="concern-area" className="text-lg font-semibold">What is the concern? *</Label>
                       <select 
                         id="concern-area"
                         className="w-full p-3 border rounded-lg mt-2"
@@ -4052,27 +4052,15 @@ function ChoreChampionsApp() {
                       </select>
                     </div>
 
-                    {/* Why It's Important */}
+                    {/* How does it affect the household and why is it important - Combined */}
                     <div>
-                      <Label htmlFor="concern-why" className="text-lg font-semibold">Why is this important? *</Label>
-                      <p className="text-sm text-gray-600 mb-2">Explain the impact on you or the household</p>
-                      <textarea
-                        id="concern-why"
-                        className="w-full p-3 border rounded-lg resize-none mt-2"
-                        rows={4}
-                        placeholder="Example: When dishes pile up, it makes it difficult for me to cook meals, and I feel stressed about the mess accumulating..."
-                        required
-                      />
-                    </div>
-
-                    {/* How It Affects You/House */}
-                    <div>
-                      <Label htmlFor="concern-impact" className="text-lg font-semibold">How does this affect you or the household? *</Label>
+                      <Label htmlFor="concern-impact" className="text-lg font-semibold">How does this affect the household and why is it important? *</Label>
+                      <p className="text-sm text-gray-600 mb-2">Explain the impact and why it matters</p>
                       <textarea
                         id="concern-impact"
                         className="w-full p-3 border rounded-lg resize-none mt-2"
-                        rows={3}
-                        placeholder="Example: It creates extra work for me, delays meal prep, and makes the kitchen unpleasant for everyone..."
+                        rows={4}
+                        placeholder="Example: When dishes pile up, it makes it difficult for me to cook meals. It creates extra work, delays meal prep, and makes the kitchen unpleasant for everyone..."
                         required
                       />
                     </div>
