@@ -1448,20 +1448,24 @@ function EpicAdventureModal({ isOpen, onClose, onSuccess, onEnhancedOnboarding }
     setLoading(true);
     
     try {
-      // Join existing household
-      const response = await axios.post(`${API}/couples/join`, {
-        partnerName: name,
+      // Join existing household using the correct endpoint
+      const response = await axios.post(`${API}/api/households/join`, {
+        memberName: name,
         inviteCode: inviteCode
       });
       
-      // Create user account
-      const userResponse = await axios.post(`${API}/users`, {
+      // Use the response data directly - it includes userId and householdId
+      const userData = {
+        userId: response.data.userId,
         displayName: name,
-        coupleCode: inviteCode
-      });
+        householdId: response.data.householdId,
+        role: 'member',
+        points: 0,
+        level: 1
+      };
       
-      localStorage.setItem('currentUser', JSON.stringify(userResponse.data));
-      onSuccess(userResponse.data);
+      localStorage.setItem('currentUser', JSON.stringify(userData));
+      onSuccess(userData);
       onClose();
     } catch (error) {
       alert('Error: ' + (error.response?.data?.detail || 'Failed to join adventure'));
@@ -1475,7 +1479,7 @@ function EpicAdventureModal({ isOpen, onClose, onSuccess, onEnhancedOnboarding }
     
     setLoading(true);
     try {
-      const response = await axios.get(`${API}/couples/${inviteCode}/preview`);
+      const response = await axios.get(`${API}/api/households/${inviteCode}/preview`);
       setPreviewData(response.data);
       setMode('preview');
     } catch (error) {
