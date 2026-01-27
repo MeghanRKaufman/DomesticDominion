@@ -4032,7 +4032,7 @@ function ChoreChampionsApp() {
 
                     {/* Area of Concern */}
                     <div>
-                      <Label htmlFor="concern-area" className="text-lg font-semibold">What is the concern? *</Label>
+                      <Label htmlFor="concern-area" className="text-lg font-semibold">Area of Concern *</Label>
                       <select 
                         id="concern-area"
                         className="w-full p-3 border rounded-lg mt-2"
@@ -4052,15 +4052,28 @@ function ChoreChampionsApp() {
                       </select>
                     </div>
 
-                    {/* How does it affect the household and why is it important */}
+                    {/* Describe the Concern */}
                     <div>
-                      <Label htmlFor="concern-impact" className="text-lg font-semibold">How does this affect the household and why is it important? *</Label>
-                      <p className="text-sm text-gray-600 mb-2">Explain the impact and why it matters</p>
+                      <Label htmlFor="concern-description" className="text-lg font-semibold">Describe the Concern *</Label>
+                      <p className="text-sm text-gray-600 mb-2">What specifically is happening?</p>
+                      <textarea
+                        id="concern-description"
+                        className="w-full p-3 border rounded-lg resize-none mt-2"
+                        rows={3}
+                        placeholder="Example: Dishes have been left in the sink for multiple days, and the pile keeps growing..."
+                        required
+                      />
+                    </div>
+
+                    {/* Impact and Importance */}
+                    <div>
+                      <Label htmlFor="concern-impact" className="text-lg font-semibold">Why Does This Matter? *</Label>
+                      <p className="text-sm text-gray-600 mb-2">How does this affect you or the household?</p>
                       <textarea
                         id="concern-impact"
                         className="w-full p-3 border rounded-lg resize-none mt-2"
                         rows={4}
-                        placeholder="Example: When dishes pile up, it makes it difficult for me to cook meals. It creates extra work, delays meal prep, and makes the kitchen unpleasant for everyone..."
+                        placeholder="Example: It makes it difficult to cook meals, creates extra work, and makes the kitchen unpleasant for everyone..."
                         required
                       />
                     </div>
