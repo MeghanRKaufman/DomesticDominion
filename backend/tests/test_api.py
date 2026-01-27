@@ -240,7 +240,7 @@ class TestJoinHousehold:
         """Test joining with invalid invite code"""
         payload = {
             "inviteCode": "INVALID123",
-            "displayName": "Test User"
+            "memberName": "Test User"
         }
         
         response = requests.post(f"{BASE_URL}/api/households/join", json=payload)
