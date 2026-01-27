@@ -2838,7 +2838,7 @@ async def complete_task(task_id: str, request: CompleteTaskRequest):
         
         # Mark task as complete
         await db.tasks.update_one(
-            {"taskId": task_id},
+            {"taskId": task_id, "householdId": household_id},
             {"$set": {
                 "completed": True,
                 "completedAt": datetime.now(timezone.utc).isoformat(),
