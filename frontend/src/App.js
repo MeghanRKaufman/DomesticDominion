@@ -2436,6 +2436,50 @@ function ChoreChampionsApp() {
     localStorage.setItem('hasSeenOnboarding', 'true');
   };
 
+  // Handle completing a task from My Quests list
+  const handleCompleteTask = async (task) => {
+    if (!currentUser || !task || task.completed) return;
+    
+    try {
+      const response = await axios.post(`${API}/api/tasks/${task.taskId}/complete`, {
+        userId: currentUser.userId,
+        notes: '',
+        bonusPoints: 0
+      });
+      
+      if (response.data) {
+        // Update the task in myDailyChores
+        setMyDailyChores(prev => 
+          prev.map(c => c.taskId === task.taskId ? { ...c, completed: true } : c)
+        );
+        
+        // Update user points if returned
+        if (response.data.newPoints !== undefined) {
+          setCurrentUser(prev => ({
+            ...prev,
+            points: response.data.newPoints,
+            level: response.data.newLevel || prev.level
+          }));
+          
+          // Update localStorage
+          const updatedUser = {
+            ...currentUser,
+            points: response.data.newPoints,
+            level: response.data.newLevel || currentUser.level
+          };
+          localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+        }
+        
+        // Show celebration
+        setCelebrationMessage(`🎉 Quest complete! +${response.data.xpEarned || task.basePoints || 10} XP`);
+        setTimeout(() => setCelebrationMessage(''), 3000);
+      }
+    } catch (error) {
+      console.error('Error completing task:', error);
+      alert('Failed to complete task: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
   const calculateTaskPoints = (task, bonusPoints = 0) => {
     // Step 1: Base points from task difficulty
     let totalPoints = DIFFICULTY_POINTS[task.difficulty] || 5;
