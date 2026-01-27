@@ -127,9 +127,10 @@ const ProgressiveOnboarding = ({ isOpen, onComplete, onClose }) => {
     // Skip pets/vehicles step if neither exist
     if (step === 3 && onboardingData.pets.length === 0 && onboardingData.vehicles.length === 0) {
       setStep(5);
-    } else if (step < 7) {
+    } else if (step < 6) {
       setStep(step + 1);
     } else {
+      // Step 6 is now the final step
       onComplete(onboardingData);
     }
   };
@@ -146,12 +147,12 @@ const ProgressiveOnboarding = ({ isOpen, onComplete, onClose }) => {
   };
 
   const renderProgressBar = () => {
-    const progress = (step / 7) * 100;
+    const progress = (step / 6) * 100;
     
     return (
       <div className="mb-6">
         <div className="flex justify-between text-sm text-gray-600 mb-2">
-          <span>Step {step} of 7</span>
+          <span>Step {step} of 6</span>
           <span>{Math.round(progress)}%</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2">
@@ -789,7 +790,6 @@ const ProgressiveOnboarding = ({ isOpen, onComplete, onClose }) => {
           {step === 4 && renderStep4()}
           {step === 5 && renderStep5()}
           {step === 6 && renderStep6()}
-          {step === 7 && renderStep7()}
           
           <div className="flex justify-between mt-8">
             <Button
@@ -803,12 +803,11 @@ const ProgressiveOnboarding = ({ isOpen, onComplete, onClose }) => {
             <Button
               onClick={nextStep}
               disabled={
-                (step === 1 && (!onboardingData.householdName || !onboardingData.adminName)) ||
-                (step === 7 && !onboardingData.initialTalentSpec)
+                (step === 1 && (!onboardingData.householdName || !onboardingData.adminName))
               }
               className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6"
             >
-              {step === 7 ? '🚀 Launch Kingdom!' : 'Next →'}
+              {step === 6 ? '🚀 Launch Kingdom!' : 'Next →'}
             </Button>
           </div>
         </div>
