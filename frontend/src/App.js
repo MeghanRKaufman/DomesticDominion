@@ -2519,35 +2519,52 @@ function ChoreChampionsApp() {
       return;
     }
     
-    // Create the concern object
-    const newConcern = {
-      id: Date.now(),
-      to: concernForm.to === 'entire_house' ? 'Entire Household' : concernForm.to,
-      area: concernForm.area,
-      description: concernForm.description,
-      impact: concernForm.impact,
-      solution: concernForm.solution,
-      original: `${concernForm.description} ${concernForm.impact}`,
-      rewritten: `Hey ${concernForm.to === 'entire_house' ? 'everyone' : concernForm.to}, I wanted to bring up something about ${concernForm.area}. ${concernForm.description} This matters because ${concernForm.impact.toLowerCase()} Would it be possible to ${concernForm.solution.toLowerCase()}? I think this could really help us all.`,
-      date: 'Just now',
-      status: 'sent'
-    };
+    setLoading(true);
     
-    // Add to submitted concerns
-    setSubmittedConcerns(prev => [newConcern, ...prev]);
-    
-    // Clear the form
-    setConcernForm({
-      to: '',
-      area: '',
-      description: '',
-      impact: '',
-      solution: ''
-    });
-    
-    // Show success message
-    setCelebrationMessage('✅ Concern submitted and rewritten with class!');
-    setTimeout(() => setCelebrationMessage(''), 3000);
+    try {
+      // Call AI to rewrite the concern
+      const response = await axios.post(`${API}/concerns/rewrite`, {
+        to: concernForm.to,
+        area: concernForm.area,
+        description: concernForm.description,
+        impact: concernForm.impact,
+        solution: concernForm.solution
+      });
+      
+      if (response.data?.rewritten) {
+        // Create the concern object with AI rewrite
+        const newConcern = {
+          id: Date.now(),
+          to: concernForm.to === 'entire_house' ? 'Entire Household' : concernForm.to,
+          area: concernForm.area,
+          original: `${concernForm.description} ${concernForm.impact} Proposed solution: ${concernForm.solution}`,
+          rewritten: response.data.rewritten,
+          date: 'Just now',
+          status: 'sent'
+        };
+        
+        // Add to submitted concerns
+        setSubmittedConcerns(prev => [newConcern, ...prev]);
+        
+        // Clear the form
+        setConcernForm({
+          to: '',
+          area: '',
+          description: '',
+          impact: '',
+          solution: ''
+        });
+        
+        // Show success message
+        setCelebrationMessage('✅ Concern rewritten with class and sent!');
+        setTimeout(() => setCelebrationMessage(''), 3000);
+      }
+    } catch (error) {
+      console.error('Error submitting concern:', error);
+      alert('Failed to submit concern: ' + (error.response?.data?.detail || error.message));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const calculateTaskPoints = (task, bonusPoints = 0) => {
