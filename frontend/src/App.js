@@ -2503,6 +2503,46 @@ function ChoreChampionsApp() {
     }
   };
 
+  // Handle submitting a concern
+  const handleSubmitConcern = async (e) => {
+    e.preventDefault();
+    
+    if (!concernForm.to || !concernForm.area || !concernForm.description || !concernForm.impact || !concernForm.solution) {
+      alert('Please fill in all required fields');
+      return;
+    }
+    
+    // Create the concern object
+    const newConcern = {
+      id: Date.now(),
+      to: concernForm.to === 'entire_house' ? 'Entire Household' : concernForm.to,
+      area: concernForm.area,
+      description: concernForm.description,
+      impact: concernForm.impact,
+      solution: concernForm.solution,
+      original: `${concernForm.description} ${concernForm.impact}`,
+      rewritten: `Hey ${concernForm.to === 'entire_house' ? 'everyone' : concernForm.to}, I wanted to bring up something about ${concernForm.area}. ${concernForm.description} This matters because ${concernForm.impact.toLowerCase()} Would it be possible to ${concernForm.solution.toLowerCase()}? I think this could really help us all.`,
+      date: 'Just now',
+      status: 'sent'
+    };
+    
+    // Add to submitted concerns
+    setSubmittedConcerns(prev => [newConcern, ...prev]);
+    
+    // Clear the form
+    setConcernForm({
+      to: '',
+      area: '',
+      description: '',
+      impact: '',
+      solution: ''
+    });
+    
+    // Show success message
+    setCelebrationMessage('✅ Concern submitted and rewritten with class!');
+    setTimeout(() => setCelebrationMessage(''), 3000);
+  };
+
   const calculateTaskPoints = (task, bonusPoints = 0) => {
     // Step 1: Base points from task difficulty
     let totalPoints = DIFFICULTY_POINTS[task.difficulty] || 5;
