@@ -4060,10 +4060,7 @@ function ChoreChampionsApp() {
                   <CardTitle>📝 Submit a Concern</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <form className="space-y-6" onSubmit={(e) => {
-                    e.preventDefault();
-                    alert('Concern submitted! (Feature coming soon)');
-                  }}>
+                  <form className="space-y-6" onSubmit={handleSubmitConcern}>
                     {/* To Field */}
                     <div>
                       <Label htmlFor="concern-to" className="text-lg font-semibold">To: *</Label>
@@ -4071,12 +4068,14 @@ function ChoreChampionsApp() {
                         id="concern-to"
                         className="w-full p-3 border rounded-lg mt-2"
                         required
+                        value={concernForm.to}
+                        onChange={(e) => setConcernForm({...concernForm, to: e.target.value})}
                       >
                         <option value="">Select recipient...</option>
                         <option value="entire_house">🏠 Entire Household</option>
-                        <option value="member1">Mom</option>
-                        <option value="member2">Dave</option>
-                        <option value="member3">Sarah</option>
+                        {householdMembers.filter(m => m.name !== currentUser?.displayName).map((member, idx) => (
+                          <option key={idx} value={member.name}>{member.name}</option>
+                        ))}
                       </select>
                     </div>
 
@@ -4087,18 +4086,20 @@ function ChoreChampionsApp() {
                         id="concern-area"
                         className="w-full p-3 border rounded-lg mt-2"
                         required
+                        value={concernForm.area}
+                        onChange={(e) => setConcernForm({...concernForm, area: e.target.value})}
                       >
                         <option value="">Select area...</option>
-                        <option value="dishes">🍽️ Dishes / Kitchen Cleanup</option>
-                        <option value="laundry">🧺 Laundry</option>
-                        <option value="bathroom">🛁 Bathroom Cleanliness</option>
-                        <option value="trash">🗑️ Trash / Recycling</option>
-                        <option value="pets">🐾 Pet Care</option>
-                        <option value="noise">🔊 Noise Levels</option>
-                        <option value="space">📦 Shared Space Organization</option>
-                        <option value="schedule">⏰ Scheduling / Timing</option>
-                        <option value="supplies">🧻 Supplies / Groceries</option>
-                        <option value="other">📋 Other</option>
+                        <option value="Dishes">🍽️ Dishes / Kitchen Cleanup</option>
+                        <option value="Laundry">🧺 Laundry</option>
+                        <option value="Bathroom">🛁 Bathroom Cleanliness</option>
+                        <option value="Trash">🗑️ Trash / Recycling</option>
+                        <option value="Pets">🐾 Pet Care</option>
+                        <option value="Noise">🔊 Noise Levels</option>
+                        <option value="Space">📦 Shared Space Organization</option>
+                        <option value="Schedule">⏰ Scheduling / Timing</option>
+                        <option value="Supplies">🧻 Supplies / Groceries</option>
+                        <option value="Other">📋 Other</option>
                       </select>
                     </div>
 
@@ -4112,6 +4113,8 @@ function ChoreChampionsApp() {
                         rows={3}
                         placeholder="Example: Dishes have been left in the sink for multiple days, and the pile keeps growing..."
                         required
+                        value={concernForm.description}
+                        onChange={(e) => setConcernForm({...concernForm, description: e.target.value})}
                       />
                     </div>
 
@@ -4125,6 +4128,8 @@ function ChoreChampionsApp() {
                         rows={4}
                         placeholder="Example: It makes it difficult to cook meals, creates extra work, and makes the kitchen unpleasant for everyone..."
                         required
+                        value={concernForm.impact}
+                        onChange={(e) => setConcernForm({...concernForm, impact: e.target.value})}
                       />
                     </div>
 
@@ -4138,6 +4143,8 @@ function ChoreChampionsApp() {
                         rows={4}
                         placeholder="Example: Could we agree to do dishes immediately after meals, or create a rotating schedule where each person handles cleanup on specific days?"
                         required
+                        value={concernForm.solution}
+                        onChange={(e) => setConcernForm({...concernForm, solution: e.target.value})}
                       />
                     </div>
 
