@@ -4177,49 +4177,34 @@ function ChoreChampionsApp() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {[
-                      {
-                        to: 'Dave',
-                        area: 'Dishes',
-                        original: 'Dude seriously stop leaving your dishes everywhere its disgusting',
-                        rewritten: 'Hey Dave, I wanted to talk about the dishes. When they pile up, it makes the kitchen harder to use for everyone. Could we work on doing them right after meals? I think it would help us both stay on top of things.',
-                        date: '2 days ago'
-                      },
-                      {
-                        to: 'Entire Household',
-                        area: 'Trash',
-                        original: 'WHY IS NOBODY TAKING OUT THE TRASH? I always have to do it',
-                        rewritten: 'Hey everyone, I\'ve noticed the trash has been overflowing lately. I\'ve been handling it most of the time, and I could use some help. Could we set up a rotation so everyone takes a turn? It would really help distribute the work.',
-                        date: '1 week ago'
-                      }
-                    ].map((concern, idx) => (
-                      <div key={idx} className="p-4 border rounded-lg">
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <span className="font-semibold text-purple-600">To: {concern.to}</span>
-                            <span className="mx-2 text-gray-400">•</span>
-                            <span className="text-sm text-gray-600">{concern.area}</span>
+                    {submittedConcerns.length > 0 ? (
+                      submittedConcerns.map((concern) => (
+                        <div key={concern.id} className="p-4 border rounded-lg">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <span className="font-semibold text-purple-600">To: {concern.to}</span>
+                              <span className="mx-2 text-gray-400">•</span>
+                              <span className="text-sm text-gray-600">{concern.area}</span>
+                            </div>
+                            <span className="text-xs text-gray-500">{concern.date}</span>
                           </div>
-                          <span className="text-xs text-gray-500">{concern.date}</span>
-                        </div>
-                        
-                        <div className="bg-green-50 border-l-4 border-green-400 p-3 rounded">
-                          <p className="text-sm font-medium text-green-800 mb-1">✅ Sent (Rewritten)</p>
-                          <p className="text-sm text-gray-800">{concern.rewritten}</p>
-                        </div>
-                        
-                        <details className="mt-2">
-                          <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-700">Show original message</summary>
-                          <div className="mt-2 p-2 bg-red-50 border-l-4 border-red-400 rounded">
-                            <p className="text-xs text-gray-700 italic">{concern.original}</p>
+                          
+                          <div className="bg-green-50 border-l-4 border-green-400 p-3 rounded">
+                            <p className="text-sm font-medium text-green-800 mb-1">✅ Sent (Rewritten)</p>
+                            <p className="text-sm text-gray-800">{concern.rewritten}</p>
                           </div>
-                        </details>
-                      </div>
-                    ))}
-                    
-                    {false && (
+                          
+                          <details className="mt-2">
+                            <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-700">Show original message</summary>
+                            <div className="mt-2 p-2 bg-red-50 border-l-4 border-red-400 rounded">
+                              <p className="text-xs text-gray-700 italic">{concern.original}</p>
+                            </div>
+                          </details>
+                        </div>
+                      ))
+                    ) : (
                       <div className="text-center py-8 text-gray-500">
-                        <p>No concerns submitted yet.</p>
+                        <p>No concerns submitted yet. Use the form above to submit your first concern.</p>
                       </div>
                     )}
                   </div>
