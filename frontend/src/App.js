@@ -1714,6 +1714,7 @@ function ChoreChampionsApp() {
     impact: '',
     solution: ''
   });
+  const [householdMembers, setHouseholdMembers] = useState([]);
   
   // Pi Integration State
   const [messageText, setMessageText] = useState('');
