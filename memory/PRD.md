@@ -28,6 +28,7 @@ Build a household management RPG app that gamifies chores. The app should suppor
    - Dynamic chore generation based on household setup
    - Fair distribution among household members
    - Task completion with XP rewards
+   - My Quests tab displays assigned tasks with checkboxes
 
 4. **Talent Tree UI**
    - WoW-style visual talent tree
@@ -36,7 +37,7 @@ Build a household management RPG app that gamifies chores. The app should suppor
 
 5. **Dashboard Features**
    - Household Bulletin Board
-   - Constructive Concerns form
+   - Constructive Concerns form (simplified: 2 questions)
    - My Quests tab with task list
 
 ### Not Yet Implemented
@@ -71,20 +72,24 @@ Build a household management RPG app that gamifies chores. The app should suppor
 - `POST /api/tasks/{id}/complete` - Complete a task
 - `GET /api/talents/tree` - Get talent tree structure
 
-## Recent Changes (Jan 2026)
+## Recent Changes (Jan 27, 2026)
 
 ### Bug Fixes
 1. Fixed 422 error on household creation - changed `householdType` from 'ROOMMATES' to 'roommates'
-2. Fixed double `/api/api` prefix in API calls
+2. Fixed double `/api/api` prefix in all API calls
 3. Fixed join flow - modal now renders when "I was invited" is clicked
 4. Fixed My Quests display - inverted conditional logic corrected
 5. Removed Step 7 (talent spec selection) from onboarding per user request
+6. Fixed TalentTree.js API path - added `/api` prefix
+7. Fixed loadGameData to properly populate myDailyChores from API response (flattens room-grouped tasks)
+8. Simplified Constructive Concerns form - now 2 questions: "What is the concern?" and "How does this affect the household and why is it important?"
 
 ### Known Issues
+- Task completion checkbox click may need verification
 - Talent tree effects not implemented in backend
-- Session persistence may need verification on page refresh
 
 ## Next Priority Tasks
-1. Implement talent tree rule modifier effects
-2. Test chore completion flow end-to-end
-3. Implement verification system
+1. Verify task completion works end-to-end (click checkbox → API call → XP awarded)
+2. Implement talent tree rule modifier effects
+3. Test full flow: create household → assign chores → view quests → complete task
+
