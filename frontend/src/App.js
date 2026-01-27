@@ -1859,7 +1859,20 @@ function ChoreChampionsApp() {
       // Load only tasks assigned to this user for today
       const today = new Date().toISOString().split('T')[0];
       const myTasksResponse = await axios.get(`${API}/households/${householdId}/my-tasks/${user.userId}?date=${today}`);
+      
+      // API returns tasks grouped by room, flatten it to array
+      const tasksByRoom = myTasksResponse.data;
+      const flatTasks = [];
+      for (const room in tasksByRoom) {
+        if (Array.isArray(tasksByRoom[room])) {
+          tasksByRoom[room].forEach(task => {
+            flatTasks.push({ ...task, room });
+          });
+        }
+      }
+      
       setTasks(myTasksResponse.data);
+      setMyDailyChores(flatTasks);
 
       // Load teammate info if exists
       if (user.partnerId) {
