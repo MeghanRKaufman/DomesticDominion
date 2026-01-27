@@ -1705,6 +1705,16 @@ function ChoreChampionsApp() {
   const [loading, setLoading] = useState(false);
   const [invitation, setInvitation] = useState(null);
   
+  // Concerns State
+  const [submittedConcerns, setSubmittedConcerns] = useState([]);
+  const [concernForm, setConcernForm] = useState({
+    to: '',
+    area: '',
+    description: '',
+    impact: '',
+    solution: ''
+  });
+  
   // Pi Integration State
   const [messageText, setMessageText] = useState('');
   const [enhancedMessage, setEnhancedMessage] = useState('');
