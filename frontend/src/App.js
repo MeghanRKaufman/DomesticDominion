@@ -2476,25 +2476,29 @@ function ChoreChampionsApp() {
           prev.map(c => c.taskId === task.taskId ? { ...c, completed: true } : c)
         );
         
-        // Update user points if returned
-        if (response.data.newPoints !== undefined) {
-          setCurrentUser(prev => ({
-            ...prev,
-            points: response.data.newPoints,
-            level: response.data.newLevel || prev.level
-          }));
-          
-          // Update localStorage
+        // Update user points from progression data
+        const progression = response.data.progression;
+        if (progression) {
           const updatedUser = {
             ...currentUser,
-            points: response.data.newPoints,
-            level: response.data.newLevel || currentUser.level
+            points: progression.totalXP,
+            level: progression.newLevel,
+            talentPoints: progression.talentPoints
           };
+          
+          setCurrentUser(updatedUser);
           localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+          
+          // Show level up celebration if applicable
+          if (progression.leveledUp) {
+            setCelebrationMessage(`🎉 LEVEL UP! You're now Level ${progression.newLevel}! +${response.data.xpEarned} XP`);
+          } else {
+            setCelebrationMessage(`🎉 Quest complete! +${response.data.xpEarned} XP`);
+          }
+        } else {
+          setCelebrationMessage(`🎉 Quest complete! +${response.data.xpEarned || task.basePoints || 10} XP`);
         }
         
-        // Show celebration
-        setCelebrationMessage(`🎉 Quest complete! +${response.data.xpEarned || task.basePoints || 10} XP`);
         setTimeout(() => setCelebrationMessage(''), 3000);
       }
     } catch (error) {
