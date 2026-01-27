@@ -2312,51 +2312,43 @@ function ChoreChampionsApp() {
   // Generate 50/50 daily quest split as requested
   const generateDailyChores = async (onboardingData, user) => {
     try {
-      console.log('🎯 Generating daily 50/50 quest split...');
+      console.log('🎯 Assigning chores via backend...');
       
-      // Get domestic quests from comprehensive library
-      const domesticQuests = allChores.filter(q => q.category === 'domestic' || q.category === 'pets' || q.category === 'vehicle');
-      const selfCareQuests = allChores.filter(q => q.category === 'self-care');
-      const teamBuildingQuests = allChores.filter(q => q.category === 'team-building');
-      
-      // Select 8-10 domestic quests for 50/50 split
-      const selectedDomesticQuests = domesticQuests.sort(() => 0.5 - Math.random()).slice(0, 10);
-      
-      // Add verification chance (15% for domestic and self-care)
-      const addVerificationChance = (quest) => ({
-        ...quest,
-        requiresVerification: Math.random() < 0.15,
-        completed: false
-      });
-      
-      // 50/50 split of domestic quests
-      const myDomesticQuests = selectedDomesticQuests.slice(0, 5).map(addVerificationChance);
-      const partnerDomesticQuests = selectedDomesticQuests.slice(5, 10).map(addVerificationChance);
-      
-      // Add 1 self-care quest for each
-      const mySelfCareQuest = selfCareQuests.sort(() => 0.5 - Math.random())[0];
-      const partnerSelfCareQuest = selfCareQuests.sort(() => 0.5 - Math.random())[1];
-      
-      if (mySelfCareQuest) myDomesticQuests.push(addVerificationChance(mySelfCareQuest));
-      if (partnerSelfCareQuest) partnerDomesticQuests.push(addVerificationChance(partnerSelfCareQuest));
-      
-      // Add 1 team building quest (requires both parties)
-      const sharedTeamQuest = teamBuildingQuests.sort(() => 0.5 - Math.random())[0];
-      if (sharedTeamQuest) {
-        const teamQuest = { ...sharedTeamQuest, requiresBothPartners: true, completed: false };
-        myDomesticQuests.push(teamQuest);
-        partnerDomesticQuests.push(teamQuest); // Same quest for both
+      if (!user?.householdId || !user?.userId) {
+        console.error('Missing user or household ID');
+        return;
       }
       
-      setMyDailyChores(myDomesticQuests);
-      setPartnerChores(partnerDomesticQuests);
+      // Call backend to assign chores
+      const assignResponse = await axios.post(
+        `${API}/households/${user.householdId}/assign-chores?admin_user_id=${user.userId}`
+      );
       
-      console.log('✅ Daily quest assignment complete!');
-      console.log('👤 My quests:', myDomesticQuests.length);
-      console.log('👥 Teammate quests:', partnerDomesticQuests.length);
+      console.log('✅ Chores assigned:', assignResponse.data);
+      
+      // Now fetch the user's assigned tasks
+      const today = new Date().toISOString().split('T')[0];
+      const myTasksResponse = await axios.get(
+        `${API}/households/${user.householdId}/my-tasks/${user.userId}?date=${today}`
+      );
+      
+      // Flatten tasks by room into a single array
+      const tasksByRoom = myTasksResponse.data;
+      const flatTasks = [];
+      for (const room in tasksByRoom) {
+        if (Array.isArray(tasksByRoom[room])) {
+          tasksByRoom[room].forEach(task => {
+            flatTasks.push({ ...task, room });
+          });
+        }
+      }
+      
+      setMyDailyChores(flatTasks);
+      console.log('✅ Loaded', flatTasks.length, 'tasks for today');
       
     } catch (error) {
-      console.error('❌ Error generating daily quests:', error);
+      console.error('❌ Error assigning/loading quests:', error);
+      alert('Failed to generate quests: ' + (error.response?.data?.detail || error.message));
     }
   };
 
