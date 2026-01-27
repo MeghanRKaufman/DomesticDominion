@@ -3117,6 +3117,63 @@ async def respec_talents(request: dict):
         print(f"Error respeccing talents: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+# Concern Rewriting with AI
+class ConcernRewriteRequest(BaseModel):
+    to: str
+    area: str
+    description: str
+    impact: str
+    solution: str
+
+@api_router.post("/concerns/rewrite")
+async def rewrite_concern(request: ConcernRewriteRequest):
+    """Rewrite a concern with class and etiquette using AI"""
+    try:
+        api_key = os.environ.get("PI_API_KEY") or os.environ.get("EMERGENT_LLM_KEY")
+        if not api_key:
+            raise HTTPException(status_code=500, detail="AI service not configured")
+        
+        # Build the original message
+        original = f"To: {request.to}\nArea: {request.area}\nConcern: {request.description}\nImpact: {request.impact}\nSolution: {request.solution}"
+        
+        # Create AI chat
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f"concern-{uuid.uuid4()}",
+            system_message="""You are a diplomatic communication expert. Your job is to rewrite household concerns to be:
+- Respectful and non-accusatory
+- Empathetic and understanding
+- Solution-focused
+- Warm but clear about the issue
+
+Rewrite the concern as a friendly, constructive message that the recipient would be receptive to. 
+Keep it concise (2-4 sentences max). Don't use formal language - keep it casual but kind.
+Start with a friendly greeting like "Hey [name]" or "Hi everyone" depending on the recipient.
+Output ONLY the rewritten message, nothing else."""
+        ).with_model("openai", "gpt-4o")
+        
+        user_message = UserMessage(
+            text=f"Please rewrite this concern:\n\n{original}"
+        )
+        
+        rewritten = await chat.send_message(user_message)
+        
+        return {
+            "success": True,
+            "original": original,
+            "rewritten": rewritten.strip(),
+            "area": request.area,
+            "to": request.to
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error rewriting concern: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to rewrite concern: {str(e)}")
+
 async def respond_to_chore_swap(request: RespondChoreSwapRequest):
     """Accept or decline a chore swap request"""
     swap = await db.chore_swaps.find_one({"swapId": request.swapId})
