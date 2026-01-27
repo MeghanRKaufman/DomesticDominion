@@ -1885,6 +1885,16 @@ function ChoreChampionsApp() {
       setTasks(myTasksResponse.data);
       setMyDailyChores(flatTasks);
 
+      // Load household members for the concern form
+      try {
+        const statsResponse = await axios.get(`${API}/households/${householdId}/stats`);
+        if (statsResponse.data?.members) {
+          setHouseholdMembers(statsResponse.data.members.map(m => ({ name: m.displayName, odId: m.userId })));
+        }
+      } catch (err) {
+        console.warn('Could not load household members:', err);
+      }
+
       // Load teammate info if exists
       if (user.partnerId) {
         const partnerResponse = await axios.get(`${API}/users/${user.partnerId}`);
