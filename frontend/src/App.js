@@ -1449,7 +1449,7 @@ function EpicAdventureModal({ isOpen, onClose, onSuccess, onEnhancedOnboarding }
     
     try {
       // Join existing household using the correct endpoint
-      const response = await axios.post(`${API}/api/households/join`, {
+      const response = await axios.post(`${API}/households/join`, {
         memberName: name,
         inviteCode: inviteCode
       });
@@ -1479,7 +1479,7 @@ function EpicAdventureModal({ isOpen, onClose, onSuccess, onEnhancedOnboarding }
     
     setLoading(true);
     try {
-      const response = await axios.get(`${API}/api/households/${inviteCode}/preview`);
+      const response = await axios.get(`${API}/households/${inviteCode}/preview`);
       setPreviewData(response.data);
       setMode('preview');
     } catch (error) {
