@@ -2594,6 +2594,20 @@ function ChoreChampionsApp() {
             onComplete={handleEnhancedOnboardingComplete}
             onClose={() => setShowEnhancedOnboarding(false)}
           />
+        ) : showAuth ? (
+          <EpicAdventureModal 
+            isOpen={showAuth}
+            onClose={() => setShowAuth(false)}
+            onSuccess={(user) => {
+              setCurrentUser(user);
+              setShowAuth(false);
+              loadGameData(user);
+            }}
+            onEnhancedOnboarding={() => {
+              setShowAuth(false);
+              setShowEnhancedOnboarding(true);
+            }}
+          />
         ) : (
           // Clean Welcome Screen
           <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 max-w-lg w-full text-center border border-white/20 shadow-2xl">
