@@ -223,7 +223,7 @@ class TestJoinHousehold:
         
         payload = {
             "inviteCode": invite_code,
-            "displayName": f"New Member {uuid.uuid4().hex[:4]}"
+            "memberName": f"New Member {uuid.uuid4().hex[:4]}"
         }
         
         response = requests.post(f"{BASE_URL}/api/households/join", json=payload)
