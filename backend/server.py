@@ -2787,8 +2787,13 @@ async def complete_task(task_id: str, request: CompleteTaskRequest):
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
-        # Find the task
-        task = await db.tasks.find_one({"taskId": task_id}, {"_id": 0})
+        # Get user's householdId to find the correct task
+        household_id = user.get("householdId")
+        if not household_id:
+            raise HTTPException(status_code=400, detail="User is not part of a household")
+        
+        # Find the task - MUST include householdId since taskId is not globally unique
+        task = await db.tasks.find_one({"taskId": task_id, "householdId": household_id}, {"_id": 0})
         if not task:
             raise HTTPException(status_code=404, detail="Task not found")
         
