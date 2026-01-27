@@ -2370,9 +2370,6 @@ function ChoreChampionsApp() {
           choreAversions: onboardingData.choreAversions,
           preferredTasks: onboardingData.preferredTasks,
           maxDailyChoreLoad: onboardingData.maxDailyChoreLoad,
-          
-          // Step 7: Talent Spec
-          initialTalentSpec: onboardingData.initialTalentSpec,
         }
       });
       
@@ -2387,8 +2384,7 @@ function ChoreChampionsApp() {
         points: 0,
         level: 1,
         talentPoints: 0,
-        talentBuild: { nodeIds: [] },
-        initialTalentSpec: onboardingData.initialTalentSpec
+        talentBuild: { nodeIds: [] }
       };
       
       localStorage.setItem('currentUser', JSON.stringify(currentUserData));
