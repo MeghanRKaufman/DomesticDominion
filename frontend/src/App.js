@@ -1889,7 +1889,11 @@ function ChoreChampionsApp() {
       try {
         const statsResponse = await axios.get(`${API}/households/${householdId}/stats`);
         if (statsResponse.data?.members) {
-          setHouseholdMembers(statsResponse.data.members.map(m => ({ name: m.displayName, odId: m.userId })));
+          setHouseholdMembers(statsResponse.data.members.map(m => ({ name: m.displayName visId: m.userId })));
+        }
+        // Save invite code for display
+        if (statsResponse.data?.inviteCode) {
+          localStorage.setItem('inviteCode', statsResponse.data.inviteCode);
         }
       } catch (err) {
         console.warn('Could not load household members:', err);
