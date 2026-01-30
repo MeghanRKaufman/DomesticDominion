@@ -2562,11 +2562,15 @@ async def preview_household_invitation(invite_code: str):
 
 # NEW: Auto Chore Assignment (Fair & Even Split)
 @api_router.post("/households/{household_id}/assign-chores")
-async def auto_assign_chores(household_id: str, admin_user_id: str):
+async def auto_assign_chores(household_id: str, admin_user_id: str, reset: bool = False):
     """Admin triggers automatic fair/even chore distribution among all members"""
-    # Verify admin permissions
+    # Verify admin permissions (skip if called internally for redistribution)
     admin = await db.users.find_one({"userId": admin_user_id, "householdId": household_id})
-    if not admin or admin.get("role") != "admin":
+    if not admin:
+        raise HTTPException(status_code=403, detail="User not found in household")
+    
+    # Allow non-admins to trigger redistribution only if reset=True (internal call)
+    if admin.get("role") != "admin" and not reset:
         raise HTTPException(status_code=403, detail="Only household admin can assign chores")
     
     household = await db.households.find_one({"householdId": household_id})
@@ -2583,7 +2587,7 @@ async def auto_assign_chores(household_id: str, admin_user_id: str):
     last_assigned = household.get("lastAssignedDate")
     
     # Check if this is a new day (reset) or first assignment
-    is_reset = last_assigned == today
+    is_reset = last_assigned == today or reset
     
     # Get or create task list - use household's customized chores
     if household.get("customizedChores") and len(household.get("customizedChores")) > 0:
