@@ -2495,12 +2495,20 @@ async def join_household_adventure(request: JoinHouseholdRequest):
     if current_members >= household.get("memberLimit", 12):
         raise HTTPException(status_code=400, detail=f"This household is full ({household['memberLimit']} members max)!")
     
-    # Create new member user
+    # Create new member user with preferences if provided
+    member_preferences = {}
+    if hasattr(request, 'memberPreferences') and request.memberPreferences:
+        member_preferences = request.memberPreferences
+    
     new_member = User(
         displayName=request.memberName,
         householdId=household["householdId"],
         role=UserRole.MEMBER
     )
+    
+    # Add member preferences to user document
+    member_doc = new_member.model_dump()
+    member_doc["preferences"] = member_preferences
     
     # Add member to household
     await db.households.update_one(
@@ -2512,13 +2520,25 @@ async def join_household_adventure(request: JoinHouseholdRequest):
     )
     
     # Save new member
-    await db.users.insert_one(new_member.model_dump())
+    await db.users.insert_one(member_doc)
+    
+    # Auto-redistribute chores among all members
+    try:
+        # Get admin user to trigger redistribution
+        admin_id = household.get("creatorId") or household.get("memberIds", [None])[0]
+        if admin_id:
+            # Call the assign chores function internally with reset=True
+            await auto_assign_chores(household["householdId"], admin_id, reset=True)
+    except Exception as e:
+        print(f"Warning: Could not auto-redistribute chores: {e}")
     
     return {
         "message": f"🎉 Welcome to the adventure, {request.memberName}! You have joined {household['creatorName']} in the {household['adventureTheme']}!",
         "householdId": household["householdId"],
+        "householdName": household.get("name", household.get("adventureTheme", "Your Household")),
         "adventureTheme": household["adventureTheme"],
-        "userId": new_member.userId
+        "userId": new_member.userId,
+        "needsOnboarding": True
     }
 
 @api_router.get("/households/{invite_code}/preview")
