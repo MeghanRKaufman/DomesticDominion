@@ -3141,16 +3141,29 @@ function ChoreChampionsApp() {
                 <div className="bg-white/20 backdrop-blur rounded-lg p-4 flex items-center justify-between">
                   <div>
                     <div className="text-sm opacity-90 mb-1">Invite Code</div>
-                    <div className="text-3xl font-bold tracking-wider font-mono">
+                    <div className="text-3xl font-bold tracking-wider font-mono select-all" id="invite-code-display">
                       {householdInviteCode || localStorage.getItem('inviteCode') || 'LOADING...'}
                     </div>
                   </div>
                   <Button
                     onClick={() => {
                       const code = householdInviteCode || localStorage.getItem('inviteCode') || '';
-                      navigator.clipboard.writeText(code);
-                      setCelebrationMessage('📋 Invite code copied!');
-                      setTimeout(() => setCelebrationMessage(''), 2000);
+                      // Fallback copy method that works without Clipboard API
+                      const textArea = document.createElement('textarea');
+                      textArea.value = code;
+                      textArea.style.position = 'fixed';
+                      textArea.style.left = '-9999px';
+                      document.body.appendChild(textArea);
+                      textArea.select();
+                      try {
+                        document.execCommand('copy');
+                        setCelebrationMessage('📋 Invite code copied!');
+                      } catch (err) {
+                        // If execCommand fails too, just show the code
+                        setCelebrationMessage(`📋 Code: ${code} (select and copy manually)`);
+                      }
+                      document.body.removeChild(textArea);
+                      setTimeout(() => setCelebrationMessage(''), 3000);
                     }}
                     className="bg-white text-purple-600 hover:bg-purple-50"
                   >
