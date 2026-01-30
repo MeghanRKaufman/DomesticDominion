@@ -3142,13 +3142,15 @@ function ChoreChampionsApp() {
                   <div>
                     <div className="text-sm opacity-90 mb-1">Invite Code</div>
                     <div className="text-3xl font-bold tracking-wider font-mono">
-                      {localStorage.getItem('inviteCode') || 'LOADING...'}
+                      {householdInviteCode || localStorage.getItem('inviteCode') || 'LOADING...'}
                     </div>
                   </div>
                   <Button
                     onClick={() => {
-                      navigator.clipboard.writeText(localStorage.getItem('inviteCode') || '');
-                      alert('Invite code copied!');
+                      const code = householdInviteCode || localStorage.getItem('inviteCode') || '';
+                      navigator.clipboard.writeText(code);
+                      setCelebrationMessage('📋 Invite code copied!');
+                      setTimeout(() => setCelebrationMessage(''), 2000);
                     }}
                     className="bg-white text-purple-600 hover:bg-purple-50"
                   >
