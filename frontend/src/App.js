@@ -2771,7 +2771,20 @@ function ChoreChampionsApp() {
   if (!currentUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 flex items-center justify-center p-4">
-        {showEnhancedOnboarding ? (
+        {showMemberOnboarding && pendingMemberData ? (
+          <MemberOnboarding
+            isOpen={showMemberOnboarding}
+            onComplete={handleMemberOnboardingComplete}
+            onClose={() => {
+              // If they close without completing, still let them in but skip preferences
+              setShowMemberOnboarding(false);
+              setCurrentUser(pendingMemberData);
+              loadGameData(pendingMemberData);
+            }}
+            householdName={pendingMemberData.householdName || 'Your Household'}
+            memberName={pendingMemberData.displayName}
+          />
+        ) : showEnhancedOnboarding ? (
           <ProgressiveOnboarding 
             isOpen={showEnhancedOnboarding} 
             onComplete={handleEnhancedOnboardingComplete}
