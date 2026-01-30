@@ -2560,6 +2560,42 @@ async def preview_household_invitation(invite_code: str):
         "isAvailable": current_members < household.get("memberLimit", 12)
     }
 
+# Update member preferences after onboarding
+class MemberPreferencesRequest(BaseModel):
+    userId: str
+    preferences: Dict[str, Any]
+
+@api_router.post("/users/{user_id}/preferences")
+async def update_member_preferences(user_id: str, request: MemberPreferencesRequest):
+    """Update a member's preferences after they complete their onboarding"""
+    user = await db.users.find_one({"userId": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Update preferences
+    await db.users.update_one(
+        {"userId": user_id},
+        {"$set": {
+            "preferences": request.preferences,
+            "onboardingComplete": True
+        }}
+    )
+    
+    # Trigger chore redistribution if household has chores assigned
+    household = await db.households.find_one({"householdId": user.get("householdId")})
+    if household and household.get("choresAssigned"):
+        try:
+            admin_id = household.get("creatorId") or household.get("memberIds", [None])[0]
+            if admin_id:
+                await auto_assign_chores(household["householdId"], admin_id, reset=True)
+        except Exception as e:
+            print(f"Warning: Could not redistribute chores after preference update: {e}")
+    
+    return {
+        "success": True,
+        "message": "Preferences saved! Chores have been redistributed fairly."
+    }
+
 # NEW: Auto Chore Assignment (Fair & Even Split)
 @api_router.post("/households/{household_id}/assign-chores")
 async def auto_assign_chores(household_id: str, admin_user_id: str, reset: bool = False):
