@@ -1460,13 +1460,17 @@ function EpicAdventureModal({ isOpen, onClose, onSuccess, onEnhancedOnboarding }
         userId: response.data.userId,
         displayName: name,
         householdId: response.data.householdId,
+        householdName: response.data.householdName || response.data.adventureTheme,
         role: 'member',
         points: 0,
-        level: 1
+        level: 1,
+        needsOnboarding: true
       };
       
       localStorage.setItem('currentUser', JSON.stringify(userData));
-      onSuccess(userData);
+      
+      // Trigger member onboarding instead of going straight to dashboard
+      onSuccess(userData, true); // Pass flag to show member onboarding
       onClose();
     } catch (error) {
       alert('Error: ' + (error.response?.data?.detail || 'Failed to join adventure'));
