@@ -1704,6 +1704,7 @@ function ChoreChampionsApp() {
   const [showEnhancedOnboarding, setShowEnhancedOnboarding] = useState(false);
   const [loading, setLoading] = useState(false);
   const [invitation, setInvitation] = useState(null);
+  const [householdInviteCode, setHouseholdInviteCode] = useState('');
   
   // Concerns State
   const [submittedConcerns, setSubmittedConcerns] = useState([]);
