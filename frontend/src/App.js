@@ -2795,13 +2795,13 @@ function ChoreChampionsApp() {
             isOpen={showAuth}
             onClose={() => setShowAuth(false)}
             onSuccess={(user, needsMemberOnboarding) => {
-              setCurrentUser(user);
               setShowAuth(false);
               if (needsMemberOnboarding) {
-                // Show member onboarding for users joining via invite code
+                // DON'T set currentUser yet - wait for member onboarding
                 setPendingMemberData(user);
                 setShowMemberOnboarding(true);
               } else {
+                setCurrentUser(user);
                 loadGameData(user);
               }
             }}
