@@ -2674,6 +2674,7 @@ async def get_household_stats(household_id: str):
         "householdType": household.get("householdType", "other"),
         "creatorName": household.get("creatorName"),
         "adventureTheme": household.get("adventureTheme"),
+        "inviteCode": household.get("inviteCode"),
         "isActive": household.get("isActive", False),
         "choresAssigned": household.get("choresAssigned", False),
         "lastAssignedDate": household.get("lastAssignedDate"),
