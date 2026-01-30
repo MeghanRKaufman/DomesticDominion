@@ -1895,6 +1895,7 @@ function ChoreChampionsApp() {
         // Save invite code for display
         if (statsResponse.data?.inviteCode) {
           localStorage.setItem('inviteCode', statsResponse.data.inviteCode);
+          setHouseholdInviteCode(statsResponse.data.inviteCode);
         }
       } catch (err) {
         console.warn('Could not load household members:', err);
