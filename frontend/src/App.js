@@ -2582,6 +2582,43 @@ function ChoreChampionsApp() {
     }
   };
 
+  // Handle member onboarding completion (for users who joined via invite code)
+  const handleMemberOnboardingComplete = async (preferences) => {
+    try {
+      setLoading(true);
+      
+      // Save preferences to backend
+      await axios.post(`${API}/users/${pendingMemberData.userId}/preferences`, {
+        userId: pendingMemberData.userId,
+        preferences: preferences
+      });
+      
+      // Update local user data
+      const updatedUser = {
+        ...pendingMemberData,
+        needsOnboarding: false,
+        preferences: preferences
+      };
+      
+      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+      setCurrentUser(updatedUser);
+      setShowMemberOnboarding(false);
+      setPendingMemberData(null);
+      
+      // Load game data
+      loadGameData(updatedUser);
+      
+      setCelebrationMessage('🎉 Welcome aboard! Chores have been fairly distributed!');
+      setTimeout(() => setCelebrationMessage(''), 4000);
+      
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+      alert('Failed to save preferences: ' + (error.response?.data?.detail || error.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const calculateTaskPoints = (task, bonusPoints = 0) => {
     // Step 1: Base points from task difficulty
     let totalPoints = DIFFICULTY_POINTS[task.difficulty] || 5;
