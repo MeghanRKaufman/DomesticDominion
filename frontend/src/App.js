@@ -2744,10 +2744,16 @@ function ChoreChampionsApp() {
           <EpicAdventureModal 
             isOpen={showAuth}
             onClose={() => setShowAuth(false)}
-            onSuccess={(user) => {
+            onSuccess={(user, needsMemberOnboarding) => {
               setCurrentUser(user);
               setShowAuth(false);
-              loadGameData(user);
+              if (needsMemberOnboarding) {
+                // Show member onboarding for users joining via invite code
+                setPendingMemberData(user);
+                setShowMemberOnboarding(true);
+              } else {
+                loadGameData(user);
+              }
             }}
             onEnhancedOnboarding={() => {
               setShowAuth(false);
