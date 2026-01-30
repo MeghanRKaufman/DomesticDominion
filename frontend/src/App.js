@@ -1707,6 +1707,10 @@ function ChoreChampionsApp() {
   const [invitation, setInvitation] = useState(null);
   const [householdInviteCode, setHouseholdInviteCode] = useState('');
   
+  // Member onboarding state (for users joining via invite code)
+  const [showMemberOnboarding, setShowMemberOnboarding] = useState(false);
+  const [pendingMemberData, setPendingMemberData] = useState(null);
+  
   // Concerns State
   const [submittedConcerns, setSubmittedConcerns] = useState([]);
   const [concernForm, setConcernForm] = useState({
