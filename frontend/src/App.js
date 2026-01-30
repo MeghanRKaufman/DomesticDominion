@@ -9,6 +9,7 @@ import BoardGames from './components/BoardGames';
 import VerificationSystem from './components/VerificationSystem';
 import NESGameInterface from './components/NESGameInterface';
 import ProgressiveOnboarding from './components/ProgressiveOnboarding';
+import MemberOnboarding from './components/MemberOnboarding';
 import TalentTree from './components/TalentTree';
 
 // Import UI components
