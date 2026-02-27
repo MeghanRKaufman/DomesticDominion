@@ -110,7 +110,28 @@ GAME_CONSTANTS = {
     "VERIFICATION": {
         "PARTNER_VERIFIES_BONUS": 5,  # Partner verifies → +5 pts to performer
         "BOTH_VERIFY_BONUS": 5,       # Both verify → +5 pts each (shared success bonus)
-        "RANDOM_CHECK_PROBABILITY": 0.1  # 10% chance of random verification request
+        "RANDOM_CHECK_PROBABILITY": 0.25,  # 25% chance of random verification request
+        "VERIFICATION_TIMEOUT_HOURS": 24,  # Time limit to get verification
+        "FAILED_VERIFICATION_PENALTY": 0.5  # Lose 50% of points if verification fails
+    },
+    "CHORE_WEIGHTS": {
+        # Weight factors for fair distribution (higher = more "costly" chore)
+        "TIME": {
+            "quick": 1,      # < 10 min
+            "medium": 2,     # 10-30 min
+            "long": 3        # > 30 min
+        },
+        "DIFFICULTY": {
+            "easy": 1,
+            "medium": 2,
+            "hard": 3
+        },
+        "GROSSNESS": {
+            "clean": 1,      # Not gross at all
+            "mild": 1.5,     # Slightly unpleasant
+            "gross": 2,      # Nobody wants this
+            "nasty": 3       # The worst tasks
+        }
     },
     "TASK_TAKEOVER": {
         "MULTIPLIER": 3,  # One partner can "Take Over" a listed task (offering 3× the points)
