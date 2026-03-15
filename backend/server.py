@@ -1168,55 +1168,56 @@ NEW_TALENT_TREE_NODES = {
 }
 
 
-# Predefined Quest Templates (NES-themed)
+# Predefined Quest Templates (NES-themed) with fairness weights
 DEFAULT_QUEST_TEMPLATES = {
     # DAILY QUESTS - Standard household tasks
+    # weight factors: time (quick/medium/long), grossness (clean/mild/gross/nasty)
     "daily": [
-        {"title": "🛏️ Make the bed", "room": "Bedroom", "points": 5, "difficulty": "EASY", "category": "household", "icon": "🛏️"},
-        {"title": "🍽️ Wash dishes", "room": "Kitchen", "points": 10, "difficulty": "MEDIUM", "category": "household", "icon": "🍽️"},
-        {"title": "🧹 Vacuum living room", "room": "Living Room", "points": 10, "difficulty": "MEDIUM", "category": "household", "icon": "🧹"},
-        {"title": "🧺 Do laundry", "room": "Bathroom", "points": 10, "difficulty": "MEDIUM", "category": "household", "icon": "🧺"},
-        {"title": "🍳 Cook breakfast", "room": "Kitchen", "points": 10, "difficulty": "MEDIUM", "category": "household", "icon": "🍳"},
-        {"title": "🚿 Clean bathroom", "room": "Bathroom", "points": 10, "difficulty": "MEDIUM", "category": "household", "icon": "🚿"},
-        {"title": "🗑️ Take out trash", "room": "Kitchen", "points": 5, "difficulty": "EASY", "category": "household", "icon": "🗑️"},
-        {"title": "💧 Water plants", "room": "Living Room", "points": 5, "difficulty": "EASY", "category": "household", "icon": "💧"},
-        {"title": "🦷 Brush teeth", "room": "Bathroom", "points": 5, "difficulty": "EASY", "category": "personal", "icon": "🦷"},
+        {"title": "🛏️ Make the bed", "room": "Bedroom", "points": 5, "difficulty": "EASY", "category": "household", "icon": "🛏️", "time": "quick", "grossness": "clean"},
+        {"title": "🍽️ Wash dishes", "room": "Kitchen", "points": 10, "difficulty": "MEDIUM", "category": "household", "icon": "🍽️", "time": "medium", "grossness": "mild"},
+        {"title": "🧹 Vacuum living room", "room": "Living Room", "points": 10, "difficulty": "MEDIUM", "category": "household", "icon": "🧹", "time": "medium", "grossness": "clean"},
+        {"title": "🧺 Do laundry", "room": "Laundry Room", "points": 10, "difficulty": "MEDIUM", "category": "household", "icon": "🧺", "time": "long", "grossness": "mild"},
+        {"title": "🍳 Cook breakfast", "room": "Kitchen", "points": 10, "difficulty": "MEDIUM", "category": "household", "icon": "🍳", "time": "medium", "grossness": "clean"},
+        {"title": "🚿 Clean bathroom", "room": "Bathroom", "points": 10, "difficulty": "MEDIUM", "category": "household", "icon": "🚿", "time": "medium", "grossness": "gross"},
+        {"title": "🗑️ Take out trash", "room": "Kitchen", "points": 5, "difficulty": "EASY", "category": "household", "icon": "🗑️", "time": "quick", "grossness": "gross"},
+        {"title": "💧 Water plants", "room": "Living Room", "points": 5, "difficulty": "EASY", "category": "household", "icon": "💧", "time": "quick", "grossness": "clean"},
+        {"title": "🦷 Brush teeth", "room": "Bathroom", "points": 5, "difficulty": "EASY", "category": "personal", "icon": "🦷", "time": "quick", "grossness": "clean"},
     ],
     
     # WEEKLY QUESTS - Bigger household projects
     "weekly": [
-        {"title": "🏪 Grocery shopping", "room": "Kitchen", "points": 20, "difficulty": "HARD", "category": "household", "icon": "🏪"},
-        {"title": "🧽 Deep clean kitchen", "room": "Kitchen", "points": 20, "difficulty": "HARD", "category": "household", "icon": "🧽"},
-        {"title": "🍲 Food pantry visit", "room": "Kitchen", "points": 20, "difficulty": "HARD", "category": "household", "icon": "🍲"},
-        {"title": "🧼 Deep clean bathroom", "room": "Bathroom", "points": 20, "difficulty": "HARD", "category": "household", "icon": "🧼"},
-        {"title": "🛋️ Organize living room", "room": "Living Room", "points": 20, "difficulty": "HARD", "category": "household", "icon": "🛋️"},
-        {"title": "👕 Organize closet", "room": "Bedroom", "points": 20, "difficulty": "HARD", "category": "household", "icon": "👕"},
+        {"title": "🏪 Grocery shopping", "room": "Kitchen", "points": 20, "difficulty": "HARD", "category": "household", "icon": "🏪", "time": "long", "grossness": "clean"},
+        {"title": "🧽 Deep clean kitchen", "room": "Kitchen", "points": 20, "difficulty": "HARD", "category": "household", "icon": "🧽", "time": "long", "grossness": "gross"},
+        {"title": "🍲 Food pantry visit", "room": "Kitchen", "points": 20, "difficulty": "HARD", "category": "household", "icon": "🍲", "time": "long", "grossness": "clean"},
+        {"title": "🧼 Deep clean bathroom", "room": "Bathroom", "points": 20, "difficulty": "HARD", "category": "household", "icon": "🧼", "time": "long", "grossness": "nasty"},
+        {"title": "🛋️ Organize living room", "room": "Living Room", "points": 20, "difficulty": "HARD", "category": "household", "icon": "🛋️", "time": "long", "grossness": "clean"},
+        {"title": "👕 Organize closet", "room": "Bedroom", "points": 20, "difficulty": "HARD", "category": "household", "icon": "👕", "time": "long", "grossness": "clean"},
     ],
     
     # PET TASKS
     "pet": [
-        {"title": "🍖 Feed pets", "room": "Kitchen", "points": 5, "difficulty": "EASY", "category": "pet", "icon": "🍖"},
-        {"title": "🐕 Walk pets", "room": "US", "points": 10, "difficulty": "MEDIUM", "category": "pet", "icon": "🐕"},
-        {"title": "🛁 Groom or bathe pets", "room": "Bathroom", "points": 10, "difficulty": "MEDIUM", "category": "pet", "icon": "🛁"},
-        {"title": "🏥 Vet visits", "room": "US", "points": 20, "difficulty": "HARD", "category": "pet", "icon": "🏥"},
-        {"title": "🧹 Clean litter box", "room": "Bathroom", "points": 10, "difficulty": "MEDIUM", "category": "pet", "icon": "🧹"},
+        {"title": "🍖 Feed pets", "room": "Kitchen", "points": 5, "difficulty": "EASY", "category": "pet", "icon": "🍖", "time": "quick", "grossness": "clean"},
+        {"title": "🐕 Walk pets", "room": "Outside", "points": 10, "difficulty": "MEDIUM", "category": "pet", "icon": "🐕", "time": "medium", "grossness": "mild"},
+        {"title": "🛁 Groom or bathe pets", "room": "Bathroom", "points": 10, "difficulty": "MEDIUM", "category": "pet", "icon": "🛁", "time": "medium", "grossness": "mild"},
+        {"title": "🏥 Vet visits", "room": "Outside", "points": 20, "difficulty": "HARD", "category": "pet", "icon": "🏥", "time": "long", "grossness": "clean"},
+        {"title": "🧹 Clean litter box", "room": "Bathroom", "points": 10, "difficulty": "MEDIUM", "category": "pet", "icon": "🧹", "time": "quick", "grossness": "nasty"},
     ],
     
     # VEHICLE TASKS
     "vehicle": [
-        {"title": "🛢️ Check oil / fluids", "room": "US", "points": 10, "difficulty": "MEDIUM", "category": "vehicle", "icon": "🛢️"},
-        {"title": "🧽 Clean or vacuum car", "room": "US", "points": 10, "difficulty": "MEDIUM", "category": "vehicle", "icon": "🧽"},
-        {"title": "⛽ Fill gas", "room": "US", "points": 5, "difficulty": "EASY", "category": "vehicle", "icon": "⛽"},
-        {"title": "🔧 Repair or maintenance", "room": "US", "points": 20, "difficulty": "HARD", "category": "vehicle", "icon": "🔧"},
-        {"title": "🚗 Wash exterior", "room": "US", "points": 10, "difficulty": "MEDIUM", "category": "vehicle", "icon": "🚗"},
+        {"title": "🛢️ Check oil / fluids", "room": "Outside", "points": 10, "difficulty": "MEDIUM", "category": "vehicle", "icon": "🛢️", "time": "quick", "grossness": "mild"},
+        {"title": "🧽 Clean or vacuum car", "room": "Outside", "points": 10, "difficulty": "MEDIUM", "category": "vehicle", "icon": "🧽", "time": "medium", "grossness": "mild"},
+        {"title": "⛽ Fill gas", "room": "Outside", "points": 5, "difficulty": "EASY", "category": "vehicle", "icon": "⛽", "time": "quick", "grossness": "clean"},
+        {"title": "🔧 Repair or maintenance", "room": "Outside", "points": 20, "difficulty": "HARD", "category": "vehicle", "icon": "🔧", "time": "long", "grossness": "gross"},
+        {"title": "🚗 Wash exterior", "room": "Outside", "points": 10, "difficulty": "MEDIUM", "category": "vehicle", "icon": "🚗", "time": "medium", "grossness": "clean"},
     ],
     
     # SPECIAL QUESTS - Event-based or irregular
     "special": [
-        {"title": "🎄 Holiday decorating", "room": "Living Room", "points": 20, "difficulty": "HARD", "category": "special", "icon": "🎄"},
-        {"title": "🛠️ Fix household item", "room": "US", "points": 20, "difficulty": "HARD", "category": "special", "icon": "🛠️"},
-        {"title": "💊 Schedule appointments", "room": "US", "points": 10, "difficulty": "MEDIUM", "category": "special", "icon": "💊"},
-        {"title": "📦 Organize storage", "room": "US", "points": 20, "difficulty": "HARD", "category": "special", "icon": "📦"},
+        {"title": "🎄 Holiday decorating", "room": "Living Room", "points": 20, "difficulty": "HARD", "category": "special", "icon": "🎄", "time": "long", "grossness": "clean"},
+        {"title": "🛠️ Fix household item", "room": "General", "points": 20, "difficulty": "HARD", "category": "special", "icon": "🛠️", "time": "long", "grossness": "mild"},
+        {"title": "💊 Schedule appointments", "room": "General", "points": 10, "difficulty": "MEDIUM", "category": "special", "icon": "💊", "time": "quick", "grossness": "clean"},
+        {"title": "📦 Organize storage", "room": "General", "points": 20, "difficulty": "HARD", "category": "special", "icon": "📦", "time": "long", "grossness": "mild"},
     ]
 }
 
