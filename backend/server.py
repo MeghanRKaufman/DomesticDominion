@@ -1952,6 +1952,186 @@ def calculate_level(points: int) -> tuple:
     talent_points_earned = math.floor((level - 1) / GAME_CONSTANTS["LEVELING"]["LEVELS_PER_TALENT_POINT"]) * GAME_CONSTANTS["LEVELING"]["TALENT_POINTS_PER_5_LEVELS"]
     return level, talent_points_earned
 
+def calculate_chore_weight(chore: Dict) -> float:
+    """Calculate the fairness weight of a chore based on time, difficulty, and grossness"""
+    weights = GAME_CONSTANTS["CHORE_WEIGHTS"]
+    
+    # Get weight factors
+    time_weight = weights["TIME"].get(chore.get("time", "medium"), 2)
+    difficulty_weight = weights["DIFFICULTY"].get(chore.get("difficulty", "medium").lower(), 2)
+    grossness_weight = weights["GROSSNESS"].get(chore.get("grossness", "clean"), 1)
+    
+    # Combined weight = time * difficulty * grossness factor
+    total_weight = time_weight * difficulty_weight * grossness_weight
+    return total_weight
+
+def get_user_verification_rate(user: Dict) -> float:
+    """Calculate user's verification rate based on talents (base 25%, talents can reduce it)"""
+    base_rate = GAME_CONSTANTS["VERIFICATION"]["RANDOM_CHECK_PROBABILITY"]
+    
+    # Check if user has talents that reduce verification
+    talent_build = user.get("talentBuild", {})
+    unlocked_nodes = talent_build.get("nodeIds", [])
+    
+    reduction = 0.0
+    for node_id in unlocked_nodes:
+        if node_id in TALENT_TREE_NODES:
+            node = TALENT_TREE_NODES[node_id]
+            effect = node.get("effect", {})
+            
+            # Check for verification reduction talents
+            if effect.get("type") == "verification_reduction":
+                reduction += effect.get("reduction", 0)
+            # Trusted member talent reduces verification
+            elif effect.get("type") == "trust_bonus":
+                reduction += 0.05  # 5% reduction for trust talents
+    
+    # Apply reduction (minimum 5% verification rate)
+    final_rate = max(0.05, base_rate - reduction)
+    return final_rate
+
+def should_trigger_verification(user: Dict, task: Dict) -> bool:
+    """Determine if this task completion should trigger verification"""
+    verification_rate = get_user_verification_rate(user)
+    
+    # Higher value tasks have slightly higher verification chance
+    base_points = task.get("basePoints", task.get("points", 10))
+    if base_points >= 20:
+        verification_rate *= 1.2  # 20% more likely for hard tasks
+    
+    return random.random() < verification_rate
+
+def apply_talent_effects_to_points(user: Dict, task: Dict, base_points: int) -> Dict:
+    """Apply all talent effects to calculate final points"""
+    talent_build = user.get("talentBuild", {})
+    unlocked_nodes = talent_build.get("nodeIds", [])
+    
+    multiplier = 1.0
+    flat_bonus = 0
+    effects_applied = []
+    
+    task_category = task.get("category", "").lower()
+    task_room = task.get("room", "").lower()
+    
+    for node_id in unlocked_nodes:
+        if node_id not in TALENT_TREE_NODES:
+            continue
+            
+        node = TALENT_TREE_NODES[node_id]
+        effect = node.get("effect", {})
+        effect_type = effect.get("type", "")
+        
+        # Category multiplier (e.g., +10% for laundry)
+        if effect_type == "category_multiplier":
+            if effect.get("category", "").lower() in task_category:
+                multiplier *= effect.get("multiplier", 1.0)
+                effects_applied.append(f"{node['name']}: x{effect.get('multiplier', 1.0)}")
+        
+        # Category bonus (flat points)
+        elif effect_type == "category_bonus":
+            if effect.get("category", "").lower() in task_category:
+                flat_bonus += effect.get("bonus", 0)
+                effects_applied.append(f"{node['name']}: +{effect.get('bonus', 0)}")
+        
+        # Time bonus (bonus for completing within time window)
+        elif effect_type == "time_bonus":
+            if effect.get("category", "").lower() in task_category:
+                flat_bonus += effect.get("bonus", 0)
+                effects_applied.append(f"{node['name']}: +{effect.get('bonus', 0)}")
+        
+        # Streak bonus
+        elif effect_type == "streak_bonus":
+            # Would need to track consecutive completions
+            pass
+        
+        # Verification bonus
+        elif effect_type == "verification_bonus":
+            if task.get("verified"):
+                flat_bonus += effect.get("bonus", 0)
+                effects_applied.append(f"{node['name']}: +{effect.get('bonus', 0)} (verified)")
+    
+    final_points = int((base_points + flat_bonus) * multiplier)
+    
+    return {
+        "base_points": base_points,
+        "flat_bonus": flat_bonus,
+        "multiplier": multiplier,
+        "final_points": final_points,
+        "effects_applied": effects_applied
+    }
+
+def distribute_chores_fairly(chores: List[Dict], members: List[Dict]) -> Dict[str, List[Dict]]:
+    """Distribute chores fairly based on weight, considering member preferences"""
+    if not members:
+        return {}
+    
+    # Initialize distribution
+    distribution = {m["userId"]: {"chores": [], "total_weight": 0} for m in members}
+    member_ids = [m["userId"] for m in members]
+    
+    # Create member preference maps
+    member_prefs = {}
+    for m in members:
+        prefs = m.get("preferences", {})
+        member_prefs[m["userId"]] = {
+            "aversions": set(prefs.get("choreAversions", [])),
+            "preferred": set(prefs.get("preferredTasks", [])),
+            "max_daily": prefs.get("maxDailyChoreLoad", 10)
+        }
+    
+    # Calculate weight for each chore and sort by weight (heaviest first for better distribution)
+    weighted_chores = []
+    for chore in chores:
+        weight = calculate_chore_weight(chore)
+        weighted_chores.append({"chore": chore, "weight": weight})
+    
+    weighted_chores.sort(key=lambda x: x["weight"], reverse=True)
+    
+    # Distribute chores using a greedy algorithm
+    for wc in weighted_chores:
+        chore = wc["chore"]
+        weight = wc["weight"]
+        chore_category = chore.get("category", "").lower()
+        
+        # Find the best member for this chore
+        best_member = None
+        best_score = float('inf')
+        
+        for member_id in member_ids:
+            prefs = member_prefs[member_id]
+            current_weight = distribution[member_id]["total_weight"]
+            current_count = len(distribution[member_id]["chores"])
+            
+            # Skip if member is at max capacity
+            if current_count >= prefs["max_daily"]:
+                continue
+            
+            # Calculate assignment score (lower is better)
+            score = current_weight
+            
+            # Penalize if this is an aversion
+            if chore_category in prefs["aversions"]:
+                score += weight * 2  # Double the effective weight for aversions
+            
+            # Bonus if this is preferred
+            if chore_category in prefs["preferred"]:
+                score -= weight * 0.5  # Reduce effective weight for preferences
+            
+            if score < best_score:
+                best_score = score
+                best_member = member_id
+        
+        # Assign to best member (or first available if none found)
+        if best_member is None:
+            # All members at capacity, assign to one with lowest weight
+            best_member = min(member_ids, key=lambda m: distribution[m]["total_weight"])
+        
+        distribution[best_member]["chores"].append(chore)
+        distribution[best_member]["total_weight"] += weight
+    
+    # Return just the chore lists
+    return {m_id: data["chores"] for m_id, data in distribution.items()}
+
 def calculate_enhanced_task_points(task: Dict, user_talents: Dict, completion_time: datetime, is_first_task: bool = False, consecutive_tasks: int = 0) -> Dict:
     """
     Enhanced 6-step point calculation process:
