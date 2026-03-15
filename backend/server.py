@@ -3043,7 +3043,7 @@ async def get_user_tasks(household_id: str, user_id: str, date: str = None):
 
 @api_router.post("/tasks/{task_id}/complete")
 async def complete_task(task_id: str, request: CompleteTaskRequest):
-    """Complete a task and award XP with progression tracking"""
+    """Complete a task and award XP with progression tracking, verification, and talent effects"""
     try:
         # Find the user
         user = await db.users.find_one({"userId": request.userId}, {"_id": 0})
@@ -3068,12 +3068,45 @@ async def complete_task(task_id: str, request: CompleteTaskRequest):
         if task.get("completed"):
             raise HTTPException(status_code=400, detail="Task already completed")
         
-        # Calculate XP earned
-        base_points = task.get("basePoints", 10)
-        bonus_points = request.bonusPoints or 0
-        total_xp_earned = base_points + bonus_points
+        # Check if verification is required (25% base chance, modified by talents)
+        requires_verification = should_trigger_verification(user, task)
         
-        # Calculate old and new progression
+        # Calculate base XP
+        base_points = task.get("basePoints", task.get("points", 10))
+        bonus_points = request.bonusPoints or 0
+        
+        # Apply talent effects to calculate final points
+        talent_effects = apply_talent_effects_to_points(user, task, base_points)
+        total_xp_earned = talent_effects["final_points"] + bonus_points
+        
+        # If verification required, hold the points
+        if requires_verification:
+            # Mark task as pending verification
+            await db.tasks.update_one(
+                {"taskId": task_id, "householdId": household_id},
+                {"$set": {
+                    "completed": True,
+                    "completedAt": datetime.now(timezone.utc).isoformat(),
+                    "completedBy": request.userId,
+                    "pendingVerification": True,
+                    "verificationRequestedAt": datetime.now(timezone.utc).isoformat(),
+                    "pointsHeld": total_xp_earned
+                }}
+            )
+            
+            return {
+                "success": True,
+                "message": "🔍 Quest complete! Awaiting verification from a household member.",
+                "requiresVerification": True,
+                "xpPending": total_xp_earned,
+                "talentEffects": talent_effects["effects_applied"],
+                "task": {
+                    "taskId": task_id,
+                    "title": task.get("title")
+                }
+            }
+        
+        # No verification needed - award points immediately
         old_points = user.get("points", 0)
         new_points = old_points + total_xp_earned
         
@@ -3105,7 +3138,9 @@ async def complete_task(task_id: str, request: CompleteTaskRequest):
             {"$set": {
                 "completed": True,
                 "completedAt": datetime.now(timezone.utc).isoformat(),
-                "completedBy": request.userId
+                "completedBy": request.userId,
+                "pendingVerification": False,
+                "verified": True
             }}
         )
         
@@ -3115,11 +3150,15 @@ async def complete_task(task_id: str, request: CompleteTaskRequest):
             "userId": request.userId,
             "taskId": task_id,
             "householdId": user.get("householdId"),
-            "pointsEarned": base_points,
+            "pointsEarned": total_xp_earned,
+            "basePoints": base_points,
+            "talentBonus": talent_effects["flat_bonus"],
+            "talentMultiplier": talent_effects["multiplier"],
             "bonusPoints": bonus_points,
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "notes": request.notes,
-            "photo": request.photo
+            "photo": request.photo,
+            "verified": True
         }
         await db.task_completions.insert_one(completion_record)
         
