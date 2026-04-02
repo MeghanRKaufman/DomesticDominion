@@ -3554,6 +3554,51 @@ function ChoreChampionsApp() {
                 </Card>
               </div>
 
+              {/* Pending Verifications - Tasks from other members that need approval */}
+              {pendingVerifications && pendingVerifications.length > 0 && (
+                <Card className="mb-6 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300">
+                  <CardHeader>
+                    <CardTitle className="text-xl flex items-center gap-2">
+                      <span>🔍 Pending Verifications</span>
+                      <Badge className="bg-yellow-500">{pendingVerifications.length}</Badge>
+                    </CardTitle>
+                    <p className="text-sm text-yellow-700">Verify your housemates' completed tasks</p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {pendingVerifications.map((task, idx) => (
+                        <div key={task.taskId || idx} className="flex items-center justify-between p-4 bg-white rounded-lg border shadow">
+                          <div>
+                            <h4 className="font-bold">{task.title}</h4>
+                            <p className="text-sm text-gray-600">
+                              Completed by <span className="font-semibold text-blue-600">{task.completedByName || 'A housemate'}</span>
+                            </p>
+                            <p className="text-xs text-gray-500">🏠 {task.room} • {task.pointsHeld || task.basePoints} XP pending</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button 
+                              size="sm" 
+                              className="bg-green-600 hover:bg-green-700"
+                              onClick={() => handleVerifyTask(task.taskId, true)}
+                            >
+                              ✅ Approve
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              className="text-red-600 border-red-300 hover:bg-red-50"
+                              onClick={() => handleVerifyTask(task.taskId, false)}
+                            >
+                              ❌ Reject
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Player's Assigned Chores with XP */}
               <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200">
                 <CardHeader>
