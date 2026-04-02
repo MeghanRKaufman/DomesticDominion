@@ -2801,7 +2801,7 @@ async def update_member_preferences(user_id: str, request: MemberPreferencesRequ
 # NEW: Auto Chore Assignment (Fair & Even Split)
 @api_router.post("/households/{household_id}/assign-chores")
 async def auto_assign_chores(household_id: str, admin_user_id: str, reset: bool = False):
-    """Admin triggers automatic fair/even chore distribution among all members"""
+    """Admin triggers automatic fair/even chore distribution among all members using weighted fairness"""
     # Verify admin permissions (skip if called internally for redistribution)
     admin = await db.users.find_one({"userId": admin_user_id, "householdId": household_id})
     if not admin:
@@ -2815,10 +2815,16 @@ async def auto_assign_chores(household_id: str, admin_user_id: str, reset: bool 
     if not household:
         raise HTTPException(status_code=404, detail="Household not found")
     
-    # Get all household members
+    # Get all household members with their preferences
     member_ids = household.get("memberIds", [])
     if len(member_ids) < 1:
         raise HTTPException(status_code=400, detail="Need at least 1 member to assign chores")
+    
+    members = []
+    for member_id in member_ids:
+        member = await db.users.find_one({"userId": member_id}, {"_id": 0})
+        if member:
+            members.append(member)
     
     # Generate fair distribution of tasks
     today = datetime.utcnow().strftime('%Y-%m-%d')
@@ -2837,33 +2843,35 @@ async def auto_assign_chores(household_id: str, admin_user_id: str, reset: bool 
     if len(tasks) == 0:
         raise HTTPException(status_code=400, detail="No tasks available to assign. Please recreate your household.")
     
-    # Shuffle member order for fair rotation (different each time)
-    shuffled_members = member_ids.copy()
-    random.shuffle(shuffled_members)
+    # Use weighted fair distribution algorithm
+    fair_distribution = distribute_chores_fairly(tasks, members)
     
-    # Distribute tasks EVENLY among members with rotation
-    assignments = {}
-    member_task_counts = {member_id: 0 for member_id in member_ids}
+    # Save task assignments
+    member_task_counts = {}
+    member_weight_totals = {}
     
-    for i, task in enumerate(tasks):
-        # Assign to member with fewest tasks (ensures even distribution)
-        assigned_member = min(member_task_counts, key=member_task_counts.get)
-        member_task_counts[assigned_member] += 1
+    for member_id, assigned_chores in fair_distribution.items():
+        member = await db.users.find_one({"userId": member_id})
+        member_name = member.get("displayName", "Unknown") if member else "Unknown"
+        member_task_counts[member_name] = len(assigned_chores)
+        member_weight_totals[member_name] = sum(calculate_chore_weight(c) for c in assigned_chores)
         
-        task_copy = task.copy()
-        task_copy["assignedTo"] = assigned_member
-        task_copy["date"] = today
-        task_copy["householdId"] = household_id
-        task_copy["completed"] = False
-        task_copy["verified"] = False
-        assignments[task["taskId"]] = assigned_member
-        
-        # Save task assignment with ALL task fields
-        await db.tasks.update_one(
-            {"taskId": task["taskId"], "householdId": household_id},
-            {"$set": task_copy},
-            upsert=True
-        )
+        for task in assigned_chores:
+            task_copy = task.copy()
+            task_copy["assignedTo"] = member_id
+            task_copy["date"] = today
+            task_copy["householdId"] = household_id
+            task_copy["completed"] = False
+            task_copy["verified"] = False
+            task_copy["pendingVerification"] = False
+            task_copy["weight"] = calculate_chore_weight(task)
+            
+            # Save task assignment
+            await db.tasks.update_one(
+                {"taskId": task["taskId"], "householdId": household_id},
+                {"$set": task_copy},
+                upsert=True
+            )
     
     # Mark chores as assigned and record metrics
     await db.households.update_one(
@@ -2875,22 +2883,15 @@ async def auto_assign_chores(household_id: str, admin_user_id: str, reset: bool 
         }}
     )
     
-    # Calculate fair distribution stats
-    distribution_stats = {}
-    for member_id in member_ids:
-        member = await db.users.find_one({"userId": member_id})
-        member_name = member.get("displayName", "Unknown") if member else "Unknown"
-        task_count = member_task_counts[member_id]
-        distribution_stats[member_name] = task_count
-    
     return {
-        "message": f"🎯 Chores {'redistributed' if is_reset else 'assigned'} fairly!",
-        "assignments": assignments,
-        "distribution": distribution_stats,
+        "message": f"🎯 Chores {'redistributed' if is_reset else 'assigned'} fairly based on difficulty and preferences!",
+        "distribution": member_task_counts,
+        "fairnessWeights": member_weight_totals,
         "date": today,
-        "totalMembers": len(member_ids),
+        "totalMembers": len(members),
         "totalTasks": len(tasks),
-        "isReset": is_reset
+        "isReset": is_reset,
+        "algorithm": "weighted_fair_distribution"
     }
 
 @api_router.get("/households/{household_id}/stats")
