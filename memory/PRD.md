@@ -11,43 +11,61 @@ Build a household management RPG app that gamifies chores. The app should suppor
 ## Core Features
 
 ### Implemented ✅
-1. **6-Step Progressive Onboarding**
-   - Step 1: Household basics (name, admin name, size)
+1. **6-Step Progressive Onboarding (Admin)**
+   - Step 1: Household basics (name, admin name, size) + welcome description
    - Step 2: Home layout (rooms, bathrooms, bedrooms)
    - Step 3: Utilities (laundry type, trash days)
    - Step 4: Pets & Vehicles (optional)
    - Step 5: Availability (weekday/weekend hours)
    - Step 6: Personal preferences (aversions, preferred tasks)
 
-2. **Household Management**
+2. **4-Step Member Onboarding (Joining Members)**
+   - Step 1: Room setup (private/shared), pets, vehicles
+   - Step 2: Availability (weekday/weekend hours, max daily chores)
+   - Step 3: Chore aversions
+   - Step 4: Preferred tasks
+
+3. **Household Management**
    - Create households with invite codes
-   - Join households via invite code
-   - Admin dashboard with chore assignment
+   - Join households via invite code (with member onboarding)
+   - Auto-redistribute chores when new members join
+   - Invite code displayed in Kingdom Control with copy button
 
-3. **Chore System**
-   - Dynamic chore generation based on household setup
-   - Fair distribution among household members
-   - Task completion with XP rewards
-   - My Quests tab displays assigned tasks with checkboxes
+4. **Chore System with Weighted Fairness** ✅ NEW
+   - Chores have weight attributes: time (quick/medium/long), difficulty, grossness
+   - Fair distribution algorithm considers total weight, not just count
+   - Member preferences (aversions/preferred) affect assignment
+   - Each member's total chore weight is balanced
 
-4. **Talent Tree UI**
-   - WoW-style visual talent tree
-   - Three specializations: Self-Care, Teamwork, Housework
-   - Hybrid talents for cross-specialization
+5. **25% Verification System** ✅ NEW
+   - ~25% of completed tasks trigger verification requirement
+   - Household members can approve or reject verifications
+   - Approved = XP awarded + verification bonus (+5 XP)
+   - Rejected = task marked incomplete, no XP
+   - Pending verifications shown on Home tab
 
-5. **Dashboard Features**
+6. **Talent Tree with Effects** ✅ NEW
+   - Talents now apply real effects to gameplay:
+     - Category multipliers (e.g., +10% XP for laundry tasks)
+     - Flat bonuses for specific task types
+     - Verification reduction (lower chance of verification trigger)
+     - Time bonuses for completing within windows
+
+7. **Dashboard Features**
    - Household Bulletin Board
-   - Constructive Concerns form (simplified: 2 questions)
-   - My Quests tab with task list
+   - Constructive Concerns form (5 fields, AI-powered rewrite)
+   - Level/XP display with tooltips
+   - Pending Verifications section
+
+8. **AI Features**
+   - Concern form rewrites messages with class and etiquette using GPT-4o
 
 ### Not Yet Implemented
-- Talent tree rule modifiers (effects don't apply to gameplay yet)
-- Weighted chore system (fairness by difficulty/grossness)
-- Verification system (~20% random trigger)
 - Player availability calendar
 - Random positive events
 - Chore swapping
 - Mini-games
+- Streak bonuses
 
 ## Architecture
 
