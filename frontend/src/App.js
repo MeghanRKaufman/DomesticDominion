@@ -3734,7 +3734,13 @@ function ChoreChampionsApp() {
                           {myDailyChores.map((chore, idx) => (
                             <div 
                               key={chore.taskId || idx} 
-                              className={`p-4 rounded-lg border-2 ${chore.completed ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200 hover:border-blue-300'}`}
+                              className={`p-4 rounded-lg border-2 ${
+                                chore.pendingVerification 
+                                  ? 'bg-yellow-50 border-yellow-300' 
+                                  : chore.completed 
+                                    ? 'bg-green-50 border-green-200' 
+                                    : 'bg-white border-gray-200 hover:border-blue-300'
+                              }`}
                             >
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
@@ -3743,7 +3749,7 @@ function ChoreChampionsApp() {
                                     checked={chore.completed || false}
                                     onChange={() => handleCompleteTask(chore)}
                                     className="w-5 h-5 rounded"
-                                    disabled={chore.completed}
+                                    disabled={chore.completed || chore.pendingVerification}
                                   />
                                   <div>
                                     <span className={`font-medium ${chore.completed ? 'line-through text-gray-400' : ''}`}>
@@ -3752,9 +3758,19 @@ function ChoreChampionsApp() {
                                     {chore.room && (
                                       <span className="ml-2 text-xs text-gray-500">({chore.room})</span>
                                     )}
+                                    {chore.pendingVerification && (
+                                      <span className="ml-2 text-xs bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full">
+                                        🔍 Awaiting Verification
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
-                                <span className="text-sm font-bold text-blue-600">+{chore.basePoints || chore.points || 10} XP</span>
+                                <div className="text-right">
+                                  <span className="text-sm font-bold text-blue-600">+{chore.basePoints || chore.points || 10} XP</span>
+                                  {chore.weight && (
+                                    <div className="text-xs text-gray-400">Weight: {chore.weight.toFixed(1)}</div>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           ))}
