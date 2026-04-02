@@ -2489,6 +2489,17 @@ function ChoreChampionsApp() {
       });
       
       if (response.data) {
+        // Check if verification is required
+        if (response.data.requiresVerification) {
+          // Update task to show pending verification
+          setMyDailyChores(prev => 
+            prev.map(c => c.taskId === task.taskId ? { ...c, completed: true, pendingVerification: true } : c)
+          );
+          setCelebrationMessage(`🔍 Quest complete! Awaiting verification. ${response.data.xpPending} XP pending.`);
+          setTimeout(() => setCelebrationMessage(''), 4000);
+          return;
+        }
+        
         // Update the task in myDailyChores
         setMyDailyChores(prev => 
           prev.map(c => c.taskId === task.taskId ? { ...c, completed: true } : c)
@@ -2524,6 +2535,51 @@ function ChoreChampionsApp() {
       alert('Failed to complete task: ' + (error.response?.data?.detail || error.message));
     }
   };
+
+  // Handle verifying another member's task
+  const handleVerifyTask = async (taskId, approved) => {
+    try {
+      const response = await axios.post(`${API}/tasks/${taskId}/verify`, {
+        verifierId: currentUser.userId,
+        approved: approved,
+        notes: approved ? '' : 'Task not completed properly'
+      });
+      
+      if (response.data.success) {
+        setCelebrationMessage(response.data.message);
+        // Refresh pending verifications
+        loadPendingVerifications();
+        setTimeout(() => setCelebrationMessage(''), 4000);
+      }
+    } catch (error) {
+      console.error('Error verifying task:', error);
+      alert('Failed to verify task: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
+  // Load pending verifications for household
+  const [pendingVerifications, setPendingVerifications] = useState([]);
+  
+  const loadPendingVerifications = async () => {
+    if (!currentUser?.householdId) return;
+    try {
+      const response = await axios.get(`${API}/tasks/pending-verification/${currentUser.householdId}`);
+      // Filter out own tasks (can't verify your own)
+      const othersToVerify = response.data.filter(t => t.completedBy !== currentUser.userId);
+      setPendingVerifications(othersToVerify);
+    } catch (error) {
+      console.warn('Could not load pending verifications:', error);
+    }
+  };
+
+  // Load pending verifications periodically
+  useEffect(() => {
+    if (currentUser?.householdId) {
+      loadPendingVerifications();
+      const interval = setInterval(loadPendingVerifications, 30000); // Every 30 seconds
+      return () => clearInterval(interval);
+    }
+  }, [currentUser?.householdId]);
 
   // Handle submitting a concern
   const handleSubmitConcern = async (e) => {
