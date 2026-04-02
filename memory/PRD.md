@@ -71,7 +71,8 @@ Build a household management RPG app that gamifies chores. The app should suppor
 
 ### Frontend (React)
 - `/app/frontend/src/App.js` - Main app component
-- `/app/frontend/src/components/ProgressiveOnboarding.js` - 6-step onboarding
+- `/app/frontend/src/components/ProgressiveOnboarding.js` - 6-step admin onboarding
+- `/app/frontend/src/components/MemberOnboarding.js` - 4-step member onboarding
 - `/app/frontend/src/components/TalentTree.js` - Talent tree UI
 
 ### Backend (FastAPI)
@@ -79,35 +80,31 @@ Build a household management RPG app that gamifies chores. The app should suppor
 
 ### Database (MongoDB)
 - `households` - Household data and customized chores
-- `users` - User profiles, levels, talent builds
-- `tasks` - Task assignments
+- `users` - User profiles, levels, talent builds, preferences
+- `tasks` - Task assignments with verification status
+- `task_completions` - Completion history with talent effects
 
 ## Key API Endpoints
 - `POST /api/households/create-enhanced` - Create household
-- `POST /api/households/join` - Join via invite code
-- `POST /api/households/{id}/assign-chores` - Assign chores
+- `POST /api/households/join` - Join via invite code (triggers auto-redistribute)
+- `POST /api/households/{id}/assign-chores` - Assign/redistribute chores with weighted fairness
 - `GET /api/households/{id}/my-tasks/{user_id}` - Get user's tasks
-- `POST /api/tasks/{id}/complete` - Complete a task
+- `POST /api/tasks/{id}/complete` - Complete a task (may trigger verification)
+- `GET /api/tasks/pending-verification/{household_id}` - Get tasks awaiting verification
+- `POST /api/tasks/{id}/verify` - Approve or reject a verification
 - `GET /api/talents/tree` - Get talent tree structure
+- `POST /api/concerns/rewrite` - AI rewrite concern message
 
-## Recent Changes (Jan 27, 2026)
+## Recent Changes (Apr 2026)
 
-### Bug Fixes
-1. Fixed 422 error on household creation - changed `householdType` from 'ROOMMATES' to 'roommates'
-2. Fixed double `/api/api` prefix in all API calls
-3. Fixed join flow - modal now renders when "I was invited" is clicked
-4. Fixed My Quests display - inverted conditional logic corrected
-5. Removed Step 7 (talent spec selection) from onboarding per user request
-6. Fixed TalentTree.js API path - added `/api` prefix
-7. Fixed loadGameData to properly populate myDailyChores from API response (flattens room-grouped tasks)
-8. Simplified Constructive Concerns form - now 2 questions: "What is the concern?" and "How does this affect the household and why is it important?"
-
-### Known Issues
-- Task completion checkbox click may need verification
-- Talent tree effects not implemented in backend
+### New Features
+1. **25% Verification System** - Random verification triggers with talent modifications
+2. **Weighted Chore Fairness** - Distribution based on time/difficulty/grossness weights
+3. **Talent Effects Implementation** - Talents now affect XP multipliers and verification rates
+4. **Pending Verifications UI** - Dashboard shows tasks awaiting verification from housemates
 
 ## Next Priority Tasks
-1. Verify task completion works end-to-end (click checkbox → API call → XP awarded)
-2. Implement talent tree rule modifier effects
-3. Test full flow: create household → assign chores → view quests → complete task
+1. Test verification flow end-to-end with multiple users
+2. Implement streak bonuses for consecutive completions
+3. Add player availability calendar
 
