@@ -3196,6 +3196,143 @@ async def complete_task(task_id: str, request: CompleteTaskRequest):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error completing task: {str(e)}")
 
+# Verification System Endpoints
+class VerifyTaskRequest(BaseModel):
+    verifierId: str
+    approved: bool
+    notes: str = ""
+
+@api_router.get("/tasks/pending-verification/{household_id}")
+async def get_pending_verifications(household_id: str):
+    """Get all tasks pending verification in a household"""
+    try:
+        tasks = await db.tasks.find({
+            "householdId": household_id,
+            "pendingVerification": True
+        }).to_list(100)
+        
+        # Get user info for each task
+        result = []
+        for task in tasks:
+            task.pop('_id', None)
+            user = await db.users.find_one({"userId": task.get("completedBy")}, {"_id": 0})
+            if user:
+                task["completedByName"] = user.get("displayName")
+            result.append(task)
+        
+        return result
+    except Exception as e:
+        print(f"Error fetching pending verifications: {e}")
+        return []
+
+@api_router.post("/tasks/{task_id}/verify")
+async def verify_task(task_id: str, request: VerifyTaskRequest):
+    """Verify or reject a completed task"""
+    try:
+        # Find the verifier
+        verifier = await db.users.find_one({"userId": request.verifierId}, {"_id": 0})
+        if not verifier:
+            raise HTTPException(status_code=404, detail="Verifier not found")
+        
+        household_id = verifier.get("householdId")
+        
+        # Find the task
+        task = await db.tasks.find_one({
+            "taskId": task_id, 
+            "householdId": household_id,
+            "pendingVerification": True
+        }, {"_id": 0})
+        
+        if not task:
+            raise HTTPException(status_code=404, detail="Task not found or not pending verification")
+        
+        # Can't verify your own task
+        if task.get("completedBy") == request.verifierId:
+            raise HTTPException(status_code=400, detail="You cannot verify your own task")
+        
+        completed_by = task.get("completedBy")
+        points_held = task.get("pointsHeld", 0)
+        
+        if request.approved:
+            # Verification approved - award held points plus bonus
+            verification_bonus = GAME_CONSTANTS["VERIFICATION"]["PARTNER_VERIFIES_BONUS"]
+            total_points = points_held + verification_bonus
+            
+            # Get the user who completed the task
+            user = await db.users.find_one({"userId": completed_by}, {"_id": 0})
+            if user:
+                old_points = user.get("points", 0)
+                new_points = old_points + total_points
+                old_level, _ = calculate_level(old_points)
+                new_level, new_talent_points = calculate_level(new_points)
+                
+                # Update user points
+                await db.users.update_one(
+                    {"userId": completed_by},
+                    {"$set": {"points": new_points, "level": new_level}}
+                )
+                
+                # Mark task as verified
+                await db.tasks.update_one(
+                    {"taskId": task_id, "householdId": household_id},
+                    {"$set": {
+                        "pendingVerification": False,
+                        "verified": True,
+                        "verifiedBy": request.verifierId,
+                        "verifiedAt": datetime.now(timezone.utc).isoformat()
+                    }}
+                )
+                
+                # Award verifier a small bonus too
+                await db.users.update_one(
+                    {"userId": request.verifierId},
+                    {"$inc": {"points": 2}}  # Small bonus for verifying
+                )
+                
+                return {
+                    "success": True,
+                    "message": f"✅ Task verified! {user.get('displayName')} earned {total_points} XP (+{verification_bonus} verification bonus)",
+                    "pointsAwarded": total_points,
+                    "verificationBonus": verification_bonus,
+                    "leveledUp": new_level > old_level
+                }
+        else:
+            # Verification rejected - apply penalty
+            penalty_rate = GAME_CONSTANTS["VERIFICATION"]["FAILED_VERIFICATION_PENALTY"]
+            penalty_points = int(points_held * penalty_rate)
+            
+            # Mark task as failed verification
+            await db.tasks.update_one(
+                {"taskId": task_id, "householdId": household_id},
+                {"$set": {
+                    "pendingVerification": False,
+                    "verified": False,
+                    "verificationFailed": True,
+                    "verifiedBy": request.verifierId,
+                    "verifiedAt": datetime.now(timezone.utc).isoformat(),
+                    "rejectionNotes": request.notes
+                }}
+            )
+            
+            # Track failed verifications for the user
+            await db.users.update_one(
+                {"userId": completed_by},
+                {"$inc": {"failedVerificationsThisMonth": 1}}
+            )
+            
+            return {
+                "success": True,
+                "message": f"❌ Verification rejected. Task marked as incomplete.",
+                "pointsLost": penalty_points,
+                "notes": request.notes
+            }
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error verifying task: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.get("/talents/tree")
 async def get_talent_tree():
     """Get the complete talent tree structure"""
