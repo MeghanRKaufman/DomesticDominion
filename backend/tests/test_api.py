@@ -109,12 +109,13 @@ class TestChoreAssignment:
         
         data = response.json()
         assert "message" in data, "Response missing 'message'"
-        assert "assignments" in data, "Response missing 'assignments'"
+        assert "distribution" in data, "Response missing 'distribution'"
         
-        assignments = data["assignments"]
-        assert len(assignments) > 0, "No chores were assigned"
+        distribution = data["distribution"]
+        assert len(distribution) > 0, "No chores were assigned"
         
-        print(f"✅ Chores assigned: {len(assignments)} tasks")
+        print(f"✅ Chores assigned: {data.get('totalTasks', 0)} tasks")
+        print(f"   Distribution: {distribution}")
         print(f"   Message: {data['message']}")
         
         return household_id, admin_user_id
