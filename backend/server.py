@@ -3306,6 +3306,7 @@ async def verify_task(task_id: str, request: VerifyTaskRequest):
             await db.tasks.update_one(
                 {"taskId": task_id, "householdId": household_id},
                 {"$set": {
+                    "completed": False,
                     "pendingVerification": False,
                     "verified": False,
                     "verificationFailed": True,
