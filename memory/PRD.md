@@ -1,110 +1,128 @@
 # Domestic Dominion - Product Requirements Document
 
 ## Original Problem Statement
-Build a household management RPG app that gamifies chores. The app should support:
-- Households with 2-12+ players (moved from couple-centric to household-centric)
-- Admin role with chore assignment capabilities
-- Dynamic chore generation based on household setup (onboarding survey)
-- WoW-style talent tree for rule modifiers
-- Fair chore distribution weighted by time, difficulty, and "grossness"
+Build a household management RPG app that gamifies chores for 2-12+ players in a shared household.
+Core requirements:
+- Household-centric gameplay with an admin role
+- Dynamic chore generation from onboarding surveys
+- Weighted fairness model based on time, difficulty, and grossness
+- WoW-style talent tree with gameplay modifiers
+- Invite-code based household joining
+- AI-assisted constructive concerns form
+- 25% random chore verification system
+- Availability-aware assignment that respects player schedules
 
-## Core Features
+## Current Product Scope
+Domestic Dominion is a full-stack React + FastAPI + MongoDB application for running a shared household like an RPG party. Players join a household, receive fairly distributed chores, complete quests for XP, unlock talent upgrades, and coordinate responsibilities with visibility into task load and verification.
 
-### Implemented ✅
-1. **6-Step Progressive Onboarding (Admin)**
-   - Step 1: Household basics (name, admin name, size) + welcome description
-   - Step 2: Home layout (rooms, bathrooms, bedrooms)
-   - Step 3: Utilities (laundry type, trash days)
-   - Step 4: Pets & Vehicles (optional)
-   - Step 5: Availability (weekday/weekend hours)
-   - Step 6: Personal preferences (aversions, preferred tasks)
+## Implemented Features
 
-2. **4-Step Member Onboarding (Joining Members)**
-   - Step 1: Room setup (private/shared), pets, vehicles
-   - Step 2: Availability (weekday/weekend hours, max daily chores)
-   - Step 3: Chore aversions
-   - Step 4: Preferred tasks
+### Household Setup & Access
+- 6-step admin onboarding flow
+- 4-step member onboarding flow after joining with invite code
+- Household invite code generation, persistence, preview, and copy fallback
+- Join flow that correctly links new users into existing households
 
-3. **Household Management**
-   - Create households with invite codes
-   - Join households via invite code (with member onboarding)
-   - Auto-redistribute chores when new members join
-   - Invite code displayed in Kingdom Control with copy button
+### Chore Assignment & Fairness
+- Auto-redistribution of chores when new members join
+- Weighted fairness algorithm using time, difficulty, and grossness
+- Preference-aware assignment using chore aversions, preferred tasks, and max daily load
+- Availability-aware assignment using weekly defaults plus date overrides
+- Assigned tasks now include `scheduledWindow` metadata when availability applies
 
-4. **Chore System with Weighted Fairness** ✅ NEW
-   - Chores have weight attributes: time (quick/medium/long), difficulty, grossness
-   - Fair distribution algorithm considers total weight, not just count
-   - Member preferences (aversions/preferred) affect assignment
-   - Each member's total chore weight is balanced
+### Verification System
+- ~25% verification trigger on task completion
+- Pending verification list in UI for other household members
+- Approval flow holds XP until approval, then awards XP + verification bonus
+- Rejection flow now correctly resets `completed=false`, allowing re-completion
+- Self-verification prevention
 
-5. **25% Verification System** ✅ NEW
-   - ~25% of completed tasks trigger verification requirement
-   - Household members can approve or reject verifications
-   - Approved = XP awarded + verification bonus (+5 XP)
-   - Rejected = task marked incomplete, no XP
-   - Pending verifications shown on Home tab
+### Talent Tree & Progression
+- Talent tree UI and backend integration
+- Talent modifiers affecting XP and verification behavior
+- XP, level, and talent-point progression
 
-6. **Talent Tree with Effects** ✅ NEW
-   - Talents now apply real effects to gameplay:
-     - Category multipliers (e.g., +10% XP for laundry tasks)
-     - Flat bonuses for specific task types
-     - Verification reduction (lower chance of verification trigger)
-     - Time bonuses for completing within windows
+### Communication
+- Constructive Concerns form
+- AI rewrite endpoint using emergentintegrations + OpenAI GPT-4o
 
-7. **Dashboard Features**
-   - Household Bulletin Board
-   - Constructive Concerns form (5 fields, AI-powered rewrite)
-   - Level/XP display with tooltips
-   - Pending Verifications section
+### Availability Calendar (latest)
+- New `Profile & Settings` tab in frontend
+- Weekly availability editor for all 7 days
+- Calendar-based per-date override editor
+- Save flow persists normalized availability to user preferences
+- Existing assignments redistribute after availability changes
+- Assignment engine now skips unavailable members for the assignment date
+- Proper 400 error returned when all members are unavailable
 
-8. **AI Features**
-   - Concern form rewrites messages with class and etiquette using GPT-4o
+## Testing Status
 
-### Not Yet Implemented
-- Player availability calendar
-- Random positive events
-- Chore swapping
-- Mini-games
-- Streak bonuses
+### Verified Passing
+- `/app/test_reports/iteration_2.json`
+  - Verification system E2E tested
+  - Root-cause identified for rejected-task re-completion bug
+- `/app/test_reports/iteration_3.json`
+  - Availability Calendar feature tested end-to-end
+  - 19/19 backend tests passed
+  - Frontend availability UI verified working
+  - Verification rejection regression passed
+  - Join + redistribution regression passed
+
+### Additional Main-Agent Verification
+- Local smoke screenshot of `Profile & Settings` tab passed on internal frontend
+- Backend self-test confirmed unavailable members receive 0 tasks and assigned tasks contain `scheduledWindow`
 
 ## Architecture
 
-### Frontend (React)
-- `/app/frontend/src/App.js` - Main app component
-- `/app/frontend/src/components/ProgressiveOnboarding.js` - 6-step admin onboarding
-- `/app/frontend/src/components/MemberOnboarding.js` - 4-step member onboarding
-- `/app/frontend/src/components/TalentTree.js` - Talent tree UI
+### Frontend
+- `/app/frontend/src/App.js` - main application shell, tabs, data loading, quest UI
+- `/app/frontend/src/components/ProgressiveOnboarding.js` - admin onboarding
+- `/app/frontend/src/components/MemberOnboarding.js` - member onboarding
+- `/app/frontend/src/components/AvailabilitySettingsPanel.jsx` - availability calendar editor
+- `/app/frontend/src/components/TalentTree.js` - talent tree
 
-### Backend (FastAPI)
-- `/app/backend/server.py` - All API endpoints and models
+### Backend
+- `/app/backend/server.py` - monolithic FastAPI app containing routes, models, and assignment logic
+- `/app/backend/tests/test_verification_flow.py` - verification regression coverage
+- `/app/backend/tests/test_availability_calendar.py` - availability calendar coverage
 
-### Database (MongoDB)
-- `households` - Household data and customized chores
-- `users` - User profiles, levels, talent builds, preferences
-- `tasks` - Task assignments with verification status
-- `task_completions` - Completion history with talent effects
+### Database Collections
+- `households`
+- `users`
+- `tasks`
+- `task_completions`
 
-## Key API Endpoints
-- `POST /api/households/create-enhanced` - Create household
-- `POST /api/households/join` - Join via invite code (triggers auto-redistribute)
-- `POST /api/households/{id}/assign-chores` - Assign/redistribute chores with weighted fairness
-- `GET /api/households/{id}/my-tasks/{user_id}` - Get user's tasks
-- `POST /api/tasks/{id}/complete` - Complete a task (may trigger verification)
-- `GET /api/tasks/pending-verification/{household_id}` - Get tasks awaiting verification
-- `POST /api/tasks/{id}/verify` - Approve or reject a verification
-- `GET /api/talents/tree` - Get talent tree structure
-- `POST /api/concerns/rewrite` - AI rewrite concern message
+## Important Data/Behavior Notes
+- User availability is stored in `users.preferences.availability`
+  - `weekly`: Monday-Sunday default windows
+  - `overrides`: `YYYY-MM-DD` per-day overrides
+- Assignment currently targets the current day and only assigns tasks to members available that day
+- Admin onboarding preferences are now persisted to the admin user record
+- Frontend refresh flow now hydrates current user from backend when loading game data
 
-## Recent Changes (Apr 2026)
+## Current Priorities
 
-### New Features
-1. **25% Verification System** - Random verification triggers with talent modifications
-2. **Weighted Chore Fairness** - Distribution based on time/difficulty/grossness weights
-3. **Talent Effects Implementation** - Talents now affect XP multipliers and verification rates
-4. **Pending Verifications UI** - Dashboard shows tasks awaiting verification from housemates
+### P0
+- User validation of the new Availability Calendar and verification flows in real usage
 
-## Next Priority Tasks
-1. Test verification flow end-to-end with multiple users
-2. Implement streak bonuses for consecutive completions
-3. Add player availability calendar
+### P1
+- Household stats view showing top contributors and completion breakdown
+- Random positive events system
+- Streak bonuses for consecutive task completions
 
+### P2
+- Chore swapping between members
+- In-app mini-games
+- Simulation mode for testing gameplay loops
+
+### Refactor / Technical Debt
+- Break `/app/backend/server.py` into routes, services, and models
+- Break `/app/frontend/src/App.js` into smaller tab/page components
+- Clean up duplicate/redefined backend models/functions highlighted by lint
+
+## Latest Change Log
+- 2026-04-16: Fixed verification rejection bug so rejected tasks can be completed again
+- 2026-04-16: Added availability normalization and availability-aware chore assignment in backend
+- 2026-04-16: Added `Profile & Settings` availability calendar UI with weekly defaults + date overrides
+- 2026-04-16: Added scheduled window display on assigned quest cards
+- 2026-04-16: Added backend regression coverage for availability calendar
