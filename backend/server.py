@@ -1952,6 +1952,120 @@ def calculate_level(points: int) -> tuple:
     talent_points_earned = math.floor((level - 1) / GAME_CONSTANTS["LEVELING"]["LEVELS_PER_TALENT_POINT"]) * GAME_CONSTANTS["LEVELING"]["TALENT_POINTS_PER_5_LEVELS"]
     return level, talent_points_earned
 
+DAYS_OF_WEEK = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday"
+]
+
+
+def create_default_weekly_availability() -> Dict[str, Dict[str, Any]]:
+    return {
+        "Monday": {"enabled": True, "start": "18:00", "end": "22:00"},
+        "Tuesday": {"enabled": True, "start": "18:00", "end": "22:00"},
+        "Wednesday": {"enabled": True, "start": "18:00", "end": "22:00"},
+        "Thursday": {"enabled": True, "start": "18:00", "end": "22:00"},
+        "Friday": {"enabled": True, "start": "18:00", "end": "22:00"},
+        "Saturday": {"enabled": True, "start": "09:00", "end": "21:00"},
+        "Sunday": {"enabled": True, "start": "09:00", "end": "21:00"}
+    }
+
+
+def normalize_availability_preferences(availability: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    weekly = create_default_weekly_availability()
+    overrides = {}
+
+    if not isinstance(availability, dict):
+        return {"weekly": weekly, "overrides": overrides}
+
+    weekly_config = availability.get("weekly")
+    if isinstance(weekly_config, dict):
+        for day in DAYS_OF_WEEK:
+            day_values = weekly_config.get(day, {})
+            if not isinstance(day_values, dict):
+                continue
+            weekly[day] = {
+                "enabled": day_values.get("enabled", weekly[day]["enabled"]),
+                "start": day_values.get("start", weekly[day]["start"]),
+                "end": day_values.get("end", weekly[day]["end"])
+            }
+    else:
+        weekday_window = availability.get("mondayToFriday", {})
+        weekend_window = availability.get("weekend", {})
+        low_energy_days = set(availability.get("lowEnergyDays", []))
+
+        for day in DAYS_OF_WEEK[:5]:
+            weekly[day] = {
+                "enabled": day not in low_energy_days,
+                "start": weekday_window.get("start", weekly[day]["start"]),
+                "end": weekday_window.get("end", weekly[day]["end"])
+            }
+
+        for day in DAYS_OF_WEEK[5:]:
+            weekly[day] = {
+                "enabled": day not in low_energy_days,
+                "start": weekend_window.get("start", weekly[day]["start"]),
+                "end": weekend_window.get("end", weekly[day]["end"])
+            }
+
+    raw_overrides = availability.get("overrides", {})
+    if isinstance(raw_overrides, dict):
+        for date_key, override_values in raw_overrides.items():
+            if not isinstance(override_values, dict):
+                continue
+            try:
+                day_name = datetime.strptime(date_key, "%Y-%m-%d").strftime("%A")
+            except ValueError:
+                continue
+
+            base_window = weekly.get(day_name, {"enabled": True, "start": "18:00", "end": "22:00"})
+            overrides[date_key] = {
+                "enabled": override_values.get("enabled", base_window["enabled"]),
+                "start": override_values.get("start", base_window["start"]),
+                "end": override_values.get("end", base_window["end"])
+            }
+
+    return {"weekly": weekly, "overrides": overrides}
+
+
+def normalize_user_preferences(preferences: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    normalized = dict(preferences or {})
+    normalized["availability"] = normalize_availability_preferences(normalized.get("availability"))
+    normalized["choreAversions"] = normalized.get("choreAversions", [])
+    normalized["preferredTasks"] = normalized.get("preferredTasks", [])
+    normalized["maxDailyChoreLoad"] = normalized.get("maxDailyChoreLoad", 10)
+    return normalized
+
+
+def resolve_member_availability(member: Dict[str, Any], date_str: str) -> Optional[Dict[str, Any]]:
+    preferences = normalize_user_preferences(member.get("preferences", {}))
+    availability = preferences.get("availability", {})
+
+    try:
+        day_name = datetime.strptime(date_str, "%Y-%m-%d").strftime("%A")
+    except ValueError:
+        return None
+
+    weekly_schedule = availability.get("weekly", create_default_weekly_availability())
+    day_window = weekly_schedule.get(day_name, {"enabled": True, "start": "18:00", "end": "22:00"})
+    active_window = availability.get("overrides", {}).get(date_str, day_window)
+
+    if not active_window.get("enabled", True):
+        return None
+
+    return {
+        "date": date_str,
+        "day": day_name,
+        "start": active_window.get("start", day_window.get("start", "18:00")),
+        "end": active_window.get("end", day_window.get("end", "22:00")),
+        "source": "override" if date_str in availability.get("overrides", {}) else "weekly"
+    }
+
+
 def calculate_chore_weight(chore: Dict) -> float:
     """Calculate the fairness weight of a chore based on time, difficulty, and grossness"""
     weights = GAME_CONSTANTS["CHORE_WEIGHTS"]
@@ -2060,75 +2174,84 @@ def apply_talent_effects_to_points(user: Dict, task: Dict, base_points: int) -> 
         "effects_applied": effects_applied
     }
 
-def distribute_chores_fairly(chores: List[Dict], members: List[Dict]) -> Dict[str, List[Dict]]:
-    """Distribute chores fairly based on weight, considering member preferences"""
+def distribute_chores_fairly(chores: List[Dict], members: List[Dict], assignment_date: Optional[str] = None) -> Dict[str, List[Dict]]:
+    """Distribute chores fairly based on weight, considering member preferences and availability"""
     if not members:
         return {}
-    
+
     # Initialize distribution
     distribution = {m["userId"]: {"chores": [], "total_weight": 0} for m in members}
     member_ids = [m["userId"] for m in members]
-    
+
+    available_member_ids = member_ids
+    if assignment_date:
+        available_member_ids = [
+            m["userId"]
+            for m in members
+            if resolve_member_availability(m, assignment_date)
+        ]
+        if not available_member_ids:
+            raise ValueError("No household members are available during their configured windows for this assignment date")
+
     # Create member preference maps
     member_prefs = {}
     for m in members:
-        prefs = m.get("preferences", {})
+        prefs = normalize_user_preferences(m.get("preferences", {}))
         member_prefs[m["userId"]] = {
             "aversions": set(prefs.get("choreAversions", [])),
             "preferred": set(prefs.get("preferredTasks", [])),
             "max_daily": prefs.get("maxDailyChoreLoad", 10)
         }
-    
+
     # Calculate weight for each chore and sort by weight (heaviest first for better distribution)
     weighted_chores = []
     for chore in chores:
         weight = calculate_chore_weight(chore)
         weighted_chores.append({"chore": chore, "weight": weight})
-    
+
     weighted_chores.sort(key=lambda x: x["weight"], reverse=True)
-    
+
     # Distribute chores using a greedy algorithm
     for wc in weighted_chores:
         chore = wc["chore"]
         weight = wc["weight"]
         chore_category = chore.get("category", "").lower()
-        
+
         # Find the best member for this chore
         best_member = None
         best_score = float('inf')
-        
-        for member_id in member_ids:
+
+        for member_id in available_member_ids:
             prefs = member_prefs[member_id]
             current_weight = distribution[member_id]["total_weight"]
             current_count = len(distribution[member_id]["chores"])
-            
+
             # Skip if member is at max capacity
             if current_count >= prefs["max_daily"]:
                 continue
-            
+
             # Calculate assignment score (lower is better)
             score = current_weight
-            
+
             # Penalize if this is an aversion
             if chore_category in prefs["aversions"]:
                 score += weight * 2  # Double the effective weight for aversions
-            
+
             # Bonus if this is preferred
             if chore_category in prefs["preferred"]:
                 score -= weight * 0.5  # Reduce effective weight for preferences
-            
+
             if score < best_score:
                 best_score = score
                 best_member = member_id
-        
-        # Assign to best member (or first available if none found)
+
+        # Assign to best member (or first available if all available members are already at capacity)
         if best_member is None:
-            # All members at capacity, assign to one with lowest weight
-            best_member = min(member_ids, key=lambda m: distribution[m]["total_weight"])
-        
+            best_member = min(available_member_ids, key=lambda m: distribution[m]["total_weight"])
+
         distribution[best_member]["chores"].append(chore)
         distribution[best_member]["total_weight"] += weight
-    
+
     # Return just the chore lists
     return {m_id: data["chores"] for m_id, data in distribution.items()}
 
@@ -2596,6 +2719,14 @@ async def create_enhanced_household(request: EnhancedHouseholdRequest):
         memberIds=[]
     )
     
+    admin_preferences = normalize_user_preferences({
+        **request.preferences,
+        "availability": request.householdSetup.get("availability", {}),
+        "choreAversions": request.householdSetup.get("choreAversions", []),
+        "preferredTasks": request.householdSetup.get("preferredTasks", []),
+        "maxDailyChoreLoad": request.householdSetup.get("maxDailyChoreLoad", 3)
+    })
+
     # Create user for the creator (as admin)
     creator_user = User(
         displayName=player_name,
@@ -2603,13 +2734,16 @@ async def create_enhanced_household(request: EnhancedHouseholdRequest):
         userId=household.creatorId,
         role=UserRole.ADMIN
     )
+    creator_doc = creator_user.model_dump()
+    creator_doc["preferences"] = admin_preferences
+    creator_doc["onboardingComplete"] = True
     
     # Add creator to member list
     household.memberIds.append(household.creatorId)
     
     # Save to database
     await db.households.insert_one(household.model_dump())
-    await db.users.insert_one(creator_user.model_dump())
+    await db.users.insert_one(creator_doc)
     
     # Create enhanced invitation message
     household_features = []
@@ -2701,6 +2835,7 @@ async def join_household_adventure(request: JoinHouseholdRequest):
     member_preferences = {}
     if hasattr(request, 'memberPreferences') and request.memberPreferences:
         member_preferences = request.memberPreferences
+    member_preferences = normalize_user_preferences(member_preferences)
     
     new_member = User(
         displayName=request.memberName,
@@ -2769,16 +2904,18 @@ class MemberPreferencesRequest(BaseModel):
 
 @api_router.post("/users/{user_id}/preferences")
 async def update_member_preferences(user_id: str, request: MemberPreferencesRequest):
-    """Update a member's preferences after they complete their onboarding"""
+    """Update a user's preferences and availability settings"""
     user = await db.users.find_one({"userId": user_id})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+
+    normalized_preferences = normalize_user_preferences(request.preferences)
     
     # Update preferences
     await db.users.update_one(
         {"userId": user_id},
         {"$set": {
-            "preferences": request.preferences,
+            "preferences": normalized_preferences,
             "onboardingComplete": True
         }}
     )
@@ -2795,7 +2932,8 @@ async def update_member_preferences(user_id: str, request: MemberPreferencesRequ
     
     return {
         "success": True,
-        "message": "Preferences saved! Chores have been redistributed fairly."
+        "message": "Preferences saved! Chores have been redistributed fairly.",
+        "preferences": normalized_preferences
     }
 
 # NEW: Auto Chore Assignment (Fair & Even Split)
@@ -2844,7 +2982,10 @@ async def auto_assign_chores(household_id: str, admin_user_id: str, reset: bool 
         raise HTTPException(status_code=400, detail="No tasks available to assign. Please recreate your household.")
     
     # Use weighted fair distribution algorithm
-    fair_distribution = distribute_chores_fairly(tasks, members)
+    try:
+        fair_distribution = distribute_chores_fairly(tasks, members, today)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
     
     # Save task assignments
     member_task_counts = {}
@@ -2853,6 +2994,7 @@ async def auto_assign_chores(household_id: str, admin_user_id: str, reset: bool 
     for member_id, assigned_chores in fair_distribution.items():
         member = await db.users.find_one({"userId": member_id})
         member_name = member.get("displayName", "Unknown") if member else "Unknown"
+        availability_window = resolve_member_availability(member or {}, today)
         member_task_counts[member_name] = len(assigned_chores)
         member_weight_totals[member_name] = sum(calculate_chore_weight(c) for c in assigned_chores)
         
@@ -2865,6 +3007,8 @@ async def auto_assign_chores(household_id: str, admin_user_id: str, reset: bool 
             task_copy["verified"] = False
             task_copy["pendingVerification"] = False
             task_copy["weight"] = calculate_chore_weight(task)
+            if availability_window:
+                task_copy["scheduledWindow"] = availability_window
             
             # Save task assignment
             await db.tasks.update_one(

@@ -10,6 +10,7 @@ import VerificationSystem from './components/VerificationSystem';
 import NESGameInterface from './components/NESGameInterface';
 import ProgressiveOnboarding from './components/ProgressiveOnboarding';
 import MemberOnboarding from './components/MemberOnboarding';
+import { AvailabilitySettingsPanel } from './components/AvailabilitySettingsPanel';
 import TalentTree from './components/TalentTree';
 
 // Import UI components
@@ -1765,6 +1766,12 @@ function ChoreChampionsApp() {
   ]);
   const [newTodoItem, setNewTodoItem] = useState('');
 
+  const persistCurrentUser = (nextUser) => {
+    setCurrentUser(nextUser);
+    localStorage.setItem('currentUser', JSON.stringify(nextUser));
+  };
+
+
   // Talent Tree - Handle Node Unlock
   const handleNodeUnlock = async (nodeId) => {
     if (!currentUser) return;
@@ -1869,8 +1876,18 @@ function ChoreChampionsApp() {
   // Load game data
   const loadGameData = async (user) => {
     try {
+      let hydratedUser = user;
+
+      try {
+        const userResponse = await axios.get(`${API}/users/${user.userId}`);
+        hydratedUser = { ...user, ...userResponse.data };
+        persistCurrentUser(hydratedUser);
+      } catch (syncError) {
+        console.warn('Could not refresh current user profile:', syncError);
+      }
+
       // Use householdId (new structure) or fall back to coupleId (old structure)
-      const householdId = user.householdId || user.coupleId;
+      const householdId = hydratedUser.householdId || hydratedUser.coupleId;
       
       if (!householdId) {
         console.warn('No household ID found for user');
@@ -1879,7 +1896,7 @@ function ChoreChampionsApp() {
       
       // Load only tasks assigned to this user for today
       const today = new Date().toISOString().split('T')[0];
-      const myTasksResponse = await axios.get(`${API}/households/${householdId}/my-tasks/${user.userId}?date=${today}`);
+      const myTasksResponse = await axios.get(`${API}/households/${householdId}/my-tasks/${hydratedUser.userId}?date=${today}`);
       
       // API returns tasks grouped by room, flatten it to array
       const tasksByRoom = myTasksResponse.data;
@@ -1911,13 +1928,13 @@ function ChoreChampionsApp() {
       }
 
       // Load teammate info if exists
-      if (user.partnerId) {
-        const partnerResponse = await axios.get(`${API}/users/${user.partnerId}`);
+      if (hydratedUser.partnerId) {
+        const partnerResponse = await axios.get(`${API}/users/${hydratedUser.partnerId}`);
         setPartner(partnerResponse.data);
-      } else if (user.partnerName) {
+      } else if (hydratedUser.partnerName) {
         // Use teammate name from onboarding data if no teammate user exists yet
         setPartner({
-          displayName: user.partnerName,
+          displayName: hydratedUser.partnerName,
           userId: null,
           isPlaceholder: true
         });
@@ -3235,6 +3252,18 @@ function ChoreChampionsApp() {
               >
                 🤖 AI Messages
               </button>
+
+              <button
+                onClick={() => setActiveTab('profile-settings')}
+                data-testid="profile-settings-tab-button"
+                className={`px-6 py-4 font-medium whitespace-nowrap border-b-4 transition-colors ${
+                  activeTab === 'profile-settings'
+                    ? 'border-blue-600 text-blue-600 bg-blue-50'
+                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                }`}
+              >
+                ⚙️ Profile & Settings
+              </button>
             </div>
           </div>
         </div>
@@ -3618,7 +3647,10 @@ function ChoreChampionsApp() {
                             </div>
                             <div>
                               <h4 className="font-bold text-lg">{chore.title}</h4>
-                              <p className="text-sm text-gray-600">🏠 {chore.room} • {chore.difficulty}</p>
+                              <p className="text-sm text-gray-600">
+                                🏠 {chore.room} • {chore.difficulty}
+                                {chore.scheduledWindow && ` • ${chore.scheduledWindow.start}-${chore.scheduledWindow.end}`}
+                              </p>
                             </div>
                           </div>
                           <div className="text-right">
@@ -3757,6 +3789,11 @@ function ChoreChampionsApp() {
                                     </span>
                                     {chore.room && (
                                       <span className="ml-2 text-xs text-gray-500">({chore.room})</span>
+                                    )}
+                                    {chore.scheduledWindow && (
+                                      <div className="text-xs text-gray-500 mt-1">
+                                        Scheduled window: {chore.scheduledWindow.start} - {chore.scheduledWindow.end}
+                                      </div>
                                     )}
                                     {chore.pendingVerification && (
                                       <span className="ml-2 text-xs bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full">
@@ -4437,6 +4474,25 @@ function ChoreChampionsApp() {
                   </div>
                 </CardContent>
               </Card>
+            </div>
+          )}
+
+          {activeTab === 'profile-settings' && (
+            <div className="max-w-6xl mx-auto" data-testid="profile-settings-tab-panel">
+              <div className="mb-6">
+                <h2 className="text-3xl font-bold">Profile & Settings</h2>
+                <p className="text-gray-600 mt-2">Manage your personal availability so chore assignments stay inside your real schedule.</p>
+              </div>
+
+              <AvailabilitySettingsPanel
+                apiBase={API}
+                currentUser={currentUser}
+                onUserUpdated={(nextUser) => persistCurrentUser(nextUser)}
+                onCelebration={(message) => {
+                  setCelebrationMessage(message);
+                  setTimeout(() => setCelebrationMessage(''), 3000);
+                }}
+              />
             </div>
           )}
 

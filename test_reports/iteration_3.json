@@ -1,0 +1,61 @@
+{
+  "summary": "Completed E2E testing of Availability Calendar feature and verification rejection regression. All 19 backend tests pass (100%). Frontend UI verified working with all availability components present.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Dialog components",
+        "issues": ["Console warning: Missing Description or aria-describedby for DialogContent - accessibility issue (pre-existing)"]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_api.py",
+    "/app/backend/tests/test_verification_flow.py",
+    "/app/backend/tests/test_availability_calendar.py",
+    "/app/test_reports/pytest/pytest_results_iteration3.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Verification rejection bug FIXED - completed flag now correctly reset to false on rejection (line 3453)",
+    "Availability-aware assignment working correctly - unavailable members get 0 tasks",
+    "Weekly availability defaults and date overrides properly normalized and persisted",
+    "scheduledWindow metadata correctly attached to assigned tasks",
+    "All members unavailable returns proper 400 error with descriptive message"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_availability_calendar.py"
+  ],
+  "success_rate": {
+    "backend": "100% (19/19 tests passed)",
+    "frontend": "100% (all UI components verified)"
+  },
+  "test_credentials": "None required - tests create fresh households",
+  "seed_data_creation": "Test households created with unique names during pytest runs",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All features working correctly. Availability Calendar UI fully functional with weekly defaults, date overrides, calendar picker, and save functionality. Verification rejection regression fixed. Join flow and auto-redistribution working.",
+  "features_tested": {
+    "availability_calendar_ui": "PASS - Profile & Settings tab renders weekly editor + calendar-based date override editor",
+    "availability_save_flow": "PASS - POST /api/users/{user_id}/preferences persists weekly defaults and date overrides",
+    "availability_aware_assignment": "PASS - Unavailable members get 0 tasks for that day",
+    "scheduled_window_metadata": "PASS - Tasks include scheduledWindow when availability is set",
+    "all_unavailable_error": "PASS - Returns 400 error when all members unavailable",
+    "verification_rejection_regression": "PASS - Rejected tasks can be re-completed (completed flag reset to false)",
+    "join_flow_redistribution": "PASS - New members trigger chore redistribution",
+    "onboarding_flow": "PASS - 6-step wizard works correctly including availability step"
+  },
+  "ui_components_verified": {
+    "availability_settings_panel": "Present with data-testid",
+    "weekly_availability_rows": "All 7 days with On/Off toggles and time pickers",
+    "calendar_component": "rdp calendar for date selection",
+    "override_editor": "Create/clear override functionality",
+    "save_button": "Save availability button present",
+    "info_note": "Redistribution note displayed"
+  }
+}
