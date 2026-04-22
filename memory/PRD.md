@@ -11,9 +11,10 @@ Core requirements:
 - AI-assisted constructive concerns form
 - 25% random chore verification system
 - Availability-aware assignment that respects player schedules
+- Positive random events / secret missions inspired by daily observances
 
 ## Current Product Scope
-Domestic Dominion is a full-stack React + FastAPI + MongoDB application for running a shared household like an RPG party. Players join a household, receive fairly distributed chores, complete quests for XP, unlock talent upgrades, and coordinate responsibilities with visibility into task load and verification.
+Domestic Dominion is a full-stack React + FastAPI + MongoDB application for running a shared household like an RPG party. Players join a household, receive fairly distributed chores, complete quests for XP, unlock talent upgrades, coordinate through verification, manage personal availability, and now receive surprise secret missions themed around public daily observances.
 
 ## Implemented Features
 
@@ -28,13 +29,13 @@ Domestic Dominion is a full-stack React + FastAPI + MongoDB application for runn
 - Weighted fairness algorithm using time, difficulty, and grossness
 - Preference-aware assignment using chore aversions, preferred tasks, and max daily load
 - Availability-aware assignment using weekly defaults plus date overrides
-- Assigned tasks now include `scheduledWindow` metadata when availability applies
+- Assigned tasks include `scheduledWindow` metadata when availability applies
 
 ### Verification System
 - ~25% verification trigger on task completion
 - Pending verification list in UI for other household members
 - Approval flow holds XP until approval, then awards XP + verification bonus
-- Rejection flow now correctly resets `completed=false`, allowing re-completion
+- Rejection flow correctly resets `completed=false`, allowing re-completion
 - Self-verification prevention
 
 ### Talent Tree & Progression
@@ -46,14 +47,23 @@ Domestic Dominion is a full-stack React + FastAPI + MongoDB application for runn
 - Constructive Concerns form
 - AI rewrite endpoint using emergentintegrations + OpenAI GPT-4o
 
-### Availability Calendar (latest)
-- New `Profile & Settings` tab in frontend
+### Availability Calendar
+- `Profile & Settings` tab in frontend
 - Weekly availability editor for all 7 days
 - Calendar-based per-date override editor
 - Save flow persists normalized availability to user preferences
 - Existing assignments redistribute after availability changes
-- Assignment engine now skips unavailable members for the assignment date
-- Proper 400 error returned when all members are unavailable
+- Assignment engine skips unavailable members for the assignment date
+
+### Random Events / Secret Missions (latest)
+- Public daily observance theme integration via `https://todaysholiday.herokuapp.com/holidays/{month}/{day}`
+- Mongo-backed caching of daily observance data in `daily_observances`
+- Secret mission popup/bubble UI separate from normal quest cards
+- Mix of solo, pair, and household moments with acts-of-kindness framing
+- 1 active secret mission per user at a time
+- Schedule-aware prompting that respects in-app availability windows
+- Accept / dismiss / complete lifecycle with XP rewards
+- Pair/team follow-up logic that re-offers a simplified mission to pending/dismissed participants after another participant completes their part
 
 ## Testing Status
 
@@ -62,35 +72,44 @@ Domestic Dominion is a full-stack React + FastAPI + MongoDB application for runn
   - Verification system E2E tested
   - Root-cause identified for rejected-task re-completion bug
 - `/app/test_reports/iteration_3.json`
-  - Availability Calendar feature tested end-to-end
+  - Availability Calendar tested end-to-end
   - 19/19 backend tests passed
-  - Frontend availability UI verified working
-  - Verification rejection regression passed
-  - Join + redistribution regression passed
+- `/app/test_reports/iteration_4.json`
+  - Random Events / Secret Missions fully tested
+  - 37/37 backend tests passed, 1 skipped
+  - Frontend popup component verified
+  - Availability and verification regressions rechecked
 
 ### Additional Main-Agent Verification
-- Local smoke screenshot of `Profile & Settings` tab passed on internal frontend
-- Backend self-test confirmed unavailable members receive 0 tasks and assigned tasks contain `scheduledWindow`
+- Local smoke screenshot of `Profile & Settings` tab passed
+- Local smoke screenshot of `RandomEventBubble` rendering passed
+- Backend self-test confirmed secret mission generation + XP award
+- Pytest regression file added for random events and passing locally
 
 ## Architecture
 
 ### Frontend
-- `/app/frontend/src/App.js` - main application shell, tabs, data loading, quest UI
+- `/app/frontend/src/App.js` - main application shell, tabs, data loading, quest UI, secret mission state
 - `/app/frontend/src/components/ProgressiveOnboarding.js` - admin onboarding
 - `/app/frontend/src/components/MemberOnboarding.js` - member onboarding
 - `/app/frontend/src/components/AvailabilitySettingsPanel.jsx` - availability calendar editor
+- `/app/frontend/src/components/RandomEventBubble.jsx` - secret mission popup UI
 - `/app/frontend/src/components/TalentTree.js` - talent tree
 
 ### Backend
-- `/app/backend/server.py` - monolithic FastAPI app containing routes, models, and assignment logic
+- `/app/backend/server.py` - monolithic FastAPI app containing routes, models, assignment logic, availability logic, and random-event generation
 - `/app/backend/tests/test_verification_flow.py` - verification regression coverage
-- `/app/backend/tests/test_availability_calendar.py` - availability calendar coverage
+- `/app/backend/tests/test_availability_calendar.py` - availability regression coverage
+- `/app/backend/tests/test_random_events.py` - random event regression coverage
+- `/app/backend/tests/test_random_events_comprehensive.py` - expanded random event coverage added by testing agent
 
 ### Database Collections
 - `households`
 - `users`
 - `tasks`
 - `task_completions`
+- `daily_observances`
+- `random_events`
 
 ## Important Data/Behavior Notes
 - User availability is stored in `users.preferences.availability`
@@ -98,17 +117,19 @@ Domestic Dominion is a full-stack React + FastAPI + MongoDB application for runn
   - `overrides`: `YYYY-MM-DD` per-day overrides
 - Assignment currently targets the current day and only assigns tasks to members available that day
 - Admin onboarding preferences are now persisted to the admin user record
-- Frontend refresh flow now hydrates current user from backend when loading game data
+- Frontend refresh flow hydrates current user from backend when loading game data
+- Pending random-event prompts respect availability windows
+- Accepted random-event missions remain visible until completed, even if the user is no longer inside the original prompt window
 
 ## Current Priorities
 
 ### P0
-- User validation of the new Availability Calendar and verification flows in real usage
+- User validation of the new Random Events, Availability Calendar, and verification flows in real household usage
 
 ### P1
 - Household stats view showing top contributors and completion breakdown
-- Random positive events system
 - Streak bonuses for consecutive task completions
+- Broader random-event content library / more event archetypes
 
 ### P2
 - Chore swapping between members
@@ -118,11 +139,13 @@ Domestic Dominion is a full-stack React + FastAPI + MongoDB application for runn
 ### Refactor / Technical Debt
 - Break `/app/backend/server.py` into routes, services, and models
 - Break `/app/frontend/src/App.js` into smaller tab/page components
-- Clean up duplicate/redefined backend models/functions highlighted by lint
+- Address pre-existing dialog accessibility warning (`DialogContent` missing description/aria-describedby)
 
 ## Latest Change Log
-- 2026-04-16: Fixed verification rejection bug so rejected tasks can be completed again
+- 2026-04-22: Added Random Events / Secret Missions backend, popup UI, XP flow, and public daily observance theming
+- 2026-04-22: Added follow-up mission logic for partially accepted pair/team events
+- 2026-04-22: Added regression coverage in `/app/backend/tests/test_random_events.py`
+- 2026-04-22: Confirmed all random-event, availability, and verification tests passing in `/app/test_reports/iteration_4.json`
 - 2026-04-16: Added availability normalization and availability-aware chore assignment in backend
 - 2026-04-16: Added `Profile & Settings` availability calendar UI with weekly defaults + date overrides
-- 2026-04-16: Added scheduled window display on assigned quest cards
-- 2026-04-16: Added backend regression coverage for availability calendar
+- 2026-04-16: Fixed verification rejection bug so rejected tasks can be completed again
