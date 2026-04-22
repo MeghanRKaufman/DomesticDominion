@@ -1699,6 +1699,15 @@ class RespondVerificationRequest(BaseModel):
     verificationId: str
     response: str  # "verify", "decline", "request_proof"
 
+class RandomEventActionRequest(BaseModel):
+    userId: str
+    response: str  # accept, dismiss
+
+
+class RandomEventCompleteRequest(BaseModel):
+    userId: str
+
+
 # Old 3-tier talent tree (kept for backward compatibility with existing functions)
 OLD_TALENT_TREE_NODES = {
     # EFFICIENCY BRANCH
@@ -2065,6 +2074,332 @@ def resolve_member_availability(member: Dict[str, Any], date_str: str) -> Option
         "source": "override" if date_str in availability.get("overrides", {}) else "weekly"
     }
 
+
+
+
+def parse_time_string(time_value: str) -> int:
+    hours, minutes = time_value.split(":")
+    return int(hours) * 60 + int(minutes)
+
+
+def is_user_available_for_prompt(user: Dict[str, Any], current_dt: datetime) -> bool:
+    date_str = current_dt.strftime("%Y-%m-%d")
+    availability_window = resolve_member_availability(user, date_str)
+    if not availability_window:
+        return False
+
+    current_minutes = current_dt.hour * 60 + current_dt.minute
+    start_minutes = parse_time_string(availability_window.get("start", "18:00"))
+    end_minutes = parse_time_string(availability_window.get("end", "22:00"))
+    return start_minutes <= current_minutes <= end_minutes
+
+
+async def get_daily_observance_theme(target_date: datetime) -> Dict[str, Any]:
+    date_str = target_date.strftime("%Y-%m-%d")
+    cached = await db.daily_observances.find_one({"date": date_str}, {"_id": 0})
+    if cached:
+        return cached
+
+    observances = []
+    source = "todaysholiday_heroku"
+    try:
+        async with httpx.AsyncClient(timeout=8.0) as client:
+            response = await client.get(
+                f"https://todaysholiday.herokuapp.com/holidays/{target_date.month}/{target_date.day}"
+            )
+            response.raise_for_status()
+            payload = response.json()
+            observances = [
+                item.get("name")
+                for item in payload
+                if isinstance(item, dict) and item.get("name")
+            ]
+    except Exception as exc:
+        print(f"Warning: could not fetch public observance data for {date_str}: {exc}")
+        source = "fallback_house_theme"
+        observances = []
+
+    theme_doc = {
+        "date": date_str,
+        "observances": observances,
+        "source": source,
+        "fetchedAt": datetime.now(timezone.utc).isoformat()
+    }
+    await db.daily_observances.update_one(
+        {"date": date_str},
+        {"$set": theme_doc},
+        upsert=True
+    )
+    return theme_doc
+
+
+def pick_random_event_theme(observances: List[str]) -> str:
+    if observances:
+        return random.choice(observances)
+    return "House Harmony Day"
+
+
+def build_random_event_blueprint(
+    event_type: str,
+    theme_name: str,
+    participants: List[Dict[str, Any]],
+    household_members: List[Dict[str, Any]],
+    is_follow_up: bool = False
+) -> Dict[str, Any]:
+    participant_names = [member.get("displayName", "Housemate") for member in participants]
+    non_participants = [
+        member for member in household_members
+        if member.get("userId") not in {participant.get("userId") for participant in participants}
+    ]
+    target_member = random.choice(non_participants) if non_participants else None
+    target_label = target_member.get("displayName") if target_member else "the household"
+
+    if event_type == "pair" and len(participants) >= 2:
+        return {
+            "title": f"Secret Side Mission: {theme_name}",
+            "description": (
+                f"You and {participant_names[1]} have been tapped for a quiet two-person kindness mission inspired by {theme_name}. "
+                f"Coordinate one thoughtful action each for {target_label}. If one of you skips it, the other can still unlock a simplified follow-up later."
+            ),
+            "xpReward": 18,
+            "targetLabel": target_label,
+            "completionHint": f"Examples: bring home one dinner ingredient, stage a tidy surprise, or leave a thoughtful note for {target_label}."
+        }
+
+    if event_type == "household":
+        return {
+            "title": f"Household Moment: {theme_name}",
+            "description": (
+                f"Today’s observance is {theme_name}. Rally the available household for one small shared moment that makes the home feel warmer, calmer, or better stocked."
+            ),
+            "xpReward": 14,
+            "targetLabel": "the household",
+            "completionHint": "Examples: each person contributes one ingredient, refreshes one shared area, or leaves one encouraging note."
+        }
+
+    if is_follow_up:
+        return {
+            "title": f"Second Chance Mission: {theme_name}",
+            "description": (
+                f"Someone else completed their part of the {theme_name} mission. You now have a lighter follow-up chance for {target_label} if you still want the bonus XP."
+            ),
+            "xpReward": 12,
+            "targetLabel": target_label,
+            "completionHint": f"Quick version: do one small act of service for {target_label} before this prompt expires."
+        }
+
+    return {
+        "title": f"Quiet Kindness Mission: {theme_name}",
+        "description": (
+            f"In honor of {theme_name}, do one subtle act of care for {target_label}. Keep it light, optional, and a little bit secret-agent-coded."
+        ),
+        "xpReward": 12,
+        "targetLabel": target_label,
+        "completionHint": f"Examples: set flowers on the table, bring home a dinner ingredient, tidy a shared spot, or leave a kind note for {target_label}."
+    }
+
+
+def serialize_random_event_for_user(event: Dict[str, Any], user_id: str) -> Dict[str, Any]:
+    participant = next(
+        (item for item in event.get("participants", []) if item.get("userId") == user_id),
+        None
+    )
+    serialized = {k: v for k, v in event.items() if k != "_id"}
+    serialized["userStatus"] = participant.get("status") if participant else None
+    serialized["userXpReward"] = participant.get("xpReward") if participant else serialized.get("xpReward", 0)
+    serialized["participantCount"] = len(event.get("participants", []))
+    return serialized
+
+
+async def get_active_random_event_for_user(user_id: str) -> Optional[Dict[str, Any]]:
+    now_iso = datetime.now(timezone.utc).isoformat()
+    active_events = await db.random_events.find(
+        {
+            "participants": {
+                "$elemMatch": {
+                    "userId": user_id,
+                    "status": {"$in": ["pending", "accepted"]}
+                }
+            },
+            "status": "active"
+        },
+        {"_id": 0}
+    ).to_list(10)
+
+    for event in active_events:
+        if event.get("expiresAt") and event["expiresAt"] < now_iso:
+            await db.random_events.update_one(
+                {"eventId": event["eventId"]},
+                {"$set": {"status": "expired"}}
+            )
+            continue
+        return event
+
+    return None
+
+
+async def create_random_event(
+    household_id: str,
+    event_type: str,
+    participants: List[Dict[str, Any]],
+    household_members: List[Dict[str, Any]],
+    theme_name: str,
+    trigger_source: str,
+    parent_event_id: Optional[str] = None,
+    is_follow_up: bool = False
+) -> Dict[str, Any]:
+    blueprint = build_random_event_blueprint(
+        event_type,
+        theme_name,
+        participants,
+        household_members,
+        is_follow_up=is_follow_up
+    )
+    xp_reward = blueprint["xpReward"]
+    expires_at = (datetime.now(timezone.utc) + timedelta(hours=12)).isoformat()
+    event_doc = {
+        "eventId": f"event_{uuid.uuid4().hex[:10]}",
+        "householdId": household_id,
+        "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        "eventType": "follow_up" if is_follow_up else event_type,
+        "themeName": theme_name,
+        "title": blueprint["title"],
+        "description": blueprint["description"],
+        "completionHint": blueprint["completionHint"],
+        "targetLabel": blueprint["targetLabel"],
+        "status": "active",
+        "triggerSource": trigger_source,
+        "parentEventId": parent_event_id,
+        "expiresAt": expires_at,
+        "createdAt": datetime.now(timezone.utc).isoformat(),
+        "participants": [
+            {
+                "userId": member["userId"],
+                "displayName": member.get("displayName", "Housemate"),
+                "status": "pending",
+                "xpReward": xp_reward,
+                "promptCount": 1
+            }
+            for member in participants
+        ]
+    }
+    await db.random_events.insert_one(event_doc)
+    return event_doc
+
+
+async def maybe_generate_random_event_for_user(user: Dict[str, Any], trigger_source: str) -> Optional[Dict[str, Any]]:
+    active_event = await get_active_random_event_for_user(user["userId"])
+    if active_event:
+        return active_event
+
+    now = datetime.now(timezone.utc)
+    if not is_user_available_for_prompt(user, now):
+        return None
+
+    household_id = user.get("householdId")
+    if not household_id:
+        return None
+
+    household_members = await db.users.find({"householdId": household_id}, {"_id": 0}).to_list(20)
+    eligible_members = []
+    for member in household_members:
+        if not is_user_available_for_prompt(member, now):
+            continue
+        if await get_active_random_event_for_user(member["userId"]):
+            continue
+        eligible_members.append(member)
+
+    if not any(member["userId"] == user["userId"] for member in eligible_members):
+        return None
+
+    today = now.strftime("%Y-%m-%d")
+    daily_count = await db.random_events.count_documents({
+        "householdId": household_id,
+        "date": today,
+        "status": {"$in": ["active", "completed"]}
+    })
+    daily_quota = max(1, min(3, len(household_members)))
+    if daily_count >= daily_quota:
+        return None
+
+    generation_chance = 1.0 if daily_count == 0 else 0.4
+    if random.random() > generation_chance:
+        return None
+
+    theme_doc = await get_daily_observance_theme(now)
+    theme_name = pick_random_event_theme(theme_doc.get("observances", []))
+
+    event_type = "solo"
+    participants = [next(member for member in eligible_members if member["userId"] == user["userId"])]
+
+    if len(eligible_members) >= 3 and random.random() < 0.25:
+        event_type = "household"
+        participants = random.sample(eligible_members, min(len(eligible_members), 4))
+    elif len(eligible_members) >= 2 and random.random() < 0.6:
+        event_type = "pair"
+        other_candidates = [member for member in eligible_members if member["userId"] != user["userId"]]
+        if other_candidates:
+            participants = [participants[0], random.choice(other_candidates)]
+        else:
+            event_type = "solo"
+
+    return await create_random_event(
+        household_id=household_id,
+        event_type=event_type,
+        participants=participants,
+        household_members=household_members,
+        theme_name=theme_name,
+        trigger_source=trigger_source
+    )
+
+
+async def create_follow_up_random_events(parent_event: Dict[str, Any], completed_by_user_id: str) -> List[str]:
+    household_members = await db.users.find(
+        {"householdId": parent_event["householdId"]},
+        {"_id": 0}
+    ).to_list(20)
+    reoffered_user_ids = []
+
+    for participant in parent_event.get("participants", []):
+        if participant.get("userId") == completed_by_user_id:
+            continue
+        if participant.get("status") in ["accepted", "completed"]:
+            continue
+
+        target_user = next(
+            (member for member in household_members if member.get("userId") == participant.get("userId")),
+            None
+        )
+        if not target_user:
+            continue
+        active_other_event = await db.random_events.find_one(
+            {
+                "eventId": {"$ne": parent_event.get("eventId")},
+                "status": "active",
+                "participants": {
+                    "$elemMatch": {
+                        "userId": target_user["userId"],
+                        "status": {"$in": ["pending", "accepted"]}
+                    }
+                }
+            },
+            {"_id": 0}
+        )
+        if active_other_event:
+            continue
+        await create_random_event(
+            household_id=parent_event["householdId"],
+            event_type="solo",
+            participants=[target_user],
+            household_members=household_members,
+            theme_name=parent_event.get("themeName", "House Harmony Day"),
+            trigger_source="follow_up",
+            parent_event_id=parent_event.get("eventId"),
+            is_follow_up=True
+        )
+        reoffered_user_ids.append(target_user["userId"])
+
+    return reoffered_user_ids
 
 def calculate_chore_weight(chore: Dict) -> float:
     """Calculate the fairness weight of a chore based on time, difficulty, and grossness"""
@@ -3986,6 +4321,172 @@ async def get_user(user_id: str):
     user["talentPointsTotal"] = talent_points_earned
     
     return user
+
+
+@api_router.get("/random-events/user/{user_id}")
+async def get_user_random_event(user_id: str, trigger: str = "app_load"):
+    user = await db.users.find_one({"userId": user_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    event = await get_active_random_event_for_user(user_id)
+    if event:
+        current_participant = next(
+            (item for item in event.get("participants", []) if item.get("userId") == user_id),
+            None
+        )
+        if current_participant and current_participant.get("status") == "pending":
+            if not is_user_available_for_prompt(user, datetime.now(timezone.utc)):
+                return {
+                    "event": None,
+                    "message": "No secret mission right now.",
+                    "trigger": trigger
+                }
+    else:
+        event = await maybe_generate_random_event_for_user(user, trigger)
+
+    if not event:
+        return {
+            "event": None,
+            "message": "No secret mission right now.",
+            "trigger": trigger
+        }
+
+    return {
+        "event": serialize_random_event_for_user(event, user_id),
+        "trigger": trigger
+    }
+
+
+@api_router.post("/random-events/{event_id}/respond")
+async def respond_to_random_event(event_id: str, request: RandomEventActionRequest):
+    event = await db.random_events.find_one({"eventId": event_id})
+    if not event:
+        raise HTTPException(status_code=404, detail="Random event not found")
+    if event.get("status") != "active":
+        raise HTTPException(status_code=400, detail="This random event is no longer active")
+
+    participant = next(
+        (item for item in event.get("participants", []) if item.get("userId") == request.userId),
+        None
+    )
+    if not participant:
+        raise HTTPException(status_code=403, detail="You are not assigned to this random event")
+
+    if request.response not in ["accept", "dismiss"]:
+        raise HTTPException(status_code=400, detail="Response must be 'accept' or 'dismiss'")
+
+    next_status = "accepted" if request.response == "accept" else "dismissed"
+    await db.random_events.update_one(
+        {
+            "eventId": event_id,
+            "participants.userId": request.userId
+        },
+        {
+            "$set": {
+                "participants.$.status": next_status,
+                "participants.$.respondedAt": datetime.now(timezone.utc).isoformat(),
+                "participants.$.promptCount": participant.get("promptCount", 1) + (1 if next_status == "dismissed" else 0)
+            }
+        }
+    )
+
+    updated_event = await db.random_events.find_one({"eventId": event_id}, {"_id": 0})
+    if all(item.get("status") == "dismissed" for item in updated_event.get("participants", [])):
+        await db.random_events.update_one(
+            {"eventId": event_id},
+            {"$set": {"status": "dismissed"}}
+        )
+
+    return {
+        "success": True,
+        "message": "Secret mission accepted." if next_status == "accepted" else "Secret mission dismissed.",
+        "event": serialize_random_event_for_user(updated_event, request.userId)
+    }
+
+
+@api_router.post("/random-events/{event_id}/complete")
+async def complete_random_event(event_id: str, request: RandomEventCompleteRequest):
+    event = await db.random_events.find_one({"eventId": event_id})
+    if not event:
+        raise HTTPException(status_code=404, detail="Random event not found")
+    if event.get("status") != "active":
+        raise HTTPException(status_code=400, detail="This random event is no longer active")
+
+    participant = next(
+        (item for item in event.get("participants", []) if item.get("userId") == request.userId),
+        None
+    )
+    if not participant:
+        raise HTTPException(status_code=403, detail="You are not assigned to this random event")
+    if participant.get("status") != "accepted":
+        raise HTTPException(status_code=400, detail="Accept the secret mission before completing it")
+
+    xp_reward = participant.get("xpReward", 10)
+    user = await db.users.find_one({"userId": request.userId}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    new_points = user.get("points", 0) + xp_reward
+    new_level, _ = calculate_level(new_points)
+    await db.users.update_one(
+        {"userId": request.userId},
+        {
+            "$set": {
+                "points": new_points,
+                "level": new_level
+            }
+        }
+    )
+
+    await db.random_events.update_one(
+        {
+            "eventId": event_id,
+            "participants.userId": request.userId
+        },
+        {
+            "$set": {
+                "participants.$.status": "completed",
+                "participants.$.completedAt": datetime.now(timezone.utc).isoformat(),
+                "participants.$.xpAwarded": xp_reward
+            }
+        }
+    )
+
+    refreshed_event = await db.random_events.find_one({"eventId": event_id}, {"_id": 0})
+    reoffered_user_ids = []
+    if refreshed_event.get("eventType") in ["pair", "household"]:
+        reoffered_user_ids = await create_follow_up_random_events(refreshed_event, request.userId)
+        if reoffered_user_ids:
+            refreshed_event["participants"] = [
+                {
+                    **item,
+                    "status": "reassigned" if item.get("userId") in reoffered_user_ids else item.get("status")
+                }
+                for item in refreshed_event.get("participants", [])
+            ]
+            await db.random_events.update_one(
+                {"eventId": event_id},
+                {"$set": {"participants": refreshed_event["participants"]}}
+            )
+
+    participant_statuses = [item.get("status") for item in refreshed_event.get("participants", [])]
+    if all(status in ["completed", "dismissed", "reassigned"] for status in participant_statuses):
+        await db.random_events.update_one(
+            {"eventId": event_id},
+            {"$set": {"status": "completed"}}
+        )
+
+    return {
+        "success": True,
+        "message": f"Secret mission complete. +{xp_reward} XP",
+        "xpAwarded": xp_reward,
+        "points": new_points,
+        "level": new_level,
+        "eventId": event_id,
+        "reofferedUserIds": reoffered_user_ids
+    }
+
 
 @api_router.get("/couples/{couple_id}/tasks")
 async def get_tasks(couple_id: str):

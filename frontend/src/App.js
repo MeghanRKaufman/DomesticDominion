@@ -11,6 +11,7 @@ import NESGameInterface from './components/NESGameInterface';
 import ProgressiveOnboarding from './components/ProgressiveOnboarding';
 import MemberOnboarding from './components/MemberOnboarding';
 import { AvailabilitySettingsPanel } from './components/AvailabilitySettingsPanel';
+import { RandomEventBubble } from './components/RandomEventBubble';
 import TalentTree from './components/TalentTree';
 
 // Import UI components
@@ -1765,6 +1766,9 @@ function ChoreChampionsApp() {
     { task: 'Plan next kingdom adventure', completed: false }
   ]);
   const [newTodoItem, setNewTodoItem] = useState('');
+  const [randomEvent, setRandomEvent] = useState(null);
+  const [randomEventLoading, setRandomEventLoading] = useState(false);
+
 
   const persistCurrentUser = (nextUser) => {
     setCurrentUser(nextUser);
@@ -2514,6 +2518,7 @@ function ChoreChampionsApp() {
           );
           setCelebrationMessage(`🔍 Quest complete! Awaiting verification. ${response.data.xpPending} XP pending.`);
           setTimeout(() => setCelebrationMessage(''), 4000);
+          loadRandomEvent(currentUser.userId, 'task_complete');
           return;
         }
         
@@ -2546,6 +2551,7 @@ function ChoreChampionsApp() {
         }
         
         setTimeout(() => setCelebrationMessage(''), 3000);
+        loadRandomEvent(currentUser.userId, 'task_complete');
       }
     } catch (error) {
       console.error('Error completing task:', error);
@@ -2597,6 +2603,79 @@ function ChoreChampionsApp() {
       return () => clearInterval(interval);
     }
   }, [currentUser?.householdId]);
+
+  const loadRandomEvent = async (userId, trigger = 'app_load') => {
+    if (!userId) return;
+    try {
+      const response = await axios.get(`${API}/random-events/user/${userId}?trigger=${trigger}`);
+      setRandomEvent(response.data?.event || null);
+    } catch (error) {
+      console.warn('Could not load random event:', error);
+    }
+  };
+
+  const handleRandomEventResponse = async (responseType) => {
+    if (!randomEvent || !currentUser?.userId) return;
+    setRandomEventLoading(true);
+    try {
+      const response = await axios.post(`${API}/random-events/${randomEvent.eventId}/respond`, {
+        userId: currentUser.userId,
+        response: responseType,
+      });
+
+      if (responseType === 'dismiss') {
+        setRandomEvent(null);
+      } else {
+        setRandomEvent(response.data?.event || null);
+      }
+
+      setCelebrationMessage(response.data?.message || 'Secret mission updated.');
+      setTimeout(() => setCelebrationMessage(''), 2500);
+    } catch (error) {
+      console.error('Error responding to random event:', error);
+      alert(error.response?.data?.detail || 'Could not update secret mission.');
+    } finally {
+      setRandomEventLoading(false);
+    }
+  };
+
+  const handleCompleteRandomEvent = async () => {
+    if (!randomEvent || !currentUser?.userId) return;
+    setRandomEventLoading(true);
+    try {
+      const response = await axios.post(`${API}/random-events/${randomEvent.eventId}/complete`, {
+        userId: currentUser.userId,
+      });
+
+      const updatedUser = {
+        ...currentUser,
+        points: response.data.points,
+        level: response.data.level,
+      };
+      persistCurrentUser(updatedUser);
+      setRandomEvent(null);
+      setCelebrationMessage(response.data?.message || 'Secret mission complete.');
+      setTimeout(() => setCelebrationMessage(''), 3000);
+      await loadRandomEvent(currentUser.userId, 'post_random_event');
+    } catch (error) {
+      console.error('Error completing random event:', error);
+      alert(error.response?.data?.detail || 'Could not complete secret mission.');
+    } finally {
+      setRandomEventLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!currentUser?.userId) return undefined;
+
+    loadRandomEvent(currentUser.userId, 'dashboard_load');
+    const interval = setInterval(() => {
+      loadRandomEvent(currentUser.userId, 'poll');
+    }, 90000);
+
+    return () => clearInterval(interval);
+  }, [currentUser?.userId]);
+
 
   // Handle submitting a concern
   const handleSubmitConcern = async (e) => {
@@ -4672,6 +4751,15 @@ function ChoreChampionsApp() {
       />
       
       {/* Redundant kingdom join modal removed */}
+
+      <RandomEventBubble
+        event={randomEvent}
+        loading={randomEventLoading}
+        onAccept={() => handleRandomEventResponse('accept')}
+        onDismiss={() => handleRandomEventResponse('dismiss')}
+        onComplete={handleCompleteRandomEvent}
+      />
+
     </div>
   );
 }
