@@ -1708,6 +1708,38 @@ class RandomEventCompleteRequest(BaseModel):
     userId: str
 
 
+
+
+class CreateSandboxHouseholdRequest(BaseModel):
+    adminUserId: str
+    householdName: str
+    playerCount: int = 4
+    playerNames: List[str] = Field(default_factory=list)
+
+
+class SandboxTaskActionRequest(BaseModel):
+    action: str  # complete, refuse, miss
+
+
+class SandboxEventActionRequest(BaseModel):
+    action: str  # accept, dismiss, complete
+
+
+class SandboxScheduleRequest(BaseModel):
+    availability: Dict[str, Any]
+
+
+class SandboxNoteRequest(BaseModel):
+    message: str
+
+
+class SandboxRewardClaimRequest(BaseModel):
+    playerId: str
+
+
+class SandboxGenerateEventRequest(BaseModel):
+    playerId: Optional[str] = None
+
 # Old 3-tier talent tree (kept for backward compatibility with existing functions)
 OLD_TALENT_TREE_NODES = {
     # EFFICIENCY BRANCH
@@ -2400,6 +2432,439 @@ async def create_follow_up_random_events(parent_event: Dict[str, Any], completed
         reoffered_user_ids.append(target_user["userId"])
 
     return reoffered_user_ids
+
+
+SANDBOX_NAME_POOL = [
+    "Avery", "Jordan", "Rowan", "Sage", "Quinn", "Harper", "Kai", "Riley",
+    "Emerson", "Phoenix", "Milo", "Nova", "Wren", "Reese", "Parker", "Tatum"
+]
+
+MOCK_ENDORSEMENT_LIBRARY = [
+    {
+        "businessName": "McKingBurger",
+        "rewardType": "coupon_drop",
+        "title": "Royal Combo Drop",
+        "description": "A surprise coupon for a mock combo meal lands in your reward satchel.",
+        "codePrefix": "MKB"
+    },
+    {
+        "businessName": "CastleBean Coffee",
+        "rewardType": "shop_offer",
+        "title": "Barista Buff Offer",
+        "description": "A mock shop offer for a focus boost latte and +5 bonus simulator XP.",
+        "codePrefix": "CBEAN"
+    },
+    {
+        "businessName": "DragonFuel Grocers",
+        "rewardType": "achievement_unlock",
+        "title": "Pantry Hero Pack",
+        "description": "Unlocked after showing household reliability in the simulator.",
+        "codePrefix": "DFG"
+    },
+    {
+        "businessName": "QuestWash Laundry",
+        "rewardType": "coupon_drop",
+        "title": "Fresh Fold Voucher",
+        "description": "A mock voucher for ultra-premium fold-and-fluff service.",
+        "codePrefix": "QWASH"
+    },
+    {
+        "businessName": "Crown Cinema",
+        "rewardType": "shop_offer",
+        "title": "Movie Night Perk",
+        "description": "A fake family-night offer appears in the endorsement market.",
+        "codePrefix": "CCIN"
+    },
+    {
+        "businessName": "TableTop Tavern",
+        "rewardType": "achievement_unlock",
+        "title": "Party Quest Unlock",
+        "description": "A themed celebration reward for strong cooperation in the sandbox.",
+        "codePrefix": "TAV"
+    }
+]
+
+
+def create_sandbox_weekly_availability() -> Dict[str, Dict[str, Any]]:
+    return {
+        day: {"enabled": True, "start": "00:00", "end": "23:59"}
+        for day in DAYS_OF_WEEK
+    }
+
+
+def generate_sandbox_player_names(player_count: int, player_names: List[str]) -> List[str]:
+    cleaned_names = [name.strip() for name in player_names if name and name.strip()]
+    if len(cleaned_names) >= player_count:
+        return cleaned_names[:player_count]
+
+    available_names = SANDBOX_NAME_POOL.copy()
+    random.shuffle(available_names)
+    generated_names = cleaned_names[:]
+    while len(generated_names) < player_count:
+        if available_names:
+            generated_names.append(available_names.pop())
+        else:
+            generated_names.append(f"Player {len(generated_names) + 1}")
+    return generated_names
+
+
+def build_sandbox_players(player_count: int, player_names: List[str]) -> List[Dict[str, Any]]:
+    names = generate_sandbox_player_names(player_count, player_names)
+    players = []
+    for index, name in enumerate(names):
+        players.append({
+            "playerId": f"sandbox_player_{uuid.uuid4().hex[:8]}",
+            "displayName": name,
+            "role": "admin" if index == 0 else "member",
+            "points": 0,
+            "level": 1,
+            "preferences": normalize_user_preferences({
+                "availability": {
+                    "weekly": create_sandbox_weekly_availability(),
+                    "overrides": {}
+                },
+                "choreAversions": [],
+                "preferredTasks": [],
+                "maxDailyChoreLoad": 4
+            }),
+            "stats": {
+                "completedTasks": 0,
+                "refusedTasks": 0,
+                "missedTasks": 0,
+                "notesWritten": 0,
+                "eventsCompleted": 0,
+                "endorsementsClaimed": 0
+            },
+            "scheduleChangedAt": None,
+            "createdAt": datetime.now(timezone.utc).isoformat()
+        })
+    return players
+
+
+def build_sandbox_task_pool() -> List[Dict[str, Any]]:
+    allowed_rooms = {"Kitchen", "Bathroom", "Living Room", "Bedroom", "Growth"}
+    task_pool = []
+    for task in DEFAULT_TASKS:
+        if task.get("room") not in allowed_rooms:
+            continue
+        task_pool.append({
+            **task,
+            "difficulty": task.get("difficulty").value if hasattr(task.get("difficulty"), "value") else str(task.get("difficulty", "MEDIUM")).upper()
+        })
+
+    random.shuffle(task_pool)
+    return task_pool[: min(10, len(task_pool))]
+
+
+def append_sandbox_activity(doc: Dict[str, Any], actor_name: str, category: str, message: str) -> None:
+    entry = {
+        "activityId": f"activity_{uuid.uuid4().hex[:10]}",
+        "actorName": actor_name,
+        "category": category,
+        "message": message,
+        "createdAt": datetime.now(timezone.utc).isoformat()
+    }
+    feed = doc.get("activityFeed", [])
+    feed.insert(0, entry)
+    doc["activityFeed"] = feed[:20]
+
+
+def build_mock_reward(template: Dict[str, Any], target_player_id: Optional[str], status: str, created_from: str) -> Dict[str, Any]:
+    return {
+        "rewardId": f"reward_{uuid.uuid4().hex[:10]}",
+        "businessName": template["businessName"],
+        "rewardType": template["rewardType"],
+        "title": template["title"],
+        "description": template["description"],
+        "code": f"{template['codePrefix']}-{uuid.uuid4().hex[:4].upper()}",
+        "status": status,
+        "targetPlayerId": target_player_id,
+        "createdFrom": created_from,
+        "claimedBy": None,
+        "createdAt": datetime.now(timezone.utc).isoformat()
+    }
+
+
+def initialize_sandbox_endorsements(players: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    shop_template = next(item for item in MOCK_ENDORSEMENT_LIBRARY if item["rewardType"] == "shop_offer")
+    achievement_template = next(item for item in MOCK_ENDORSEMENT_LIBRARY if item["rewardType"] == "achievement_unlock")
+    return [
+        build_mock_reward(shop_template, None, "available", "market_seed"),
+        build_mock_reward(achievement_template, None, "locked", "starter_achievement")
+    ]
+
+
+def get_sandbox_player(doc: Dict[str, Any], player_id: str) -> Optional[Dict[str, Any]]:
+    return next((player for player in doc.get("players", []) if player.get("playerId") == player_id), None)
+
+
+def get_active_sandbox_events_for_player(doc: Dict[str, Any], player_id: str) -> List[Dict[str, Any]]:
+    active_events = []
+    for event in doc.get("events", []):
+        if event.get("status") != "active":
+            continue
+        participant = next((p for p in event.get("participants", []) if p.get("playerId") == player_id), None)
+        if participant and participant.get("status") in ["pending", "accepted"]:
+            active_events.append(event)
+    return active_events
+
+
+def redistribute_sandbox_pending_tasks(doc: Dict[str, Any]) -> None:
+    today = doc.get("date", datetime.now(timezone.utc).strftime("%Y-%m-%d"))
+    pending_tasks = [task for task in doc.get("tasks", []) if task.get("status") == "pending"]
+    if not pending_tasks:
+        return
+
+    members = [
+        {
+            "userId": player["playerId"],
+            "preferences": player.get("preferences", {})
+        }
+        for player in doc.get("players", [])
+    ]
+
+    fair_distribution = distribute_chores_fairly(pending_tasks, members, today)
+    assigned_tasks: Dict[str, List[Dict[str, Any]]] = {}
+    for member_id, chores in fair_distribution.items():
+        assigned_tasks[member_id] = chores[:]
+
+    for task in pending_tasks:
+        for member_id, tasks in assigned_tasks.items():
+            match = next((item for item in tasks if item.get("taskId") == task.get("taskId")), None)
+            if not match:
+                continue
+            player = get_sandbox_player(doc, member_id)
+            availability_window = resolve_member_availability({"preferences": player.get("preferences", {})}, today) if player else None
+            task["assignedTo"] = member_id
+            task["assignedToName"] = player.get("displayName", "Unknown") if player else "Unknown"
+            task["scheduledWindow"] = availability_window
+            tasks.remove(match)
+            break
+
+
+async def maybe_add_coupon_drop(doc: Dict[str, Any], player: Dict[str, Any], trigger: str) -> Optional[Dict[str, Any]]:
+    if random.random() > 0.45:
+        return None
+    coupon_templates = [item for item in MOCK_ENDORSEMENT_LIBRARY if item["rewardType"] == "coupon_drop"]
+    reward = build_mock_reward(random.choice(coupon_templates), player["playerId"], "available", trigger)
+    doc.setdefault("endorsements", []).insert(0, reward)
+    append_sandbox_activity(
+        doc,
+        player["displayName"],
+        "endorsement",
+        f"received a mock {reward['businessName']} coupon drop."
+    )
+    return reward
+
+
+def unlock_sandbox_achievement_rewards(doc: Dict[str, Any], player: Dict[str, Any]) -> List[Dict[str, Any]]:
+    unlocked_rewards = []
+    for reward in doc.get("endorsements", []):
+        if reward.get("rewardType") != "achievement_unlock" or reward.get("status") != "locked":
+            continue
+        if player.get("stats", {}).get("completedTasks", 0) >= 2 or player.get("stats", {}).get("eventsCompleted", 0) >= 1:
+            reward["status"] = "available"
+            reward["targetPlayerId"] = player["playerId"]
+            unlocked_rewards.append(reward)
+            append_sandbox_activity(
+                doc,
+                player["displayName"],
+                "endorsement",
+                f"unlocked the {reward['businessName']} achievement reward."
+            )
+    return unlocked_rewards
+
+
+async def build_sandbox_event(
+    doc: Dict[str, Any],
+    participants: List[Dict[str, Any]],
+    event_type: str,
+    trigger_source: str,
+    is_follow_up: bool = False,
+    parent_event_id: Optional[str] = None
+) -> Dict[str, Any]:
+    theme_name = doc.get("dailyTheme") or "House Harmony Day"
+    blueprint = build_random_event_blueprint(
+        event_type,
+        theme_name,
+        [{"userId": player["playerId"], "displayName": player["displayName"]} for player in participants],
+        [{"userId": player["playerId"], "displayName": player["displayName"]} for player in doc.get("players", [])],
+        is_follow_up=is_follow_up
+    )
+
+    event_doc = {
+        "eventId": f"sandbox_event_{uuid.uuid4().hex[:10]}",
+        "eventType": "follow_up" if is_follow_up else event_type,
+        "themeName": theme_name,
+        "title": blueprint["title"],
+        "description": blueprint["description"],
+        "completionHint": blueprint["completionHint"],
+        "targetLabel": blueprint["targetLabel"],
+        "triggerSource": trigger_source,
+        "status": "active",
+        "xpReward": blueprint["xpReward"],
+        "parentEventId": parent_event_id,
+        "createdAt": datetime.now(timezone.utc).isoformat(),
+        "participants": [
+            {
+                "playerId": player["playerId"],
+                "displayName": player["displayName"],
+                "status": "pending"
+            }
+            for player in participants
+        ]
+    }
+    doc.setdefault("events", []).insert(0, event_doc)
+    return event_doc
+
+
+async def seed_sandbox_events(doc: Dict[str, Any]) -> None:
+    players = doc.get("players", [])
+    if not players:
+        return
+
+    if len(players) >= 2:
+        await build_sandbox_event(doc, players[:2], "pair", "sandbox_seed")
+    else:
+        await build_sandbox_event(doc, [players[0]], "solo", "sandbox_seed")
+
+    if len(players) >= 3:
+        remaining_player = players[2]
+        await build_sandbox_event(doc, [remaining_player], "solo", "sandbox_seed")
+
+
+def compute_sandbox_overview(doc: Dict[str, Any]) -> Dict[str, Any]:
+    today = doc.get("date") or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    players_response = []
+    total_completed = 0
+    total_refused = 0
+    total_missed = 0
+
+    for player in doc.get("players", []):
+        player_tasks = [task for task in doc.get("tasks", []) if task.get("assignedTo") == player.get("playerId")]
+        player_events = []
+        for event in doc.get("events", []):
+            participant = next((entry for entry in event.get("participants", []) if entry.get("playerId") == player.get("playerId")), None)
+            if participant:
+                player_events.append({
+                    **event,
+                    "userStatus": participant.get("status")
+                })
+
+        player_notes = [note for note in doc.get("notes", []) if note.get("playerId") == player.get("playerId")]
+        available_now = is_user_available_for_prompt({"preferences": player.get("preferences", {})}, datetime.now(timezone.utc))
+        pending_tasks = sum(1 for task in player_tasks if task.get("status") == "pending")
+        completed_tasks = sum(1 for task in player_tasks if task.get("status") == "completed")
+        refused_tasks = sum(1 for task in player_tasks if task.get("status") == "refused")
+        missed_tasks = sum(1 for task in player_tasks if task.get("status") == "missed")
+
+        total_completed += completed_tasks
+        total_refused += refused_tasks
+        total_missed += missed_tasks
+
+        players_response.append({
+            **player,
+            "availableNow": available_now,
+            "pendingTasks": pending_tasks,
+            "completedTasks": completed_tasks,
+            "refusedTasks": refused_tasks,
+            "missedTasks": missed_tasks,
+            "tasks": sorted(player_tasks, key=lambda item: item.get("status", "pending")),
+            "events": player_events,
+            "notes": player_notes,
+            "todayWindow": resolve_member_availability({"preferences": player.get("preferences", {})}, today)
+        })
+
+    endorsements = []
+    for reward in doc.get("endorsements", []):
+        reward_copy = reward.copy()
+        target_player = get_sandbox_player(doc, reward.get("targetPlayerId")) if reward.get("targetPlayerId") else None
+        reward_copy["targetPlayerName"] = target_player.get("displayName") if target_player else "Whole household"
+        endorsements.append(reward_copy)
+
+    return {
+        "sandboxId": doc.get("sandboxId"),
+        "adminUserId": doc.get("adminUserId"),
+        "householdName": doc.get("householdName"),
+        "date": today,
+        "dailyTheme": doc.get("dailyTheme"),
+        "players": players_response,
+        "endorsements": endorsements,
+        "activityFeed": doc.get("activityFeed", [])[:12],
+        "metrics": {
+            "playerCount": len(players_response),
+            "taskCount": len(doc.get("tasks", [])),
+            "completedTasks": total_completed,
+            "refusedTasks": total_refused,
+            "missedTasks": total_missed,
+            "activeEvents": sum(1 for event in doc.get("events", []) if event.get("status") == "active"),
+            "availableRewards": sum(1 for reward in doc.get("endorsements", []) if reward.get("status") == "available")
+        }
+    }
+
+
+async def save_sandbox_doc(doc: Dict[str, Any]) -> None:
+    doc["updatedAt"] = datetime.now(timezone.utc).isoformat()
+    sanitized_doc = {k: v for k, v in doc.items() if k != "_id"}
+    await db.sandbox_households.update_one(
+        {"sandboxId": doc["sandboxId"]},
+        {"$set": sanitized_doc},
+        upsert=True
+    )
+
+
+async def create_sandbox_household_doc(request: CreateSandboxHouseholdRequest) -> Dict[str, Any]:
+    players = build_sandbox_players(request.playerCount, request.playerNames)
+    task_pool = build_sandbox_task_pool()
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    theme_doc = await get_daily_observance_theme(datetime.now(timezone.utc))
+    daily_theme = pick_random_event_theme(theme_doc.get("observances", []))
+
+    distribution = distribute_chores_fairly(
+        task_pool,
+        [{"userId": player["playerId"], "preferences": player.get("preferences", {})} for player in players],
+        today
+    )
+
+    tasks = []
+    for player in players:
+        assigned_chores = distribution.get(player["playerId"], [])
+        availability_window = resolve_member_availability({"preferences": player.get("preferences", {})}, today)
+        for chore in assigned_chores:
+            tasks.append({
+                "taskId": f"sandbox_task_{uuid.uuid4().hex[:10]}",
+                "templateTaskId": chore.get("taskId"),
+                "title": chore.get("title"),
+                "room": chore.get("room"),
+                "difficulty": chore.get("difficulty"),
+                "basePoints": chore.get("basePoints", chore.get("points", 10)),
+                "assignedTo": player["playerId"],
+                "assignedToName": player["displayName"],
+                "status": "pending",
+                "date": today,
+                "scheduledWindow": availability_window
+            })
+
+    doc = {
+        "sandboxId": f"sandbox_{uuid.uuid4().hex[:10]}",
+        "adminUserId": request.adminUserId,
+        "householdName": request.householdName,
+        "date": today,
+        "dailyTheme": daily_theme,
+        "players": players,
+        "tasks": tasks,
+        "events": [],
+        "notes": [],
+        "endorsements": initialize_sandbox_endorsements(players),
+        "activityFeed": [],
+        "createdAt": datetime.now(timezone.utc).isoformat(),
+        "updatedAt": datetime.now(timezone.utc).isoformat()
+    }
+    append_sandbox_activity(doc, "Simulator", "sandbox", f"created sandbox household '{request.householdName}'.")
+    await seed_sandbox_events(doc)
+    await save_sandbox_doc(doc)
+    return doc
+
 
 def calculate_chore_weight(chore: Dict) -> float:
     """Calculate the fairness weight of a chore based on time, difficulty, and grossness"""
@@ -4485,6 +4950,327 @@ async def complete_random_event(event_id: str, request: RandomEventCompleteReque
         "level": new_level,
         "eventId": event_id,
         "reofferedUserIds": reoffered_user_ids
+    }
+
+
+
+@api_router.get("/sandbox-households/admin/{admin_user_id}")
+async def get_latest_sandbox_household(admin_user_id: str):
+    sandbox_doc = await db.sandbox_households.find_one(
+        {"adminUserId": admin_user_id},
+        sort=[("createdAt", -1)]
+    )
+    if not sandbox_doc:
+        return {"sandbox": None}
+
+    sandbox_doc.pop("_id", None)
+    return {"sandbox": compute_sandbox_overview(sandbox_doc)}
+
+
+@api_router.post("/sandbox-households")
+async def create_sandbox_household(request: CreateSandboxHouseholdRequest):
+    admin_user = await db.users.find_one({"userId": request.adminUserId}, {"_id": 0})
+    if not admin_user:
+        raise HTTPException(status_code=404, detail="Admin user not found")
+    if admin_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Only admins can create sandbox households")
+    if request.playerCount < 2 or request.playerCount > 8:
+        raise HTTPException(status_code=400, detail="Sandbox households must have between 2 and 8 players")
+
+    sandbox_doc = await create_sandbox_household_doc(request)
+    return {
+        "message": "Sandbox household created.",
+        "sandbox": compute_sandbox_overview(sandbox_doc)
+    }
+
+
+@api_router.get("/sandbox-households/{sandbox_id}")
+async def get_sandbox_household(sandbox_id: str):
+    sandbox_doc = await db.sandbox_households.find_one({"sandboxId": sandbox_id})
+    if not sandbox_doc:
+        raise HTTPException(status_code=404, detail="Sandbox household not found")
+    sandbox_doc.pop("_id", None)
+    return compute_sandbox_overview(sandbox_doc)
+
+
+@api_router.post("/sandbox-households/{sandbox_id}/generate-event")
+async def generate_sandbox_event(sandbox_id: str, request: SandboxGenerateEventRequest):
+    sandbox_doc = await db.sandbox_households.find_one({"sandboxId": sandbox_id})
+    if not sandbox_doc:
+        raise HTTPException(status_code=404, detail="Sandbox household not found")
+    sandbox_doc.pop("_id", None)
+
+    target_player = None
+    if request.playerId:
+        target_player = get_sandbox_player(sandbox_doc, request.playerId)
+        if not target_player:
+            raise HTTPException(status_code=404, detail="Sandbox player not found")
+    else:
+        target_player = random.choice(sandbox_doc.get("players", [])) if sandbox_doc.get("players") else None
+
+    if not target_player:
+        raise HTTPException(status_code=400, detail="No sandbox players available")
+    if get_active_sandbox_events_for_player(sandbox_doc, target_player["playerId"]):
+        raise HTTPException(status_code=400, detail="This player already has an active secret mission")
+
+    participants = [target_player]
+    event_type = "solo"
+    partner_candidates = [
+        player for player in sandbox_doc.get("players", [])
+        if player["playerId"] != target_player["playerId"] and not get_active_sandbox_events_for_player(sandbox_doc, player["playerId"])
+    ]
+    if partner_candidates and random.random() < 0.5:
+        event_type = "pair"
+        participants.append(random.choice(partner_candidates))
+
+    await build_sandbox_event(sandbox_doc, participants, event_type, "manual_admin_trigger")
+    append_sandbox_activity(
+        sandbox_doc,
+        "Admin Simulator",
+        "event",
+        f"triggered a {event_type} secret mission for {', '.join(player['displayName'] for player in participants)}."
+    )
+    await save_sandbox_doc(sandbox_doc)
+    return {
+        "message": "Sandbox secret mission generated.",
+        "sandbox": compute_sandbox_overview(sandbox_doc)
+    }
+
+
+@api_router.post("/sandbox-households/{sandbox_id}/players/{player_id}/tasks/{task_id}/action")
+async def sandbox_task_action(sandbox_id: str, player_id: str, task_id: str, request: SandboxTaskActionRequest):
+    sandbox_doc = await db.sandbox_households.find_one({"sandboxId": sandbox_id})
+    if not sandbox_doc:
+        raise HTTPException(status_code=404, detail="Sandbox household not found")
+    sandbox_doc.pop("_id", None)
+
+    player = get_sandbox_player(sandbox_doc, player_id)
+    if not player:
+        raise HTTPException(status_code=404, detail="Sandbox player not found")
+
+    task = next((item for item in sandbox_doc.get("tasks", []) if item.get("taskId") == task_id and item.get("assignedTo") == player_id), None)
+    if not task:
+        raise HTTPException(status_code=404, detail="Sandbox task not found for this player")
+    if task.get("status") != "pending":
+        raise HTTPException(status_code=400, detail="Only pending tasks can be updated")
+
+    action = request.action.lower()
+    if action not in ["complete", "refuse", "miss"]:
+        raise HTTPException(status_code=400, detail="Action must be complete, refuse, or miss")
+
+    task_status_map = {
+        "complete": "completed",
+        "refuse": "refused",
+        "miss": "missed"
+    }
+    task["status"] = task_status_map[action]
+    task["updatedAt"] = datetime.now(timezone.utc).isoformat()
+
+    if action == "complete":
+        xp_reward = task.get("basePoints", 10)
+        player["points"] += xp_reward
+        player["level"], _ = calculate_level(player["points"])
+        player["stats"]["completedTasks"] += 1
+        await maybe_add_coupon_drop(sandbox_doc, player, "task_completion")
+        unlock_sandbox_achievement_rewards(sandbox_doc, player)
+        append_sandbox_activity(sandbox_doc, player["displayName"], "task", f"completed '{task['title']}' for +{xp_reward} XP.")
+    elif action == "refuse":
+        player["stats"]["refusedTasks"] += 1
+        append_sandbox_activity(sandbox_doc, player["displayName"], "task", f"refused '{task['title']}'.")
+    else:
+        player["stats"]["missedTasks"] += 1
+        append_sandbox_activity(sandbox_doc, player["displayName"], "task", f"missed '{task['title']}'.")
+
+    await save_sandbox_doc(sandbox_doc)
+    return {
+        "message": f"Sandbox task updated: {action}.",
+        "sandbox": compute_sandbox_overview(sandbox_doc)
+    }
+
+
+@api_router.post("/sandbox-households/{sandbox_id}/players/{player_id}/events/{event_id}/action")
+async def sandbox_event_action(sandbox_id: str, player_id: str, event_id: str, request: SandboxEventActionRequest):
+    sandbox_doc = await db.sandbox_households.find_one({"sandboxId": sandbox_id})
+    if not sandbox_doc:
+        raise HTTPException(status_code=404, detail="Sandbox household not found")
+    sandbox_doc.pop("_id", None)
+
+    player = get_sandbox_player(sandbox_doc, player_id)
+    if not player:
+        raise HTTPException(status_code=404, detail="Sandbox player not found")
+
+    event = next((item for item in sandbox_doc.get("events", []) if item.get("eventId") == event_id), None)
+    if not event:
+        raise HTTPException(status_code=404, detail="Sandbox event not found")
+
+    participant = next((entry for entry in event.get("participants", []) if entry.get("playerId") == player_id), None)
+    if not participant:
+        raise HTTPException(status_code=403, detail="This player is not part of the event")
+
+    action = request.action.lower()
+    if action not in ["accept", "dismiss", "complete"]:
+        raise HTTPException(status_code=400, detail="Action must be accept, dismiss, or complete")
+
+    if action == "accept":
+        participant["status"] = "accepted"
+        participant["respondedAt"] = datetime.now(timezone.utc).isoformat()
+        append_sandbox_activity(sandbox_doc, player["displayName"], "event", f"accepted '{event['title']}'.")
+    elif action == "dismiss":
+        participant["status"] = "dismissed"
+        participant["respondedAt"] = datetime.now(timezone.utc).isoformat()
+        append_sandbox_activity(sandbox_doc, player["displayName"], "event", f"dismissed '{event['title']}'.")
+        if all(entry.get("status") == "dismissed" for entry in event.get("participants", [])):
+            event["status"] = "dismissed"
+    else:
+        if participant.get("status") != "accepted":
+            raise HTTPException(status_code=400, detail="Accept the event before completing it")
+        participant["status"] = "completed"
+        participant["completedAt"] = datetime.now(timezone.utc).isoformat()
+        xp_reward = event.get("xpReward", 12)
+        player["points"] += xp_reward
+        player["level"], _ = calculate_level(player["points"])
+        player["stats"]["eventsCompleted"] += 1
+        await maybe_add_coupon_drop(sandbox_doc, player, "event_completion")
+        unlock_sandbox_achievement_rewards(sandbox_doc, player)
+        append_sandbox_activity(sandbox_doc, player["displayName"], "event", f"completed '{event['title']}' for +{xp_reward} XP.")
+
+        reoffered = []
+        if event.get("eventType") in ["pair", "household"]:
+            for other_participant in event.get("participants", []):
+                if other_participant.get("playerId") == player_id:
+                    continue
+                if other_participant.get("status") not in ["pending", "dismissed"]:
+                    continue
+                has_other_active_event = any(
+                    other_event.get("eventId") != event_id
+                    and other_event.get("status") == "active"
+                    and any(
+                        entry.get("playerId") == other_participant["playerId"]
+                        and entry.get("status") in ["pending", "accepted"]
+                        for entry in other_event.get("participants", [])
+                    )
+                    for other_event in sandbox_doc.get("events", [])
+                )
+                if has_other_active_event:
+                    continue
+                other_player = get_sandbox_player(sandbox_doc, other_participant["playerId"])
+                if not other_player:
+                    continue
+                await build_sandbox_event(
+                    sandbox_doc,
+                    [other_player],
+                    "solo",
+                    "sandbox_follow_up",
+                    is_follow_up=True,
+                    parent_event_id=event_id
+                )
+                other_participant["status"] = "reassigned"
+                reoffered.append(other_player["displayName"])
+
+            if reoffered:
+                append_sandbox_activity(
+                    sandbox_doc,
+                    "Simulator",
+                    "event",
+                    f"re-offered a simplified mission to {', '.join(reoffered)} after a partial team completion."
+                )
+
+        if all(entry.get("status") in ["completed", "dismissed", "reassigned"] for entry in event.get("participants", [])):
+            event["status"] = "completed"
+
+    await save_sandbox_doc(sandbox_doc)
+    return {
+        "message": f"Sandbox event updated: {action}.",
+        "sandbox": compute_sandbox_overview(sandbox_doc)
+    }
+
+
+@api_router.post("/sandbox-households/{sandbox_id}/players/{player_id}/schedule")
+async def sandbox_schedule_update(sandbox_id: str, player_id: str, request: SandboxScheduleRequest):
+    sandbox_doc = await db.sandbox_households.find_one({"sandboxId": sandbox_id})
+    if not sandbox_doc:
+        raise HTTPException(status_code=404, detail="Sandbox household not found")
+    sandbox_doc.pop("_id", None)
+
+    player = get_sandbox_player(sandbox_doc, player_id)
+    if not player:
+        raise HTTPException(status_code=404, detail="Sandbox player not found")
+
+    player["preferences"] = normalize_user_preferences({
+        **player.get("preferences", {}),
+        "availability": request.availability
+    })
+    player["scheduleChangedAt"] = datetime.now(timezone.utc).isoformat()
+    try:
+        redistribute_sandbox_pending_tasks(sandbox_doc)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    append_sandbox_activity(sandbox_doc, player["displayName"], "schedule", "updated their simulated schedule.")
+    await save_sandbox_doc(sandbox_doc)
+    return {
+        "message": "Sandbox schedule updated.",
+        "sandbox": compute_sandbox_overview(sandbox_doc)
+    }
+
+
+@api_router.post("/sandbox-households/{sandbox_id}/players/{player_id}/notes")
+async def sandbox_add_note(sandbox_id: str, player_id: str, request: SandboxNoteRequest):
+    sandbox_doc = await db.sandbox_households.find_one({"sandboxId": sandbox_id})
+    if not sandbox_doc:
+        raise HTTPException(status_code=404, detail="Sandbox household not found")
+    sandbox_doc.pop("_id", None)
+
+    player = get_sandbox_player(sandbox_doc, player_id)
+    if not player:
+        raise HTTPException(status_code=404, detail="Sandbox player not found")
+    if not request.message.strip():
+        raise HTTPException(status_code=400, detail="Note message is required")
+
+    sandbox_doc.setdefault("notes", []).insert(0, {
+        "noteId": f"note_{uuid.uuid4().hex[:10]}",
+        "playerId": player_id,
+        "displayName": player["displayName"],
+        "message": request.message.strip(),
+        "createdAt": datetime.now(timezone.utc).isoformat()
+    })
+    player["stats"]["notesWritten"] += 1
+    append_sandbox_activity(sandbox_doc, player["displayName"], "note", f"wrote a note: {request.message.strip()[:48]}")
+    await save_sandbox_doc(sandbox_doc)
+    return {
+        "message": "Sandbox note added.",
+        "sandbox": compute_sandbox_overview(sandbox_doc)
+    }
+
+
+@api_router.post("/sandbox-households/{sandbox_id}/endorsements/{reward_id}/claim")
+async def sandbox_claim_reward(sandbox_id: str, reward_id: str, request: SandboxRewardClaimRequest):
+    sandbox_doc = await db.sandbox_households.find_one({"sandboxId": sandbox_id})
+    if not sandbox_doc:
+        raise HTTPException(status_code=404, detail="Sandbox household not found")
+    sandbox_doc.pop("_id", None)
+
+    player = get_sandbox_player(sandbox_doc, request.playerId)
+    if not player:
+        raise HTTPException(status_code=404, detail="Sandbox player not found")
+
+    reward = next((item for item in sandbox_doc.get("endorsements", []) if item.get("rewardId") == reward_id), None)
+    if not reward:
+        raise HTTPException(status_code=404, detail="Reward not found")
+    if reward.get("status") != "available":
+        raise HTTPException(status_code=400, detail="Reward is not claimable right now")
+    if reward.get("targetPlayerId") and reward.get("targetPlayerId") != request.playerId:
+        raise HTTPException(status_code=403, detail="Reward is assigned to a different player")
+
+    reward["status"] = "claimed"
+    reward["claimedBy"] = request.playerId
+    reward["claimedAt"] = datetime.now(timezone.utc).isoformat()
+    player["stats"]["endorsementsClaimed"] += 1
+    append_sandbox_activity(sandbox_doc, player["displayName"], "endorsement", f"claimed the {reward['businessName']} reward '{reward['title']}'.")
+    await save_sandbox_doc(sandbox_doc)
+    return {
+        "message": "Mock endorsement claimed.",
+        "sandbox": compute_sandbox_overview(sandbox_doc)
     }
 
 

@@ -12,6 +12,7 @@ import ProgressiveOnboarding from './components/ProgressiveOnboarding';
 import MemberOnboarding from './components/MemberOnboarding';
 import { AvailabilitySettingsPanel } from './components/AvailabilitySettingsPanel';
 import { RandomEventBubble } from './components/RandomEventBubble';
+import { AdminSandboxSimulator } from './components/AdminSandboxSimulator';
 import TalentTree from './components/TalentTree';
 
 // Import UI components
@@ -3276,6 +3277,20 @@ function ChoreChampionsApp() {
                   👑 Kingdom Control
                 </button>
               )}
+
+              {currentUser?.role === 'admin' && (
+                <button
+                  onClick={() => setActiveTab('sandbox-sim')}
+                  data-testid="sandbox-sim-tab-button"
+                  className={`px-6 py-4 font-medium whitespace-nowrap border-b-4 transition-colors ${
+                    activeTab === 'sandbox-sim'
+                      ? 'border-sky-600 text-sky-600 bg-sky-50'
+                      : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                  }`}
+                >
+                  🛰️ Sandbox Sim
+                </button>
+              )}
               
               <button
                 onClick={() => setActiveTab('home')}
@@ -3569,6 +3584,17 @@ function ChoreChampionsApp() {
                   </div>
                 </CardContent>
               </Card>
+            </div>
+          )}
+
+          {activeTab === 'sandbox-sim' && currentUser?.role === 'admin' && (
+            <div className="max-w-7xl mx-auto" data-testid="sandbox-sim-tab-panel">
+              <div className="mb-6">
+                <h2 className="text-4xl font-bold flex items-center gap-3">🛰️ Admin Sandbox Simulator</h2>
+                <p className="text-gray-600 mt-2">Create a mock household, inspect the whole house, and then click into each player perspective to test choices and reward drops.</p>
+              </div>
+
+              <AdminSandboxSimulator apiBase={API} currentUser={currentUser} />
             </div>
           )}
 
