@@ -12,6 +12,9 @@ const GAME_OPTIONS = [
   { value: 'trivia', label: 'Trivia Duel' },
   { value: 'simon', label: 'Simon Says Duel' },
   { value: 'whack_a_mole', label: 'Whack-a-Mole Duel' },
+  { value: 'memory_flip', label: 'Cleaning Supply Memory Flip' },
+  { value: 'boxes', label: 'Dots-and-Boxes Duel' },
+  { value: 'war', label: 'War Card Duel' },
 ];
 
 const RpsRound = ({ onSubmit, disabled }) => (
@@ -181,6 +184,187 @@ const WhackAMoleRound = ({ onSubmit, disabled }) => {
   );
 };
 
+
+const MemoryFlipRound = ({ roundState, onSubmit, disabled }) => {
+  const [cards, setCards] = useState(() =>
+    (roundState?.promptData?.cards || []).map((card, index) => ({ ...card, localId: `${card.value}-${index}`, matched: false }))
+  );
+  const [flippedIds, setFlippedIds] = useState([]);
+  const [moves, setMoves] = useState(0);
+  const [locked, setLocked] = useState(false);
+
+  useEffect(() => {
+    setCards((roundState?.promptData?.cards || []).map((card, index) => ({ ...card, localId: `${card.value}-${index}`, matched: false })));
+    setFlippedIds([]);
+    setMoves(0);
+    setLocked(false);
+  }, [roundState?.roundNumber]);
+
+  const handleFlip = (cardId) => {
+    if (disabled || locked || flippedIds.includes(cardId)) return;
+    const targetCard = cards.find((card) => card.localId === cardId);
+    if (!targetCard || targetCard.matched) return;
+
+    const nextFlipped = [...flippedIds, cardId];
+    setFlippedIds(nextFlipped);
+    if (nextFlipped.length === 2) {
+      setMoves((prev) => prev + 1);
+      setLocked(true);
+      const [first, second] = nextFlipped.map((id) => cards.find((card) => card.localId === id));
+      if (first.value === second.value) {
+        const updatedCards = cards.map((card) => (
+          nextFlipped.includes(card.localId) ? { ...card, matched: true } : card
+        ));
+        setTimeout(() => {
+          setCards(updatedCards);
+          setFlippedIds([]);
+          setLocked(false);
+          const matchedCount = updatedCards.filter((card) => card.matched).length;
+          if (matchedCount === updatedCards.length) {
+            const score = Math.max(10, 120 - ((moves + 1) * 8));
+            onSubmit({ score });
+          }
+        }, 500);
+      } else {
+        setTimeout(() => {
+          setFlippedIds([]);
+          setLocked(false);
+        }, 700);
+      }
+    }
+  };
+
+  return (
+    <div className="space-y-4" data-testid="duel-memory-round">
+      <p className="text-sm text-gray-600">Flip the cleaning-supply cards and clear the board in as few moves as possible.</p>
+      <div className="grid grid-cols-4 gap-3">
+        {cards.map((card) => {
+          const isFlipped = flippedIds.includes(card.localId) || card.matched;
+          return (
+            <button
+              key={card.localId}
+              type="button"
+              onClick={() => handleFlip(card.localId)}
+              disabled={disabled || card.matched}
+              className={`h-20 rounded-2xl border-2 transition ${isFlipped ? 'bg-cyan-50 border-cyan-300' : 'bg-slate-900 border-slate-700 text-slate-100'}`}
+              data-testid={`duel-memory-card-${card.localId}`}
+            >
+              {isFlipped ? (
+                <div className="text-center">
+                  <div className="text-2xl">{card.emoji}</div>
+                  <div className="text-xs mt-1 text-gray-600">{card.label}</div>
+                </div>
+              ) : 'Flip'}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+const BoxesRound = ({ roundState, onSubmit, disabled }) => {
+  const [board, setBoard] = useState(() => roundState?.promptData?.edges || []);
+  const [playerScore, setPlayerScore] = useState(0);
+  const [locked, setLocked] = useState(false);
+
+  useEffect(() => {
+    setBoard(roundState?.promptData?.edges || []);
+    setPlayerScore(0);
+    setLocked(false);
+  }, [roundState?.roundNumber]);
+
+  const evaluateBoxes = (edges) => {
+    const boxes = roundState?.promptData?.boxes || [];
+    return boxes.filter((box) => box.edges.every((edgeId) => edges.find((edge) => edge.id === edgeId)?.claimedBy)).length;
+  };
+
+  const applyAiMove = (edges) => {
+    const openEdges = edges.filter((edge) => !edge.claimedBy);
+    if (!openEdges.length) return edges;
+    const aiChoice = openEdges[Math.floor(Math.random() * openEdges.length)];
+    return edges.map((edge) => edge.id === aiChoice.id ? { ...edge, claimedBy: 'ai' } : edge);
+  };
+
+  const playEdge = (edgeId) => {
+    if (disabled || locked) return;
+    const chosenEdge = board.find((edge) => edge.id === edgeId);
+    if (!chosenEdge || chosenEdge.claimedBy) return;
+
+    setLocked(true);
+    let nextBoard = board.map((edge) => edge.id === edgeId ? { ...edge, claimedBy: 'player' } : edge);
+    let nextPlayerScore = evaluateBoxes(nextBoard.filter((edge) => edge.claimedBy === 'player' || edge.claimedBy === 'ai'));
+
+    nextBoard = applyAiMove(nextBoard);
+    nextPlayerScore = (roundState?.promptData?.boxes || []).filter((box) => box.edges.every((boxEdgeId) => nextBoard.find((edge) => edge.id === boxEdgeId)?.claimedBy === 'player')).length;
+
+    setBoard(nextBoard);
+    setPlayerScore(nextPlayerScore);
+    setLocked(false);
+
+    if (nextBoard.every((edge) => edge.claimedBy)) {
+      onSubmit({ score: nextPlayerScore });
+    }
+  };
+
+  return (
+    <div className="space-y-4" data-testid="duel-boxes-round">
+      <p className="text-sm text-gray-600">Claim lines in the dots-and-boxes grid. Your score is the number of full boxes you close.</p>
+      <div className="grid grid-cols-3 gap-3">
+        {board.map((edge) => (
+          <button
+            key={edge.id}
+            type="button"
+            onClick={() => playEdge(edge.id)}
+            disabled={disabled || !!edge.claimedBy}
+            className={`h-16 rounded-xl border-2 text-xs transition ${edge.claimedBy === 'player' ? 'bg-emerald-200 border-emerald-500' : edge.claimedBy === 'ai' ? 'bg-rose-200 border-rose-400' : 'bg-white border-gray-200 hover:border-emerald-300'}`}
+            data-testid={`duel-boxes-edge-${edge.id}`}
+          >
+            {edge.label}
+          </button>
+        ))}
+      </div>
+      <p className="text-sm font-medium text-gray-700">Boxes claimed: {playerScore}</p>
+    </div>
+  );
+};
+
+const WarRound = ({ onSubmit, disabled }) => {
+  const [roundIndex, setRoundIndex] = useState(0);
+  const [score, setScore] = useState(0);
+  const [currentDraw, setCurrentDraw] = useState(null);
+  const deck = useMemo(() => Array.from({ length: 5 }).map(() => ({
+    myCard: Math.ceil(Math.random() * 13),
+    rivalCard: Math.ceil(Math.random() * 13),
+  })), []);
+
+  const drawNext = () => {
+    if (disabled || roundIndex >= deck.length) return;
+    const draw = deck[roundIndex];
+    setCurrentDraw(draw);
+    const nextScore = draw.myCard > draw.rivalCard ? score + 1 : score;
+    setScore(nextScore);
+    const nextIndex = roundIndex + 1;
+    setRoundIndex(nextIndex);
+    if (nextIndex === deck.length) {
+      setTimeout(() => onSubmit({ score: nextScore }), 500);
+    }
+  };
+
+  return (
+    <div className="space-y-4" data-testid="duel-war-round">
+      <p className="text-sm text-gray-600">Draw 5 cards against the house deck. Each higher card wins a battle point.</p>
+      <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 text-center">
+        <p className="text-sm text-gray-500">Battles won: {score}</p>
+        {currentDraw && <p className="mt-2 text-lg font-semibold text-gray-900">You drew {currentDraw.myCard} vs {currentDraw.rivalCard}</p>}
+      </div>
+      <Button onClick={drawNext} disabled={disabled || roundIndex >= deck.length} data-testid="duel-war-draw-button">
+        {roundIndex >= deck.length ? 'War complete' : `Draw card ${roundIndex + 1}`}
+      </Button>
+    </div>
+  );
+};
+
 const DuelChallengeDialog = ({ challenge, currentUser, open, onClose, onRespond, onPlay, onAssign }) => {
   if (!challenge) return null;
 
@@ -245,6 +429,9 @@ const DuelChallengeDialog = ({ challenge, currentUser, open, onClose, onRespond,
               {challenge.gameType === 'trivia' && <TriviaRound key={`${challenge.challengeId}-${challenge.currentRound}`} roundState={currentRound} onSubmit={onPlay} />}
               {challenge.gameType === 'simon' && <SimonRound key={`${challenge.challengeId}-${challenge.currentRound}`} roundState={currentRound} onSubmit={onPlay} />}
               {challenge.gameType === 'whack_a_mole' && <WhackAMoleRound key={`${challenge.challengeId}-${challenge.currentRound}`} onSubmit={onPlay} />}
+              {challenge.gameType === 'memory_flip' && <MemoryFlipRound key={`${challenge.challengeId}-${challenge.currentRound}`} roundState={currentRound} onSubmit={onPlay} />}
+              {challenge.gameType === 'boxes' && <BoxesRound key={`${challenge.challengeId}-${challenge.currentRound}`} roundState={currentRound} onSubmit={onPlay} />}
+              {challenge.gameType === 'war' && <WarRound key={`${challenge.challengeId}-${challenge.currentRound}`} onSubmit={onPlay} />}
             </div>
           )}
 

@@ -178,7 +178,55 @@ def test_trivia_duel_acceptance_and_round_resolution():
         timeout=30,
     )
     second_answer.raise_for_status()
-    resolved = second_answer.json()['challenge']
 
-    assert resolved['winnerId'] == created['userId']
-    assert resolved['status'] == 'awaiting_choice'
+
+def test_new_roster_games_create_and_war_resolves():
+    created, joined = create_household_with_two_members()
+    first_task = get_first_pending_task(created['householdId'], created['userId'])
+
+    for game_type in ['memory_flip', 'boxes', 'war']:
+        challenge_response = requests.post(
+            f'{API_BASE}/mini-game-challenges/create',
+            json={
+                'challengerId': created['userId'],
+                'challengedId': joined['userId'],
+                'taskId': first_task['taskId'],
+                'gameType': game_type,
+                'roundCount': 1,
+            },
+            timeout=30,
+        )
+        challenge_response.raise_for_status()
+        challenge = challenge_response.json()['challenge']
+        assert challenge['gameType'] == game_type
+
+        if game_type == 'war':
+            accept = requests.post(
+                f'{API_BASE}/mini-game-challenges/respond',
+                json={'challengeId': challenge['challengeId'], 'userId': joined['userId'], 'response': 'accept'},
+                timeout=30,
+            )
+            accept.raise_for_status()
+
+            first_score = requests.post(
+                f'{API_BASE}/mini-game-challenges/play',
+                json={'challengeId': challenge['challengeId'], 'userId': created['userId'], 'roundNumber': 1, 'score': 4},
+                timeout=30,
+            )
+            first_score.raise_for_status()
+            second_score = requests.post(
+                f'{API_BASE}/mini-game-challenges/play',
+                json={'challengeId': challenge['challengeId'], 'userId': joined['userId'], 'roundNumber': 1, 'score': 1},
+                timeout=30,
+            )
+            second_score.raise_for_status()
+            resolved = second_score.json()['challenge']
+            assert resolved['winnerId'] == created['userId']
+            assert resolved['status'] == 'awaiting_choice'
+        else:
+            decline = requests.post(
+                f'{API_BASE}/mini-game-challenges/respond',
+                json={'challengeId': challenge['challengeId'], 'userId': joined['userId'], 'response': 'decline'},
+                timeout=30,
+            )
+            decline.raise_for_status()

@@ -1,6 +1,6 @@
 """
 Comprehensive Mini-Game Duel Arena Tests
-Tests all mini-game types: rock_paper_scissors, trivia, simon, whack_a_mole
+Tests all mini-game types: rock_paper_scissors, trivia, simon, whack_a_mole, memory_flip, boxes, war
 Tests duel lifecycle: create, accept/decline, play rounds, winner choice, task reassignment
 Tests XP rewards: accepted XP, winner bonus XP
 Tests edge cases: duelPending blocking task completion, 1 vs 3 round duels
@@ -181,6 +181,88 @@ class TestMiniGameChallengeCreation:
         challenge = response.json()['challenge']
         assert challenge['gameType'] == 'whack_a_mole'
         print(f"✅ Created Whack-a-Mole challenge: {challenge['challengeId']}")
+    
+    def test_create_memory_flip_challenge(self):
+        """Test creating a memory flip challenge with cleaning supply theme"""
+        created, joined = TestMiniGameDuelSetup.create_household_with_two_members()
+        task = TestMiniGameDuelSetup.get_first_pending_task(created['householdId'], created['userId'])
+        assert task is not None
+        
+        response = requests.post(
+            f'{API_BASE}/mini-game-challenges/create',
+            json={
+                'challengerId': created['userId'],
+                'challengedId': joined['userId'],
+                'taskId': task['taskId'],
+                'gameType': 'memory_flip',
+                'roundCount': 1,
+            },
+            timeout=30,
+        )
+        assert response.status_code == 200
+        challenge = response.json()['challenge']
+        assert challenge['gameType'] == 'memory_flip'
+        # Verify cleaning supply cards are present
+        round_data = challenge.get('rounds', [{}])[0].get('promptData', {})
+        cards = round_data.get('cards', [])
+        assert len(cards) == 12  # 6 pairs
+        # Check for cleaning supply themed cards
+        card_values = [c.get('value') for c in cards]
+        assert 'spray' in card_values or 'sponge' in card_values or 'broom' in card_values
+        print(f"✅ Created Memory Flip challenge with cleaning supply theme: {challenge['challengeId']}")
+    
+    def test_create_boxes_challenge(self):
+        """Test creating a dots-and-boxes challenge"""
+        created, joined = TestMiniGameDuelSetup.create_household_with_two_members()
+        task = TestMiniGameDuelSetup.get_first_pending_task(created['householdId'], created['userId'])
+        assert task is not None
+        
+        response = requests.post(
+            f'{API_BASE}/mini-game-challenges/create',
+            json={
+                'challengerId': created['userId'],
+                'challengedId': joined['userId'],
+                'taskId': task['taskId'],
+                'gameType': 'boxes',
+                'roundCount': 1,
+            },
+            timeout=30,
+        )
+        assert response.status_code == 200
+        challenge = response.json()['challenge']
+        assert challenge['gameType'] == 'boxes'
+        # Verify boxes game structure
+        round_data = challenge.get('rounds', [{}])[0].get('promptData', {})
+        edges = round_data.get('edges', [])
+        boxes = round_data.get('boxes', [])
+        assert len(edges) == 12  # 12 edges for 2x2 grid
+        assert len(boxes) == 4  # 4 boxes
+        print(f"✅ Created Boxes challenge: {challenge['challengeId']}")
+    
+    def test_create_war_challenge(self):
+        """Test creating a war card duel challenge"""
+        created, joined = TestMiniGameDuelSetup.create_household_with_two_members()
+        task = TestMiniGameDuelSetup.get_first_pending_task(created['householdId'], created['userId'])
+        assert task is not None
+        
+        response = requests.post(
+            f'{API_BASE}/mini-game-challenges/create',
+            json={
+                'challengerId': created['userId'],
+                'challengedId': joined['userId'],
+                'taskId': task['taskId'],
+                'gameType': 'war',
+                'roundCount': 1,
+            },
+            timeout=30,
+        )
+        assert response.status_code == 200
+        challenge = response.json()['challenge']
+        assert challenge['gameType'] == 'war'
+        # Verify war game structure
+        round_data = challenge.get('rounds', [{}])[0].get('promptData', {})
+        assert round_data.get('drawCount') == 5
+        print(f"✅ Created War challenge: {challenge['challengeId']}")
     
     def test_invalid_round_count_rejected(self):
         """Test that invalid round counts (not 1 or 3) are rejected"""
@@ -555,6 +637,129 @@ class TestMiniGameRoundPlay:
         
         assert resolved['winnerId'] == joined['userId']
         print(f"✅ Whack-a-Mole round - higher score wins")
+    
+    def test_memory_flip_higher_score_wins(self):
+        """Test memory flip round - higher score wins"""
+        created, joined = TestMiniGameDuelSetup.create_household_with_two_members()
+        task = TestMiniGameDuelSetup.get_first_pending_task(created['householdId'], created['userId'])
+        
+        challenge = requests.post(
+            f'{API_BASE}/mini-game-challenges/create',
+            json={
+                'challengerId': created['userId'],
+                'challengedId': joined['userId'],
+                'taskId': task['taskId'],
+                'gameType': 'memory_flip',
+                'roundCount': 1,
+            },
+            timeout=30,
+        ).json()['challenge']
+        
+        requests.post(
+            f'{API_BASE}/mini-game-challenges/respond',
+            json={'challengeId': challenge['challengeId'], 'userId': joined['userId'], 'response': 'accept'},
+            timeout=30,
+        )
+        
+        # Admin scores higher (fewer moves = higher score)
+        requests.post(
+            f'{API_BASE}/mini-game-challenges/play',
+            json={'challengeId': challenge['challengeId'], 'userId': created['userId'], 'roundNumber': 1, 'score': 100},
+            timeout=30,
+        )
+        
+        # Partner scores lower
+        play_resp = requests.post(
+            f'{API_BASE}/mini-game-challenges/play',
+            json={'challengeId': challenge['challengeId'], 'userId': joined['userId'], 'roundNumber': 1, 'score': 50},
+            timeout=30,
+        )
+        resolved = play_resp.json()['challenge']
+        
+        assert resolved['winnerId'] == created['userId']
+        print(f"✅ Memory Flip round - higher score wins")
+    
+    def test_boxes_higher_score_wins(self):
+        """Test boxes round - higher score wins"""
+        created, joined = TestMiniGameDuelSetup.create_household_with_two_members()
+        task = TestMiniGameDuelSetup.get_first_pending_task(created['householdId'], created['userId'])
+        
+        challenge = requests.post(
+            f'{API_BASE}/mini-game-challenges/create',
+            json={
+                'challengerId': created['userId'],
+                'challengedId': joined['userId'],
+                'taskId': task['taskId'],
+                'gameType': 'boxes',
+                'roundCount': 1,
+            },
+            timeout=30,
+        ).json()['challenge']
+        
+        requests.post(
+            f'{API_BASE}/mini-game-challenges/respond',
+            json={'challengeId': challenge['challengeId'], 'userId': joined['userId'], 'response': 'accept'},
+            timeout=30,
+        )
+        
+        # Partner scores higher (more boxes claimed)
+        requests.post(
+            f'{API_BASE}/mini-game-challenges/play',
+            json={'challengeId': challenge['challengeId'], 'userId': joined['userId'], 'roundNumber': 1, 'score': 3},
+            timeout=30,
+        )
+        
+        # Admin scores lower
+        play_resp = requests.post(
+            f'{API_BASE}/mini-game-challenges/play',
+            json={'challengeId': challenge['challengeId'], 'userId': created['userId'], 'roundNumber': 1, 'score': 1},
+            timeout=30,
+        )
+        resolved = play_resp.json()['challenge']
+        
+        assert resolved['winnerId'] == joined['userId']
+        print(f"✅ Boxes round - higher score wins")
+    
+    def test_war_higher_score_wins(self):
+        """Test war round - higher score wins"""
+        created, joined = TestMiniGameDuelSetup.create_household_with_two_members()
+        task = TestMiniGameDuelSetup.get_first_pending_task(created['householdId'], created['userId'])
+        
+        challenge = requests.post(
+            f'{API_BASE}/mini-game-challenges/create',
+            json={
+                'challengerId': created['userId'],
+                'challengedId': joined['userId'],
+                'taskId': task['taskId'],
+                'gameType': 'war',
+                'roundCount': 1,
+            },
+            timeout=30,
+        ).json()['challenge']
+        
+        requests.post(
+            f'{API_BASE}/mini-game-challenges/respond',
+            json={'challengeId': challenge['challengeId'], 'userId': joined['userId'], 'response': 'accept'},
+            timeout=30,
+        )
+        
+        # Admin scores higher (more battles won)
+        requests.post(
+            f'{API_BASE}/mini-game-challenges/play',
+            json={'challengeId': challenge['challengeId'], 'userId': created['userId'], 'roundNumber': 1, 'score': 4},
+            timeout=30,
+        )
+        
+        # Partner scores lower
+        play_resp = requests.post(
+            f'{API_BASE}/mini-game-challenges/play',
+            json={'challengeId': challenge['challengeId'], 'userId': joined['userId'], 'roundNumber': 1, 'score': 2},
+            timeout=30,
+        )
+        resolved = play_resp.json()['challenge']
+        
+        assert resolved['winnerId'] == created['userId']
+        print(f"✅ War round - higher score wins")
 
 
 class TestMiniGameWinnerChoice:

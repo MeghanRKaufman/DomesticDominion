@@ -4687,6 +4687,43 @@ def build_duel_round_prompt(game_type: str, round_number: int) -> Dict[str, Any]
             "durationSec": 12,
             "moleIntervalMs": 700
         }
+    if game_type == "memory_flip":
+        supplies = [
+            {"value": "spray", "label": "Spray", "emoji": "🧴"},
+            {"value": "sponge", "label": "Sponge", "emoji": "🧽"},
+            {"value": "gloves", "label": "Gloves", "emoji": "🧤"},
+            {"value": "soap", "label": "Soap", "emoji": "🫧"},
+            {"value": "broom", "label": "Broom", "emoji": "🧹"},
+            {"value": "bucket", "label": "Bucket", "emoji": "🪣"}
+        ]
+        cards = supplies + supplies
+        random.shuffle(cards)
+        return {"cards": cards}
+    if game_type == "boxes":
+        return {
+            "edges": [
+                {"id": "top_left", "label": "Top Left"},
+                {"id": "top_right", "label": "Top Right"},
+                {"id": "mid_left", "label": "Mid Left"},
+                {"id": "mid_right", "label": "Mid Right"},
+                {"id": "bottom_left", "label": "Bottom Left"},
+                {"id": "bottom_right", "label": "Bottom Right"},
+                {"id": "left_top", "label": "Left Top"},
+                {"id": "left_bottom", "label": "Left Bottom"},
+                {"id": "center_top", "label": "Center Top"},
+                {"id": "center_bottom", "label": "Center Bottom"},
+                {"id": "right_top", "label": "Right Top"},
+                {"id": "right_bottom", "label": "Right Bottom"}
+            ],
+            "boxes": [
+                {"id": "box_1", "edges": ["top_left", "mid_left", "left_top", "center_top"]},
+                {"id": "box_2", "edges": ["top_right", "mid_right", "center_top", "right_top"]},
+                {"id": "box_3", "edges": ["mid_left", "bottom_left", "left_bottom", "center_bottom"]},
+                {"id": "box_4", "edges": ["mid_right", "bottom_right", "center_bottom", "right_bottom"]}
+            ]
+        }
+    if game_type == "war":
+        return {"drawCount": 5}
     return {}
 
 
