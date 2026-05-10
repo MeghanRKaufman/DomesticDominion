@@ -1561,14 +1561,25 @@ class MiniGameChallenge(BaseModel):
     challengeId: str = Field(default_factory=lambda: str(uuid.uuid4()))
     householdId: str
     taskId: str
+    taskTitle: str
     challengerId: str
     challengerName: str
     challengedId: str
     challengedName: str
-    gameType: str  # "spin", "tap", "trivia", "rock_paper_scissors"
+    gameType: str
+    roundCount: int = 1
+    acceptedXp: int = 10
+    teamXp: int = 5
+    winnerBonusPct: float = 0.25
     winnerId: Optional[str] = None
-    status: str = "pending"  # pending, completed
+    winnerChoice: Optional[str] = None
+    taskAssignedTo: Optional[str] = None
+    status: str = "pending"  # pending, active, awaiting_choice, completed, declined
+    currentRound: int = 1
+    rounds: List[Dict[str, Any]] = Field(default_factory=list)
+    participants: List[Dict[str, Any]] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
 
 # Request Models
 class CreateUserRequest(BaseModel):
@@ -1612,11 +1623,27 @@ class CreateMiniGameChallengeRequest(BaseModel):
     challengerId: str
     challengedId: str
     taskId: str
-    gameType: str  # "spin", "tap", "trivia", "rock_paper_scissors"
-    
-class CompleteMiniGameRequest(BaseModel):
+    gameType: str
+    roundCount: int = 1
+
+class RespondMiniGameChallengeRequest(BaseModel):
     challengeId: str
-    winnerId: str
+    userId: str
+    response: str  # accept, decline
+
+class SubmitMiniGameRoundRequest(BaseModel):
+    challengeId: str
+    userId: str
+    roundNumber: int
+    move: Optional[str] = None
+    answerIndex: Optional[int] = None
+    score: Optional[int] = None
+    durationMs: Optional[int] = None
+
+class AssignMiniGameTaskRequest(BaseModel):
+    challengeId: str
+    chooserId: str
+    choice: str  # me, them
 
 class CompleteTaskRequest(BaseModel):
     userId: str
@@ -4012,6 +4039,8 @@ async def complete_task(task_id: str, request: CompleteTaskRequest):
         # Check if already completed
         if task.get("completed"):
             raise HTTPException(status_code=400, detail="Task already completed")
+        if task.get("duelPending"):
+            raise HTTPException(status_code=400, detail="This task is currently locked in a duel challenge")
         
         # Check if verification is required (25% base chance, modified by talents)
         requires_verification = should_trigger_verification(user, task)
@@ -4611,94 +4640,390 @@ async def get_pending_swaps(household_id: str, user_id: str):
     return {"swaps": swaps}
 
 # NEW: Mini-Game Challenge Endpoints
+DUEL_TRIVIA_QUESTIONS = [
+    {
+        "question": "Which household habit usually prevents the biggest cleanup later?",
+        "options": ["Wiping counters immediately", "Waiting for the weekend", "Ignoring it", "Buying more candles"],
+        "correctIndex": 0
+    },
+    {
+        "question": "What helps a shared house feel calmer the fastest?",
+        "options": ["Clearing sink clutter", "Hiding laundry in a closet", "Leaving lights on everywhere", "Skipping dishes"],
+        "correctIndex": 0
+    },
+    {
+        "question": "Which approach is best for a fair chore system?",
+        "options": ["One person does everything", "Rotate and balance workload", "Only do easy chores", "Ignore schedules"],
+        "correctIndex": 1
+    },
+    {
+        "question": "Which is the most useful before grocery shopping?",
+        "options": ["A shared list", "A random guess", "Buying only snacks", "Skipping produce"],
+        "correctIndex": 0
+    },
+    {
+        "question": "What usually makes roommate tension worse?",
+        "options": ["Clear expectations", "Unspoken resentment", "Quick check-ins", "Shared calendars"],
+        "correctIndex": 1
+    }
+]
+
+
+def build_duel_round_prompt(game_type: str, round_number: int) -> Dict[str, Any]:
+    if game_type == "trivia":
+        question = random.choice(DUEL_TRIVIA_QUESTIONS)
+        return {
+            "question": question["question"],
+            "options": question["options"],
+            "correctIndex": question["correctIndex"]
+        }
+    if game_type == "simon":
+        colors = ["red", "blue", "green", "yellow"]
+        return {
+            "sequence": [random.choice(colors) for _ in range(3 + round_number)]
+        }
+    if game_type == "whack_a_mole":
+        return {
+            "durationSec": 12,
+            "moleIntervalMs": 700
+        }
+    return {}
+
+
+def build_duel_rounds(game_type: str, round_count: int) -> List[Dict[str, Any]]:
+    return [
+        {
+            "roundNumber": index + 1,
+            "promptData": build_duel_round_prompt(game_type, index + 1),
+            "submissions": {},
+            "winnerId": None,
+            "resolved": False
+        }
+        for index in range(round_count)
+    ]
+
+
+def get_duel_participant(challenge: Dict[str, Any], user_id: str) -> Optional[Dict[str, Any]]:
+    return next((participant for participant in challenge.get("participants", []) if participant.get("userId") == user_id), None)
+
+
+def get_duel_opponent(challenge: Dict[str, Any], user_id: str) -> Optional[Dict[str, Any]]:
+    return next((participant for participant in challenge.get("participants", []) if participant.get("userId") != user_id), None)
+
+
+async def award_duel_xp(user_id: str, personal_xp: int, team_xp: int) -> Dict[str, Any]:
+    user = await db.users.find_one({"userId": user_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    new_points = user.get("points", 0) + personal_xp
+    new_household_points = user.get("householdPoints", 0) + team_xp
+    new_level, _ = calculate_level(new_points)
+    await db.users.update_one(
+        {"userId": user_id},
+        {"$set": {"points": new_points, "householdPoints": new_household_points, "level": new_level}}
+    )
+    return {"points": new_points, "householdPoints": new_household_points, "level": new_level}
+
+
+def resolve_duel_round(challenge: Dict[str, Any], round_state: Dict[str, Any]) -> Optional[str]:
+    challenger_id = challenge["challengerId"]
+    challenged_id = challenge["challengedId"]
+    challenger_submission = round_state["submissions"].get(challenger_id)
+    challenged_submission = round_state["submissions"].get(challenged_id)
+    if not challenger_submission or not challenged_submission:
+        return None
+
+    game_type = challenge["gameType"]
+    if game_type == "rock_paper_scissors":
+        beats = {"rock": "scissors", "scissors": "paper", "paper": "rock"}
+        challenger_move = challenger_submission.get("move")
+        challenged_move = challenged_submission.get("move")
+        if challenger_move == challenged_move:
+            return None
+        return challenger_id if beats.get(challenger_move) == challenged_move else challenged_id
+
+    if game_type == "trivia":
+        correct_index = round_state["promptData"].get("correctIndex")
+        challenger_correct = challenger_submission.get("answerIndex") == correct_index
+        challenged_correct = challenged_submission.get("answerIndex") == correct_index
+        if challenger_correct and not challenged_correct:
+            return challenger_id
+        if challenged_correct and not challenger_correct:
+            return challenged_id
+        if challenger_correct and challenged_correct:
+            challenger_duration = challenger_submission.get("durationMs", 999999)
+            challenged_duration = challenged_submission.get("durationMs", 999999)
+            if challenger_duration == challenged_duration:
+                return None
+            return challenger_id if challenger_duration < challenged_duration else challenged_id
+        return None
+
+    challenger_score = challenger_submission.get("score", 0)
+    challenged_score = challenged_submission.get("score", 0)
+    if challenger_score == challenged_score:
+        return None
+    return challenger_id if challenger_score > challenged_score else challenged_id
+
+
+def serialize_duel_challenge(challenge: Dict[str, Any], user_id: str) -> Dict[str, Any]:
+    serialized = {k: v for k, v in challenge.items() if k != "_id"}
+    current_participant = get_duel_participant(challenge, user_id)
+    opponent = get_duel_opponent(challenge, user_id)
+    current_round = next(
+        (round_state for round_state in challenge.get("rounds", []) if round_state.get("roundNumber") == challenge.get("currentRound")),
+        None
+    )
+    serialized["currentUserStatus"] = current_participant.get("status") if current_participant else None
+    serialized["opponent"] = opponent
+    serialized["currentRoundState"] = current_round
+    serialized["userRoundSubmission"] = current_round.get("submissions", {}).get(user_id) if current_round else None
+    serialized["isWinner"] = challenge.get("winnerId") == user_id
+    return serialized
+
+
 @api_router.post("/mini-game-challenges/create")
 async def create_mini_game_challenge(request: CreateMiniGameChallengeRequest):
-    """Challenge another household member to a mini-game for a task"""
-    # Verify both users exist
-    challenger = await db.users.find_one({"userId": request.challengerId})
-    challenged = await db.users.find_one({"userId": request.challengedId})
-    
+    challenger = await db.users.find_one({"userId": request.challengerId}, {"_id": 0})
+    challenged = await db.users.find_one({"userId": request.challengedId}, {"_id": 0})
     if not challenger or not challenged:
         raise HTTPException(status_code=404, detail="User not found")
-    
     if challenger.get("householdId") != challenged.get("householdId"):
         raise HTTPException(status_code=400, detail="Users must be in same household")
-    
-    # Verify task
-    task = await db.tasks.find_one({"taskId": request.taskId})
+    if request.roundCount not in [1, 3]:
+        raise HTTPException(status_code=400, detail="Round count must be 1 or 3")
+
+    task = await db.tasks.find_one(
+        {"taskId": request.taskId, "householdId": challenger.get("householdId")},
+        {"_id": 0}
+    )
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
-    
-    if not task.get("can_challenge", True):
-        raise HTTPException(status_code=400, detail="This task cannot be challenged")
-    
-    # Create challenge
+    if task.get("assignedTo") != request.challengerId:
+        raise HTTPException(status_code=400, detail="Only the currently assigned player can start a duel")
+    if task.get("completed"):
+        raise HTTPException(status_code=400, detail="Completed tasks cannot be dueled")
+
+    open_challenge = await db.mini_game_challenges.find_one(
+        {
+            "taskId": request.taskId,
+            "householdId": challenger.get("householdId"),
+            "status": {"$in": ["pending", "active", "awaiting_choice"]}
+        },
+        {"_id": 0}
+    )
+    if open_challenge:
+        raise HTTPException(status_code=400, detail="This task already has an active duel challenge")
+
     challenge = MiniGameChallenge(
         householdId=challenger["householdId"],
         taskId=request.taskId,
+        taskTitle=task.get("title", "Untitled task"),
         challengerId=request.challengerId,
         challengerName=challenger["displayName"],
         challengedId=request.challengedId,
         challengedName=challenged["displayName"],
-        gameType=request.gameType
+        gameType=request.gameType,
+        roundCount=request.roundCount,
+        rounds=build_duel_rounds(request.gameType, request.roundCount),
+        participants=[
+            {"userId": request.challengerId, "displayName": challenger["displayName"], "status": "accepted", "roundWins": 0},
+            {"userId": request.challengedId, "displayName": challenged["displayName"], "status": "pending", "roundWins": 0}
+        ]
     )
-    
+
     await db.mini_game_challenges.insert_one(challenge.model_dump())
-    
+    await db.tasks.update_one(
+        {"taskId": request.taskId, "householdId": challenger.get("householdId")},
+        {"$set": {
+            "duelPending": True,
+            "duelParticipants": [request.challengerId, request.challengedId],
+            "duelGameType": request.gameType,
+            "duelRoundCount": request.roundCount
+        }}
+    )
+
     return {
-        "message": f"🎮 Challenge sent! {challenger['displayName']} vs {challenged['displayName']} - {request.gameType}",
-        "challengeId": challenge.challengeId,
-        "gameType": request.gameType
+        "message": f"🎮 Duel challenge sent! {challenger['displayName']} vs {challenged['displayName']} - {request.gameType}",
+        "challenge": serialize_duel_challenge(challenge.model_dump(), request.challengerId)
     }
 
-@api_router.post("/mini-game-challenges/complete")
-async def complete_mini_game_challenge(request: CompleteMiniGameRequest):
-    """Record the winner of a mini-game challenge"""
+
+@api_router.post("/mini-game-challenges/respond")
+async def respond_to_mini_game_challenge(request: RespondMiniGameChallengeRequest):
     challenge = await db.mini_game_challenges.find_one({"challengeId": request.challengeId})
     if not challenge:
         raise HTTPException(status_code=404, detail="Challenge not found")
-    
-    # Verify winner is one of the participants
-    if request.winnerId not in [challenge["challengerId"], challenge["challengedId"]]:
-        raise HTTPException(status_code=400, detail="Winner must be a participant")
-    
-    # Update challenge
+
+    participant = get_duel_participant(challenge, request.userId)
+    if not participant:
+        raise HTTPException(status_code=403, detail="You are not part of this challenge")
+    if request.response not in ["accept", "decline"]:
+        raise HTTPException(status_code=400, detail="Response must be accept or decline")
+
+    if request.response == "decline":
+        participant["status"] = "declined"
+        challenge["status"] = "declined"
+        await db.tasks.update_one(
+            {"taskId": challenge["taskId"], "householdId": challenge["householdId"]},
+            {"$set": {"duelPending": False}, "$unset": {"duelParticipants": "", "duelGameType": "", "duelRoundCount": ""}}
+        )
+    else:
+        participant["status"] = "accepted"
+        challenge["status"] = "active"
+        if not challenge.get("acceptanceAwarded"):
+            for duel_participant in challenge.get("participants", []):
+                await award_duel_xp(duel_participant["userId"], challenge.get("acceptedXp", 10), challenge.get("teamXp", 5))
+            challenge["acceptanceAwarded"] = True
+
+    challenge["updated_at"] = datetime.now(timezone.utc)
     await db.mini_game_challenges.update_one(
         {"challengeId": request.challengeId},
-        {"$set": {"winnerId": request.winnerId, "status": "completed"}}
+        {"$set": {k: v for k, v in challenge.items() if k != "_id"}}
     )
-    
-    # Loser gets the task
-    loser_id = challenge["challengedId"] if request.winnerId == challenge["challengerId"] else challenge["challengerId"]
-    
-    await db.tasks.update_one(
-        {"taskId": challenge["taskId"]},
-        {"$set": {"assignedTo": loser_id}}
-    )
-    
-    winner = await db.users.find_one({"userId": request.winnerId})
-    loser = await db.users.find_one({"userId": loser_id})
-    task = await db.tasks.find_one({"taskId": challenge["taskId"]})
-    
+
     return {
-        "message": f"🏆 {winner['displayName']} wins! {loser['displayName']} gets the task: {task['title']}",
-        "winnerId": request.winnerId,
-        "loserId": loser_id
+        "message": "Challenge accepted!" if request.response == "accept" else "Challenge declined.",
+        "challenge": serialize_duel_challenge({k: v for k, v in challenge.items() if k != "_id"}, request.userId)
     }
+
+
+@api_router.post("/mini-game-challenges/play")
+async def play_mini_game_round(request: SubmitMiniGameRoundRequest):
+    challenge = await db.mini_game_challenges.find_one({"challengeId": request.challengeId})
+    if not challenge:
+        raise HTTPException(status_code=404, detail="Challenge not found")
+    if challenge.get("status") != "active":
+        raise HTTPException(status_code=400, detail="Challenge is not active")
+
+    participant = get_duel_participant(challenge, request.userId)
+    if not participant or participant.get("status") != "accepted":
+        raise HTTPException(status_code=403, detail="You must accept the challenge before playing")
+    if request.roundNumber != challenge.get("currentRound"):
+        raise HTTPException(status_code=400, detail="This is not the active round")
+
+    round_state = next(
+        (round_item for round_item in challenge.get("rounds", []) if round_item.get("roundNumber") == request.roundNumber),
+        None
+    )
+    if not round_state:
+        raise HTTPException(status_code=404, detail="Round not found")
+    if round_state.get("resolved"):
+        raise HTTPException(status_code=400, detail="Round already resolved")
+    if round_state.get("submissions", {}).get(request.userId):
+        raise HTTPException(status_code=400, detail="You already submitted this round")
+
+    submission = {"submittedAt": datetime.now(timezone.utc).isoformat()}
+    if challenge.get("gameType") == "rock_paper_scissors":
+        if request.move not in ["rock", "paper", "scissors"]:
+            raise HTTPException(status_code=400, detail="Invalid rock-paper-scissors move")
+        submission["move"] = request.move
+    elif challenge.get("gameType") == "trivia":
+        if request.answerIndex is None:
+            raise HTTPException(status_code=400, detail="Trivia answer is required")
+        submission["answerIndex"] = request.answerIndex
+        submission["durationMs"] = request.durationMs or 999999
+    else:
+        if request.score is None:
+            raise HTTPException(status_code=400, detail="Score is required for this mini-game")
+        submission["score"] = request.score
+
+    round_state.setdefault("submissions", {})[request.userId] = submission
+
+    if len(round_state["submissions"]) == 2:
+        winner_id = resolve_duel_round(challenge, round_state)
+        round_state["winnerId"] = winner_id
+        round_state["resolved"] = True
+        if winner_id:
+            round_winner = get_duel_participant(challenge, winner_id)
+            round_winner["roundWins"] = round_winner.get("roundWins", 0) + 1
+
+        wins_needed = 1 if challenge.get("roundCount", 1) == 1 else 2
+        participants = challenge.get("participants", [])
+        top_winner = next((item for item in participants if item.get("roundWins", 0) >= wins_needed), None)
+        if top_winner:
+            challenge["winnerId"] = top_winner["userId"]
+            challenge["status"] = "awaiting_choice"
+            if not challenge.get("winnerBonusAwarded"):
+                bonus_xp = max(1, round(challenge.get("acceptedXp", 10) * challenge.get("winnerBonusPct", 0.25)))
+                await award_duel_xp(top_winner["userId"], bonus_xp, 0)
+                challenge["winnerBonusAwarded"] = True
+                challenge["winnerBonusXp"] = bonus_xp
+        else:
+            unresolved_rounds = [item for item in challenge.get("rounds", []) if not item.get("resolved")]
+            if unresolved_rounds:
+                challenge["currentRound"] = unresolved_rounds[0]["roundNumber"]
+            else:
+                next_round_number = len(challenge.get("rounds", [])) + 1
+                challenge["rounds"].append({
+                    "roundNumber": next_round_number,
+                    "promptData": build_duel_round_prompt(challenge.get("gameType"), next_round_number),
+                    "submissions": {},
+                    "winnerId": None,
+                    "resolved": False,
+                    "suddenDeath": True
+                })
+                challenge["currentRound"] = next_round_number
+
+    challenge["updated_at"] = datetime.now(timezone.utc)
+    await db.mini_game_challenges.update_one(
+        {"challengeId": request.challengeId},
+        {"$set": {k: v for k, v in challenge.items() if k != "_id"}}
+    )
+
+    return {
+        "message": "Round submitted.",
+        "challenge": serialize_duel_challenge({k: v for k, v in challenge.items() if k != "_id"}, request.userId)
+    }
+
+
+@api_router.post("/mini-game-challenges/assign-task")
+async def assign_task_after_mini_game(request: AssignMiniGameTaskRequest):
+    challenge = await db.mini_game_challenges.find_one({"challengeId": request.challengeId})
+    if not challenge:
+        raise HTTPException(status_code=404, detail="Challenge not found")
+    if challenge.get("status") != "awaiting_choice":
+        raise HTTPException(status_code=400, detail="This challenge is not ready for task assignment")
+    if challenge.get("winnerId") != request.chooserId:
+        raise HTTPException(status_code=403, detail="Only the winner can assign the task")
+    if request.choice not in ["me", "them"]:
+        raise HTTPException(status_code=400, detail="Choice must be me or them")
+
+    task_assignee = challenge.get("winnerId") if request.choice == "me" else get_duel_opponent(challenge, request.chooserId)["userId"]
+    await db.tasks.update_one(
+        {"taskId": challenge["taskId"], "householdId": challenge["householdId"]},
+        {"$set": {"assignedTo": task_assignee, "duelPending": False}, "$unset": {"duelParticipants": "", "duelGameType": "", "duelRoundCount": ""}}
+    )
+
+    challenge["winnerChoice"] = request.choice
+    challenge["taskAssignedTo"] = task_assignee
+    challenge["status"] = "completed"
+    challenge["updated_at"] = datetime.now(timezone.utc)
+    await db.mini_game_challenges.update_one(
+        {"challengeId": request.challengeId},
+        {"$set": {k: v for k, v in challenge.items() if k != "_id"}}
+    )
+
+    return {
+        "message": "Duel resolved and task reassigned.",
+        "challenge": serialize_duel_challenge({k: v for k, v in challenge.items() if k != "_id"}, request.chooserId),
+        "taskAssignedTo": task_assignee
+    }
+
 
 @api_router.get("/mini-game-challenges/{household_id}/pending")
 async def get_pending_challenges(household_id: str, user_id: str):
-    """Get all pending challenges for a user"""
     challenges = await db.mini_game_challenges.find({
         "householdId": household_id,
         "$or": [{"challengerId": user_id}, {"challengedId": user_id}],
-        "status": "pending"
+        "status": {"$in": ["pending", "active", "awaiting_choice"]}
     }).to_list(100)
-    
+
+    serialized = []
     for challenge in challenges:
-        challenge.pop('_id', None)
-    
-    return {"challenges": challenges}
+        serialized.append(serialize_duel_challenge({k: v for k, v in challenge.items() if k != "_id"}, user_id))
+
+    return {"challenges": serialized}
 
 
 @api_router.post("/users", response_model=User)
