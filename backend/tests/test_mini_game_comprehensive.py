@@ -11,7 +11,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://verify-quest.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://fairness-swap.preview.emergentagent.com').rstrip('/')
 API_BASE = f'{BASE_URL}/api'
 
 WEEKLY_ALWAYS_AVAILABLE = {

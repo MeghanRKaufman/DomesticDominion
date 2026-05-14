@@ -1442,6 +1442,7 @@ class User(BaseModel):
     verificationsSkippedThisWeek: int = 0
     deadlineExtensionsThisWeek: int = 0
     failedVerificationsThisMonth: int = 0
+    swapsInitiatedThisWeek: int = 0  # NEW: Fairness tracking — counts toward redistribution penalty
     chosenRoom: Optional[str] = None  # For Housework spec
     trustLevel: str = "standard"  # standard, trusted, honor_system
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -1548,13 +1549,32 @@ class HouseholdInvitation(BaseModel):
 class ChoreSwap(BaseModel):
     swapId: str = Field(default_factory=lambda: str(uuid.uuid4()))
     householdId: str
-    taskId: str
-    requesterId: str  # Who wants to swap
+    swapType: str = "trade"  # "trade" (offer one chore for another), "give" (one-way reassignment), "marketplace" (open claim)
+    taskId: str  # The chore the requester wants to offload
+    taskTitle: str = ""
+    offerTaskId: Optional[str] = None  # For "trade": the requester's chore being offered in exchange
+    offerTaskTitle: Optional[str] = None
+    requesterId: str
     requesterName: str
-    targetId: str  # Who they want to swap with
-    targetName: str
-    status: str = "pending"  # pending, accepted, declined
+    targetId: Optional[str] = None  # None for marketplace
+    targetName: Optional[str] = None
+    claimedById: Optional[str] = None  # Marketplace claimant
+    claimedByName: Optional[str] = None
+    adminApproverId: Optional[str] = None
+    adminApproverName: Optional[str] = None
+    # status lifecycle:
+    # pending_target -> waiting on target accept (or marketplace open)
+    # pending_admin -> target accepted (or marketplace claimed), waiting on admin approval
+    # accepted -> finalized
+    # declined -> target declined
+    # denied -> admin denied
+    # cancelled -> requester cancelled
+    # expired -> auto-expired by cooldown/cleanup
+    status: str = "pending_target"
+    declineReason: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    resolved_at: Optional[datetime] = None
     
 # NEW: Mini-Game Challenge Model
 class MiniGameChallenge(BaseModel):
@@ -1611,12 +1631,30 @@ class JoinHouseholdRequest(BaseModel):  # Changed from JoinCoupleRequest
 # NEW: Chore Swap Requests
 class RequestChoreSwapRequest(BaseModel):
     requesterId: str
-    targetId: str
     taskId: str
-    
+    swapType: str = "trade"  # "trade", "give", "marketplace"
+    targetId: Optional[str] = None  # Required for "trade" and "give"
+    offerTaskId: Optional[str] = None  # Required only for "trade"
+
 class RespondChoreSwapRequest(BaseModel):
     swapId: str
+    userId: str  # The acting user (target or marketplace claimant)
     response: str  # "accept" or "decline"
+    declineReason: Optional[str] = None
+
+class AdminApproveSwapRequest(BaseModel):
+    swapId: str
+    adminUserId: str
+    approve: bool
+    denyReason: Optional[str] = None
+
+class CancelChoreSwapRequest(BaseModel):
+    swapId: str
+    userId: str
+
+class ClaimMarketplaceSwapRequest(BaseModel):
+    swapId: str
+    userId: str
     
 # NEW: Mini-Game Challenge Requests
 class CreateMiniGameChallengeRequest(BaseModel):
@@ -3027,7 +3065,8 @@ def distribute_chores_fairly(chores: List[Dict], members: List[Dict], assignment
         member_prefs[m["userId"]] = {
             "aversions": set(prefs.get("choreAversions", [])),
             "preferred": set(prefs.get("preferredTasks", [])),
-            "max_daily": prefs.get("maxDailyChoreLoad", 10)
+            "max_daily": prefs.get("maxDailyChoreLoad", 10),
+            "swap_penalty": min(int(m.get("swapsInitiatedThisWeek", 0) or 0), 10),
         }
 
     # Calculate weight for each chore and sort by weight (heaviest first for better distribution)
@@ -3067,6 +3106,11 @@ def distribute_chores_fairly(chores: List[Dict], members: List[Dict], assignment
             # Bonus if this is preferred
             if chore_category in prefs["preferred"]:
                 score -= weight * 0.5  # Reduce effective weight for preferences
+
+            # Fairness penalty: members who initiated many swaps this week get LIGHTER load
+            # The score is "current load" — lower means they get the next chore.
+            # We invert this for swap-heavy members so they receive MORE chores (small bump per swap).
+            score -= prefs["swap_penalty"] * 0.4  # makes them more likely to be picked
 
             if score < best_score:
                 best_score = score
@@ -3925,44 +3969,392 @@ async def get_household_stats(household_id: str):
 
 
 # NEW: Chore Swap Endpoints
+# =====================================================
+# Chore Swap Configuration
+# =====================================================
+MAX_PENDING_SWAPS_PER_USER = 3
+SWAP_COOLDOWN_HOURS = 12  # Same task can't be re-swapped within this window after a finalized swap
+
+
+async def _get_household_admin(household_id: str) -> Optional[Dict[str, Any]]:
+    """Find the admin of a household (creator or first user with admin role)."""
+    household = await db.households.find_one({"householdId": household_id})
+    if not household:
+        return None
+    admin = await db.users.find_one({"userId": household.get("creatorId")})
+    if admin:
+        return admin
+    return await db.users.find_one({"householdId": household_id, "role": "admin"})
+
+
+async def _enforce_pending_swap_limit(requester_id: str) -> None:
+    pending_count = await db.chore_swaps.count_documents({
+        "requesterId": requester_id,
+        "status": {"$in": ["pending_target", "pending_admin"]}
+    })
+    if pending_count >= MAX_PENDING_SWAPS_PER_USER:
+        raise HTTPException(
+            status_code=400,
+            detail=f"You have reached the maximum of {MAX_PENDING_SWAPS_PER_USER} pending swap requests. Cancel one before creating another."
+        )
+
+
+async def _enforce_task_cooldown(task_id: str, household_id: str) -> None:
+    cutoff = datetime.utcnow() - timedelta(hours=SWAP_COOLDOWN_HOURS)
+    recent = await db.chore_swaps.find_one({
+        "taskId": task_id,
+        "householdId": household_id,
+        "status": "accepted",
+        "resolved_at": {"$gte": cutoff}
+    })
+    if recent:
+        remaining = SWAP_COOLDOWN_HOURS - int((datetime.utcnow() - recent["resolved_at"]).total_seconds() // 3600)
+        remaining = max(remaining, 1)
+        raise HTTPException(
+            status_code=400,
+            detail=f"This chore was just swapped recently. Try again in ~{remaining}h (cooldown {SWAP_COOLDOWN_HOURS}h)."
+        )
+
+
+async def _check_active_swap_for_task(task_id: str, household_id: str) -> None:
+    existing = await db.chore_swaps.find_one({
+        "taskId": task_id,
+        "householdId": household_id,
+        "status": {"$in": ["pending_target", "pending_admin"]}
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail="This chore already has an open swap request.")
+
+
+async def _finalize_swap(swap: Dict[str, Any]) -> Dict[str, Any]:
+    """Apply the actual task reassignment and bookkeeping when a swap is fully approved."""
+    household_id = swap["householdId"]
+    task = await db.tasks.find_one({"taskId": swap["taskId"], "householdId": household_id})
+    if not task:
+        raise HTTPException(status_code=404, detail="Task no longer exists")
+    if task.get("completed"):
+        raise HTTPException(status_code=400, detail="Task is already completed; swap cannot finalize")
+
+    swap_type = swap.get("swapType", "trade")
+    receiver_id = swap.get("targetId") or swap.get("claimedById")
+    if not receiver_id:
+        raise HTTPException(status_code=400, detail="Swap is missing a target/claimant")
+
+    # Reassign the requester's chore to the receiver
+    await db.tasks.update_one(
+        {"taskId": swap["taskId"], "householdId": household_id},
+        {"$set": {"assignedTo": receiver_id}}
+    )
+
+    # For "trade" swaps, also reassign the offered chore to the requester
+    if swap_type == "trade" and swap.get("offerTaskId"):
+        offer_task = await db.tasks.find_one({"taskId": swap["offerTaskId"], "householdId": household_id})
+        if not offer_task or offer_task.get("completed"):
+            raise HTTPException(status_code=400, detail="Offered task no longer available; swap cannot finalize")
+        await db.tasks.update_one(
+            {"taskId": swap["offerTaskId"], "householdId": household_id},
+            {"$set": {"assignedTo": swap["requesterId"]}}
+        )
+
+    # Increment fairness counter on the requester
+    await db.users.update_one(
+        {"userId": swap["requesterId"]},
+        {"$inc": {"swapsInitiatedThisWeek": 1}}
+    )
+
+    resolved_at = datetime.utcnow()
+    await db.chore_swaps.update_one(
+        {"swapId": swap["swapId"]},
+        {"$set": {"status": "accepted", "resolved_at": resolved_at, "updated_at": resolved_at}}
+    )
+    swap.update({"status": "accepted", "resolved_at": resolved_at, "updated_at": resolved_at})
+    return swap
+
+
 @api_router.post("/chore-swaps/request")
 async def request_chore_swap(request: RequestChoreSwapRequest):
-    """Request to swap a chore with another household member"""
-    # Verify both users exist and are in same household
+    """Create a chore swap request (trade, give, or marketplace post)."""
+    if request.swapType not in {"trade", "give", "marketplace"}:
+        raise HTTPException(status_code=400, detail="Invalid swapType")
+
     requester = await db.users.find_one({"userId": request.requesterId})
-    target = await db.users.find_one({"userId": request.targetId})
-    
-    if not requester or not target:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    if requester.get("householdId") != target.get("householdId"):
-        raise HTTPException(status_code=400, detail="Users must be in same household")
-    
-    # Verify task exists and is assigned to requester
-    task = await db.tasks.find_one({"taskId": request.taskId})
+    if not requester:
+        raise HTTPException(status_code=404, detail="Requester not found")
+    household_id = requester["householdId"]
+
+    task = await db.tasks.find_one({"taskId": request.taskId, "householdId": household_id})
     if not task or task.get("assignedTo") != request.requesterId:
         raise HTTPException(status_code=400, detail="Task not assigned to requester")
-    
+    if task.get("completed"):
+        raise HTTPException(status_code=400, detail="Task is already completed")
     if not task.get("can_swap", True):
         raise HTTPException(status_code=400, detail="This task cannot be swapped")
-    
-    # Create swap request
+    if task.get("duelPending"):
+        raise HTTPException(status_code=400, detail="This task is locked in a duel and cannot be swapped")
+
+    await _check_active_swap_for_task(request.taskId, household_id)
+    await _enforce_task_cooldown(request.taskId, household_id)
+    await _enforce_pending_swap_limit(request.requesterId)
+
+    target = None
+    if request.swapType in {"trade", "give"}:
+        if not request.targetId:
+            raise HTTPException(status_code=400, detail="targetId is required for trade/give swaps")
+        if request.targetId == request.requesterId:
+            raise HTTPException(status_code=400, detail="Cannot swap a chore with yourself")
+        target = await db.users.find_one({"userId": request.targetId})
+        if not target:
+            raise HTTPException(status_code=404, detail="Target user not found")
+        if target.get("householdId") != household_id:
+            raise HTTPException(status_code=400, detail="Target must be in the same household")
+
+    offer_task = None
+    if request.swapType == "trade":
+        if not request.offerTaskId:
+            raise HTTPException(status_code=400, detail="offerTaskId is required for trade swaps")
+        offer_task = await db.tasks.find_one({"taskId": request.offerTaskId, "householdId": household_id})
+        if not offer_task or offer_task.get("assignedTo") != request.targetId:
+            raise HTTPException(status_code=400, detail="Offered task must be assigned to the target")
+        if offer_task.get("completed"):
+            raise HTTPException(status_code=400, detail="Offered task is already completed")
+        if not offer_task.get("can_swap", True):
+            raise HTTPException(status_code=400, detail="Offered task cannot be swapped")
+
     swap = ChoreSwap(
-        householdId=requester["householdId"],
+        householdId=household_id,
+        swapType=request.swapType,
         taskId=request.taskId,
+        taskTitle=task.get("title", ""),
+        offerTaskId=request.offerTaskId,
+        offerTaskTitle=(offer_task or {}).get("title") if offer_task else None,
         requesterId=request.requesterId,
         requesterName=requester["displayName"],
-        targetId=request.targetId,
-        targetName=target["displayName"]
+        targetId=request.targetId if request.swapType != "marketplace" else None,
+        targetName=target["displayName"] if target else None,
+        status="pending_target",
     )
-    
     await db.chore_swaps.insert_one(swap.model_dump())
-    
+
+    if request.swapType == "marketplace":
+        msg = f"Posted '{task.get('title', 'chore')}' to the marketplace — first to claim wins it!"
+    elif request.swapType == "give":
+        msg = f"Offered '{task.get('title', 'chore')}' to {target['displayName']} as a give-away."
+    else:
+        msg = f"Trade proposed: '{task.get('title', 'chore')}' ⇄ '{offer_task.get('title', 'chore')}' with {target['displayName']}."
+
     return {
-        "message": f"Swap request sent to {target['displayName']}!",
+        "message": msg,
         "swapId": swap.swapId,
-        "status": "pending"
+        "status": swap.status,
+        "swap": swap.model_dump(mode="json"),
     }
+
+
+@api_router.post("/chore-swaps/claim")
+async def claim_marketplace_swap(request: ClaimMarketplaceSwapRequest):
+    """Claim an open marketplace swap. Moves it to pending_admin."""
+    swap = await db.chore_swaps.find_one({"swapId": request.swapId})
+    if not swap:
+        raise HTTPException(status_code=404, detail="Swap request not found")
+    if swap.get("swapType") != "marketplace":
+        raise HTTPException(status_code=400, detail="Swap is not a marketplace post")
+    if swap.get("status") != "pending_target":
+        raise HTTPException(status_code=400, detail="Marketplace post is no longer open")
+    if request.userId == swap.get("requesterId"):
+        raise HTTPException(status_code=400, detail="You cannot claim your own marketplace post")
+
+    claimant = await db.users.find_one({"userId": request.userId})
+    if not claimant or claimant.get("householdId") != swap.get("householdId"):
+        raise HTTPException(status_code=400, detail="Claimant must be in the same household")
+
+    now = datetime.utcnow()
+    await db.chore_swaps.update_one(
+        {"swapId": request.swapId},
+        {"$set": {
+            "claimedById": request.userId,
+            "claimedByName": claimant["displayName"],
+            "status": "pending_admin",
+            "updated_at": now,
+        }}
+    )
+    return {"message": f"You claimed '{swap.get('taskTitle')}'. Waiting on admin approval.", "status": "pending_admin"}
+
+
+@api_router.post("/chore-swaps/respond")
+async def respond_to_chore_swap(request: RespondChoreSwapRequest):
+    """Target accepts or declines a trade/give swap. Accepts move to pending_admin."""
+    swap = await db.chore_swaps.find_one({"swapId": request.swapId})
+    if not swap:
+        raise HTTPException(status_code=404, detail="Swap request not found")
+    if swap.get("status") != "pending_target":
+        raise HTTPException(status_code=400, detail=f"Swap is not awaiting a target response (status={swap.get('status')})")
+    if swap.get("swapType") == "marketplace":
+        raise HTTPException(status_code=400, detail="Use /chore-swaps/claim for marketplace posts")
+    if request.userId != swap.get("targetId"):
+        raise HTTPException(status_code=403, detail="Only the target user can respond to this swap")
+
+    now = datetime.utcnow()
+    if request.response == "accept":
+        await db.chore_swaps.update_one(
+            {"swapId": request.swapId},
+            {"$set": {"status": "pending_admin", "updated_at": now}}
+        )
+        return {"message": f"You accepted the swap. Waiting on admin approval.", "status": "pending_admin"}
+    elif request.response == "decline":
+        await db.chore_swaps.update_one(
+            {"swapId": request.swapId},
+            {"$set": {
+                "status": "declined",
+                "declineReason": request.declineReason,
+                "updated_at": now,
+                "resolved_at": now,
+            }}
+        )
+        return {"message": "Swap declined.", "status": "declined"}
+    raise HTTPException(status_code=400, detail="response must be 'accept' or 'decline'")
+
+
+@api_router.post("/chore-swaps/admin-approve")
+async def admin_approve_swap(request: AdminApproveSwapRequest):
+    """Admin approves or denies a swap that already cleared target acceptance/marketplace claim."""
+    swap = await db.chore_swaps.find_one({"swapId": request.swapId})
+    if not swap:
+        raise HTTPException(status_code=404, detail="Swap request not found")
+    if swap.get("status") != "pending_admin":
+        raise HTTPException(status_code=400, detail=f"Swap is not awaiting admin approval (status={swap.get('status')})")
+
+    admin = await db.users.find_one({"userId": request.adminUserId})
+    if not admin:
+        raise HTTPException(status_code=404, detail="Admin user not found")
+    household = await db.households.find_one({"householdId": swap["householdId"]})
+    if not household:
+        raise HTTPException(status_code=404, detail="Household not found")
+    is_admin = (
+        admin.get("role") == "admin"
+        or admin.get("userId") == household.get("creatorId")
+    )
+    if not is_admin:
+        raise HTTPException(status_code=403, detail="Only the household admin can approve swaps")
+
+    now = datetime.utcnow()
+    if request.approve:
+        await db.chore_swaps.update_one(
+            {"swapId": request.swapId},
+            {"$set": {
+                "adminApproverId": admin["userId"],
+                "adminApproverName": admin["displayName"],
+                "updated_at": now,
+            }}
+        )
+        swap = await db.chore_swaps.find_one({"swapId": request.swapId})
+        finalized = await _finalize_swap(swap)
+        return {
+            "message": f"Swap approved. '{swap.get('taskTitle')}' reassigned.",
+            "status": "accepted",
+            "swap": {k: v for k, v in finalized.items() if k != "_id"},
+        }
+    else:
+        await db.chore_swaps.update_one(
+            {"swapId": request.swapId},
+            {"$set": {
+                "status": "denied",
+                "adminApproverId": admin["userId"],
+                "adminApproverName": admin["displayName"],
+                "declineReason": request.denyReason,
+                "updated_at": now,
+                "resolved_at": now,
+            }}
+        )
+        return {"message": "Swap denied by admin.", "status": "denied"}
+
+
+@api_router.post("/chore-swaps/cancel")
+async def cancel_chore_swap(request: CancelChoreSwapRequest):
+    """The requester (or admin) cancels a pending swap."""
+    swap = await db.chore_swaps.find_one({"swapId": request.swapId})
+    if not swap:
+        raise HTTPException(status_code=404, detail="Swap request not found")
+    if swap.get("status") not in {"pending_target", "pending_admin"}:
+        raise HTTPException(status_code=400, detail="Swap is no longer pending")
+    actor = await db.users.find_one({"userId": request.userId})
+    if not actor:
+        raise HTTPException(status_code=404, detail="User not found")
+    household = await db.households.find_one({"householdId": swap["householdId"]})
+    is_admin = actor.get("role") == "admin" or (household and actor.get("userId") == household.get("creatorId"))
+    if actor["userId"] != swap.get("requesterId") and not is_admin:
+        raise HTTPException(status_code=403, detail="Only the requester or admin can cancel this swap")
+
+    now = datetime.utcnow()
+    await db.chore_swaps.update_one(
+        {"swapId": request.swapId},
+        {"$set": {"status": "cancelled", "updated_at": now, "resolved_at": now}}
+    )
+    return {"message": "Swap cancelled.", "status": "cancelled"}
+
+
+def _clean_swap(swap: Dict[str, Any]) -> Dict[str, Any]:
+    swap.pop("_id", None)
+    return swap
+
+
+@api_router.get("/chore-swaps/user/{user_id}")
+async def get_user_swaps(user_id: str):
+    """Return swap requests categorized for the given user."""
+    user = await db.users.find_one({"userId": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    household_id = user["householdId"]
+    household = await db.households.find_one({"householdId": household_id})
+    is_admin = user.get("role") == "admin" or (household and user["userId"] == household.get("creatorId"))
+
+    outgoing = await db.chore_swaps.find({
+        "householdId": household_id,
+        "requesterId": user_id,
+        "status": {"$in": ["pending_target", "pending_admin"]}
+    }).sort("created_at", -1).to_list(100)
+
+    incoming = await db.chore_swaps.find({
+        "householdId": household_id,
+        "targetId": user_id,
+        "status": "pending_target",
+    }).sort("created_at", -1).to_list(100)
+
+    admin_queue = []
+    if is_admin:
+        admin_queue = await db.chore_swaps.find({
+            "householdId": household_id,
+            "status": "pending_admin",
+        }).sort("created_at", -1).to_list(100)
+
+    history = await db.chore_swaps.find({
+        "householdId": household_id,
+        "$or": [{"requesterId": user_id}, {"targetId": user_id}, {"claimedById": user_id}],
+        "status": {"$in": ["accepted", "declined", "denied", "cancelled", "expired"]}
+    }).sort("updated_at", -1).limit(20).to_list(20)
+
+    return {
+        "outgoing": [_clean_swap(s) for s in outgoing],
+        "incoming": [_clean_swap(s) for s in incoming],
+        "adminQueue": [_clean_swap(s) for s in admin_queue],
+        "history": [_clean_swap(s) for s in history],
+        "isAdmin": is_admin,
+        "limits": {
+            "maxPendingPerUser": MAX_PENDING_SWAPS_PER_USER,
+            "cooldownHours": SWAP_COOLDOWN_HOURS,
+        }
+    }
+
+
+@api_router.get("/chore-swaps/marketplace/{household_id}")
+async def list_marketplace_swaps(household_id: str):
+    """List open marketplace swap posts in a household."""
+    swaps = await db.chore_swaps.find({
+        "householdId": household_id,
+        "swapType": "marketplace",
+        "status": "pending_target",
+    }).sort("created_at", -1).to_list(100)
+    return {"marketplace": [_clean_swap(s) for s in swaps]}
+
 
 @api_router.get("/tasks")
 async def get_household_tasks(householdId: str, date: str = None):
@@ -4588,56 +4980,9 @@ Output ONLY the rewritten message, nothing else."""
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Failed to rewrite concern: {str(e)}")
 
-async def respond_to_chore_swap(request: RespondChoreSwapRequest):
-    """Accept or decline a chore swap request"""
-    swap = await db.chore_swaps.find_one({"swapId": request.swapId})
-    if not swap:
-        raise HTTPException(status_code=404, detail="Swap request not found")
-    
-    if request.response == "accept":
-        # Swap the task assignments
-        task = await db.tasks.find_one({"taskId": swap["taskId"]})
-        
-        await db.tasks.update_one(
-            {"taskId": swap["taskId"]},
-            {"$set": {"assignedTo": swap["targetId"]}}
-        )
-        
-        # Update swap status
-        await db.chore_swaps.update_one(
-            {"swapId": request.swapId},
-            {"$set": {"status": "accepted"}}
-        )
-        
-        return {
-            "message": f"✅ Swap accepted! {task['title']} is now assigned to {swap['targetName']}",
-            "status": "accepted"
-        }
-    else:
-        # Decline swap
-        await db.chore_swaps.update_one(
-            {"swapId": request.swapId},
-            {"$set": {"status": "declined"}}
-        )
-        
-        return {
-            "message": "❌ Swap declined",
-            "status": "declined"
-        }
-
-@api_router.get("/chore-swaps/{household_id}/pending")
-async def get_pending_swaps(household_id: str, user_id: str):
-    """Get all pending swap requests for a user"""
-    swaps = await db.chore_swaps.find({
-        "householdId": household_id,
-        "targetId": user_id,
-        "status": "pending"
-    }).to_list(100)
-    
-    for swap in swaps:
-        swap.pop('_id', None)
-    
-    return {"swaps": swaps}
+async def _legacy_respond_to_chore_swap_DEPRECATED():
+    """Deprecated — replaced by /chore-swaps/respond and /chore-swaps/admin-approve."""
+    pass
 
 # NEW: Mini-Game Challenge Endpoints
 DUEL_TRIVIA_QUESTIONS = [

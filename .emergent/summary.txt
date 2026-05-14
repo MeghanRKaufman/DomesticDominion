@@ -1,172 +1,140 @@
-<analysis>**original_problem_statement:**
-The user wants to continue building Domestic Dominion, a household management RPG. The initial goal was to refactor the app from being 'couple-centric' to 'household-centric' (2-12+ players) with an admin role, dynamic chore generation from a detailed onboarding survey, and a UI overhaul (tab navigation, admin page, WoW-style talent tree).
-
-Subsequent user directives have significantly refined the product requirements:
-- **Fairness Model:** Chores must be weighted by factors like time, difficulty, and grossness.
-- **Talent Trees:** Talents must be Rule Modifiers that affect gameplay mechanics (like verification frequency or assignment rules), not fantasy abilities that auto-complete work. The final design was provided by the user.
-- **Onboarding:** A progressive, 7-step onboarding flow is required, asking only questions that materially affect chore generation (e.g., pets, vehicles, number of floors, laundry methods).
-- **UI/Feature Changes:** The user requested the removal of Trivia and Decrees, to be replaced by a Household Bulletin Board and a form-based Constructive Concerns feature (replacing a generic AI messaging concept).
-- **Core Systems:** Implement a verification system (~20% trigger rate), a player availability calendar, and a random positive events system.
+<analysis>**original_problem_statement:** 
+The user is building Domestic Dominion, a household management RPG that gamifies chores for 2-12+ players. The app includes dynamic chore generation, a weighted Fairness Model, WoW-style Talent Trees, an AI-assisted Constructive Concerns form, a 25% random chore verification system, and invite codes. Recent additions include Player Availability Calendars, Random Events/Secret Missions, an Admin Sandbox Simulator, and a Mini-Game Duel Arena for resolving chore disputes. 
+PRODUCT REQUIREMENTS: Deliver engaging gamified elements that map to real household dynamics. Support solo, pair, and group tasks with varying XP and verification requirements. Ensure smooth chore redistribution based on player availability.
 
 **User's preferred language**: English
+*(You MUST automatically detect the user's primary language from their messages inside the <trajectory> tag and INSTRUCT next agent to respond in the user's preferred language only)*
 
-**what currently exists?**
-The application has been heavily modified to align with the new vision.
-- **Backend (FastAPI/MongoDB):**
-  - A new 7-step progressive onboarding data model and a corresponding chore generation engine that uses a comprehensive, built-in chore library.
-  - The final user-approved talent tree data structure and API endpoints to manage it ().
-  - The core complete task endpoint has been fixed and consolidated.
-- **Frontend (React):**
-  - A new  component implements the 7-step flow.
-  - A new  component provides the visual WoW-style talent tree interface.
-  - The main dashboard () has been cleaned up: Trivia and Decrees are removed, and new UI for the Household Bulletin Board and Constructive Concerns form has been added.
-  - Multiple critical bugs related to JSX structure and outdated API calls have been addressed.
+**what currently exists?** 
+A massive, heavily monolithic full-stack app (React + FastAPI + MongoDB). It features multi-step onboarding, auto-redistribution of chores (respecting player availability), a WoW-style talent tree, AI concern rewrites, and a fully tested Verification System. It also includes Random Secret Missions, an Admin Sandbox Simulator (to preview household dynamics with mock players), and a fully functional Mini-Game Duel Arena (RPS, Simon, Trivia, Whack-a-Mole, Memory Flip, Dots-and-Boxes, War) for players to duel over assigned chores. 
 
-**Last working item**:
-- **Last item agent was working:** Debugging why the user cannot complete onboarding. After filling out the new 7-step form, clicking the Launch Kingdom button results in an error. This also prevents the user from being created, which causes a subsequent error loading talent tree message.
-- **Status:** BLOCKED
-- **Agent Testing Done:** N
-- **Which testing method agent to use?** both
-- **User Testing Done:** Y (User has repeatedly confirmed it is not working and provided console logs showing a  error).
+**Last working item**: 
+- **Last item agent was working:** Instructing the user on how to fork the chat. Before that, the agent completed building and testing the expanded Mini-Game roster (Memory Flip, Dots-and-Boxes, War) for the Duel Arena.
+- **Status:** NONE
+- **Agent Testing Done:** Y (Iteration 7 testing passed completely)
+- **Which testing method agent to use?** testing_agent_v3_fork (Crucial for any new multi-user gameplay mechanics or E2E validation)
+- **User Testing Done:** N
 
-**All Pending/In progress Issue list**:
-- **Issue 1: Critical - Onboarding Flow is Broken (P0)**
-  - **Description:** Users cannot create a household. Clicking Launch Kingdom after completing the 7-step onboarding flow triggers a  error from the backend. This is the main blocker preventing any use of the application.
-  - **Attempted fixes:** The agent identified and fixed several potential causes, including sending an invalid enum value and fixing the  function. However, the issue persists. The agent's last investigation revealed the backend might be running cached code, as old errors reappeared in logs after being fixed.
-  - **Next debug checklist:**
-    1.  **Verify Backend State:** The backend logs show old errors ( at line 3397) reappearing. First, **view the file ** to confirm if the fixes are actually present. If not, re-apply them and ensure a clean restart.
-    2.  **Pinpoint 422 Error:** If the  error continues, the data sent from the frontend  does not match the backend's  Pydantic model.
-        - Add a  statement at the start of the  endpoint in .
-        - Re-run the onboarding flow.
-        - Check the backend logs for the printed payload and compare it field-by-field against the model definition to find the mismatch.
-        - Correct the discrepancy in either the frontend component or the backend model.
-  - **Why fix this issue and what will be achieved with the fix?** This is the top priority. Fixing it will unblock the entire application, allowing users to create households and access core features.
-  - **Status:** IN PROGRESS
-  - **Is recurring issue?** Y
-  - **Should Test frontend/backend/both after fix?** both
-  - **Blocked on other issue:** No, this is the primary blocker.
+**All Pending/In progress Issue list**: 
+  - **Issue 1:  &  File Size / Complexity** (Pre-existing/Recurring)
+     - **Attempted fixes:** None. The user explicitly chose to hold off on refactoring to focus on building features first.
+     - **Next debug checklist:** Both files are immense ( > 6.3k lines,  > 4.8k lines). Break out components (QuestList, Modals) and backend routes.
+     - **Why fix this issue and what will be achieved with the fix?** Critical for long-term maintainability and to prevent context truncation/syntax errors.
+     - **Status:** BLOCKED (By user preference)
+     - **Is recurring issue?** Y
+     - **Should Test frontend/backend/both after fix?** both
+     - **Blocked on other issue:** User instruction to build Chore Swapping first.
 
-- **Issue 2: User Data Does Not Persist on Page Refresh (P1)**
-  - **Description:** The  function in  was rewritten to use the new API endpoints, but it has not been tested. It is highly likely that users lose all their progress and session data upon refreshing the page.
-  - **Attempted fixes:** A complete rewrite of the  function.
-  - **Next debug checklist:** Once onboarding (Issue 1) is fixed, log in, refresh the page, and check the developer console for errors. Debug any failing API calls within .
-  - **Why fix this issue and what will be achieved with the fix?** This is critical for basic usability.
-  - **Status:** NOT STARTED
-  - **Is recurring issue?** Y
-  - **Should Test frontend/backend/both after fix?** both
-
-- **Issue 3: Complete Button Functionality Not Verified (P2)**
-  - **Description:** The logic for completing a chore and awarding XP/levels was implemented, but comprehensive end-to-end testing was never completed due to the onboarding blocker.
-  - **Next debug checklist:** After fixing onboarding, get chores assigned and test the Complete button. Verify UI updates and database changes.
-  - **Status:** TESTING PENDING
-  - **Is recurring issue?** N
-  - **Should Test frontend/backend/both after fix?** both
-
-**In progress Task List**:
-- **Task 1: Finalize New Onboarding Integration (P0)**
-  - **Where to resume:** Debugging the  error. See Issue 1 for the detailed debug checklist.
-  - **What will be achieved with this?** A fully functional onboarding flow that creates a user and household.
-  - **Status:** IN PROGRESS
-  - **Blocked on something:** This is the main blocker for all other tasks.
+**In progress Task List**: 
+None. All tasks in the previous session were completed and successfully tested.
 
 **Upcoming and Future Tasks**
-- **Upcoming Tasks:**
-  - **(P0) Implement Talent Tree Effects:** The UI is built, but the backend logic to actually apply the talent Rule Modifiers (e.g., reduced verification, bonus XP, assignment bias) to the game systems is missing.
-  - **(P1) Implement Weighted Chore System:** Update the chore assignment logic to factor in chore attributes (time, difficulty, grossness) for a fair distribution.
-  - **(P2) Implement Verification System:** Implement the ~20% random trigger for chore verification, which can be modified by talents.
-  - **(P3) Implement Player Availability Calendar:** Create a system for players to input their availability and have the chore assignment logic respect it.
-  - **(P3) Implement Random Events System:** Add backend logic and UI for positive, surprise-based household events.
-- **Future Tasks:**
-  - **(P4)** Implement Chore Swapping.
-  - **(P4)** Implement in-app Mini-Games.
-  - **(P5)** Create a Simulation Mode for testing.
+    Upcoming Tasks:
+    - (P0) **Chore Swapping**: Allow users to request/trade chores with other members. *This was explicitly requested by the user as the next priority after Mini-Games.*
+    - (P1) **Household Stats View**: UI showing who completes the most quests, household totals, etc.
+    - (P2) **Streak Bonuses**: Rewards for consecutive day completions and logging positive notes.
+    
+    Future Tasks:
+    - (P3) **Duel History + Rivalries Panel**: Track who wins the most chore duels and which games they dominate.
+    - (P3) **Address Pre-existing Dialog Accessibility Warnings**: Cleanup UI warnings (User explicitly paused this for now).
+    - (P4) **Household-specific Card Skins**: Custom themes for Memory Flip and War based on household types.
 
 **Completed work in this session**
-- **Major UI/Feature Overhaul:** Removed Trivia and Decrees. Added a Household Bulletin Board and a Constructive Concerns form.
-- **Comprehensive Onboarding Rework:** Created a new 7-step  component and updated the backend to handle its data for dynamic chore generation.
-- **Full Talent Tree Implementation:** Created the backend data structure and API endpoints, and built the WoW-style  visual component.
-- **Critical Bug Fixing:** Resolved numerous JSX syntax errors that blocked frontend compilation and updated legacy API calls in .
+- End-to-end bug fix for the Verification System (rejected tasks can now be re-completed).
+- Profile & Settings Availability Calendar (weekly defaults + date overrides, chore distribution respects availability).
+- Random Events / Secret Missions (solo/pair/group missions with public daily observance theming).
+- Admin Sandbox Simulator (aerial dashboard view of mock households with mocked business endorsements).
+- Mini-Game Duel Arena base implementation (RPS, Trivia, Simon, Whack-a-Mole) with Duel Chore assignment (1 or 3 rounds, winner picks assignee, flat XP + 25% bonus).
+- Mini-Game Duel Arena expansion (Cleaning Supply Memory Flip, Dots-and-Boxes, War).
 
 **Earlier issues found/mentioned but not fixed**
-- None.
+   - Issue 1: Pre-existing dialog accessibility warnings in older modals/dialogs.
+     - **Debug checklist:** Check shadcn/radix UI dialog implementations in  for missing  or accessible titles.
+     - **Why to solve this issue and what will be achieved with this?** Prevents console warnings and improves accessibility.
+     - **Should Test frontend/backend/both after fix:** frontend
+     - **Is recurring issue?** N (Deferred by user)
 
 **Known issue recurrence from previous fork**
-- **Issue recurrence in previous fork:** User data does not persist on page refresh.
-- **Recurrence count:** 2
-- **Status:** NOT STARTED
+  - Issue recurrence in previous fork:  and  are too large.
+  - Recurrence count: 2
+  - Status: BLOCKED (User wants to prioritize new features over refactoring)
+  Note: Be extremely careful when doing  in these large files. Always verify line logic.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Backend:** FastAPI, Pydantic, Motor (async MongoDB driver).
-- **Frontend:** React (Hooks), Axios, TailwindCSS.
+- **Backend:** FastAPI, Pydantic, Motor (async MongoDB). Pytest for extensive backend unit/flow testing.
+- **Frontend:** React (Hooks), Axios, TailwindCSS, Shadcn UI.
 - **Database:** MongoDB.
-- **Architecture:** Monolithic repository with separate frontend/backend services.
+- **Architecture:** Monolithic API and Frontend.
 
 **key DB schema**
-- ****: 
-- ****: 
-- ****: 
+- : 
+- : 
+- : 
+- : 
+- : 
 
 **changes in tech stack**
-- None.
+- None in this session.
 
 **All files of reference**
-- : Heavily modified to include new chore generation, talent tree data/endpoints, and numerous bug fixes.
-- : Heavily modified to integrate new components, remove old features, and fix bugs.
-- : **New file** for the 7-step onboarding flow.
-- : **New file** for the WoW-style talent tree UI.
+- : Huge updates for Random Events, Sandbox, and Mini-Games.
+- : Updated with UI hooks for Sandbox and new components.
+- : **New**
+- : **New**
+- : **New**
+- : **New** (Contains all duel games).
+- : **New** robust test suites added for backend validation.
 
-**Areas that need refactoring**:
-- : This monolithic file is now over 3000 lines and urgently needs to be broken down into separate files for models, routes, and services.
-- : This component is managing almost the entire application's state and should be refactored using a state management library (e.g., Zustand, Redux) and custom hooks.
+**Areas that need refactoring**: 
+-  and : Dangerously large files. Must be broken down when the user eventually permits it.
 
 **key api endpoints**
-- : Creates a household from onboarding data. **(CURRENTLY BROKEN)**
-- : Gets a user's assigned tasks.
-- : Marks a task as complete.
-- : Returns the entire talent tree structure.
-- : Allows a user to spend a talent point.
+- : Initiate a chore duel.
+- : Finish a mini-game round.
+- : Poll for random events.
+- : Triggers fairness chore distribution.
 
 **Critical Info for New Agent**
-- **THE CORE BLOCKER:** Your immediate and only priority is to fix the **** error on the  endpoint. The app is unusable until users can complete onboarding. The root cause is a data mismatch between the  frontend and the  backend model.
-- **Backend Caching/State Issue:** Be aware that the agent observed backend logs showing old errors even after applying fixes. This suggests a file saving or hot-reload caching issue. **You must verify that your code changes are actually live** before assuming a fix didn't work.
-- **Talent Effects Not Implemented:** The talent tree UI is complete, but the backend does **not** yet apply the talents' rule-modifying effects to gameplay. This is the next major feature to implement after the critical bugs are fixed.
+- **Next Task Focus:** The user has explicitly stated they want **Chore Swapping** built next, followed by **Household Stats View** and **Streak Bonuses**. Do not focus on refactoring or accessibility cleanup yet, as the user requested to defer those.
+- **External APIs:** The agent previously tried to use 3rd-party holiday APIs for random event themes, but they 404'd/failed. The app currently uses an internal mocked list for National Day style events. *Do not attempt to reconnect dead 3rd party holiday APIs.*
+- **Sandbox Mode:** Mock Business Endorsements (like McKingBurger) are currently active in the Sandbox Simulator.
 
-**documents and test reports created in this job**
-- 
-- 
+**documents and test reports created in this job** 
+  -  (Updated)
+  -  (Updated)
+  -  (Latest full E2E run)
 
-**Last 10 User Messages and any pending HUMAN messages**
-1. **User:** (Approves agent's plan for talent tree implementation)
-2. **User:** it just says Loading (For the talent tree page).
-3. **User:** nope there is an error when I click create kingdom
-4. **User:** also says error loading talent tree, and still says error launching kingdom
-5. **User:** still not working (After agent attempted a fix).
-6. **User:** (Provides console logs showing a  error on ).
-7. **User:** (Provides console logs again, confirming the  error persists).
-8. **User:** (No new message, waiting for a fix).
+**Last 10 User Messages and any pending HUMAN messages** 
+ - User: Expand the mini-game roster with later-wave games like memory flip, boxes, and battleship.
+ - Agent: [Asked for clarifications on game types]
+ - User: Memory flip, the cards should have cleaning supply theme... Boxes is a pen b paper game involving dots and lines... Yes same duel reward rules.
+ - User: Okay forget battleship. Lets add War instead"
+ - Agent: [Built and tested the games, 29/29 tests passed]
+ - User: "Optional cleanup: address the pre-existing dialog accessibility warning in older dialogs."
+ - Agent: [Asked if user wants to do that now]
+ - User: "C" (Option C was to defer the accessibility cleanup).
+ - Agent: "Understood — holding off... Current priority remains: Chore Swapping next"
+ - User: "Right now lets fork this
+ - **Pending Human Message:** None. The agent should plan for **Chore Swapping** implementation.
 
 **Project Health Check:**
-- **Broken:**
-  - The entire onboarding flow. Users cannot create an account.
-  - Session persistence on page refresh is implemented but untested and likely broken.
-- **Mocked:**
-  - The effects of the talent tree are not implemented in the backend.
+- **Broken:** None known.  showed 100% test pass rates for the new mechanics.
+- **Mocked:** Third-party Holiday APIs (internal array used instead). Business Endorsements (McKingBurger, etc. mocked for Sandbox Sim).
 
 **3rd Party Integrations**
-- **OpenAI (via Emergent LLM Key):** Planned for the Constructive Concerns feature, but not yet implemented.
+- **OpenAI GPT-4o** — uses Emergent LLM Key (via  for Constructive Concerns).
 
 **Testing status**
-- **Testing agent used after significant changes:** NO (Agent moved on before results were finalized).
-- **Troubleshoot agent used after agent stuck in loop:** YES (Identified a data structure conflict, though the agent later questioned the finding).
-- **Test files created:** None.
-- **Known regressions:** The entire onboarding flow is non-functional.
+- Testing agent used after significant changes: YES (Heavy usage: iterations 2 through 7 executed successfully).
+- Troubleshoot agent used after agent stuck in loop: NO
+- Test files created: , , 
+- Known regressions: None.
 
 **Credentials to test flow:**
-- None needed. Testing requires going through the user onboarding flow.
+- Check  for pre-seeded user accounts.
 
 **What agent forgot to execute**
-- The agent has not yet implemented the actual rule-modifying *effects* of the talents in the backend, only the data structures and UI.
-- The user's original request for calendar integration was removed. The new Player Availability Calendar was planned but not implemented. This should be clarified with the user.</analysis>
+- Nothing was overlooked. The agent completed the precise scope of tasks and appropriately asked the user to fork before starting the next major feature block ().</analysis>

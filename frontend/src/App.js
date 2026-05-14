@@ -14,6 +14,7 @@ import { AvailabilitySettingsPanel } from './components/AvailabilitySettingsPane
 import { RandomEventBubble } from './components/RandomEventBubble';
 import { AdminSandboxSimulator } from './components/AdminSandboxSimulator';
 import { MiniGameArena } from './components/MiniGameArena';
+import { ChoreSwapPanel } from './components/ChoreSwapPanel';
 import TalentTree from './components/TalentTree';
 
 // Import UI components
@@ -1922,7 +1923,7 @@ function ChoreChampionsApp() {
       try {
         const statsResponse = await axios.get(`${API}/households/${householdId}/stats`);
         if (statsResponse.data?.members) {
-          setHouseholdMembers(statsResponse.data.members.map(m => ({ name: m.displayName, odId: m.userId })));
+          setHouseholdMembers(statsResponse.data.members.map(m => ({ name: m.displayName, displayName: m.displayName, userId: m.userId, odId: m.userId })));
         }
         // Save invite code for display
         if (statsResponse.data?.inviteCode) {
@@ -3361,6 +3362,18 @@ function ChoreChampionsApp() {
               </button>
 
               <button
+                onClick={() => setActiveTab('chore-swap')}
+                data-testid="chore-swap-tab-button"
+                className={`px-6 py-4 font-medium whitespace-nowrap border-b-4 transition-colors ${
+                  activeTab === 'chore-swap'
+                    ? 'border-indigo-600 text-indigo-600 bg-indigo-50'
+                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                }`}
+              >
+                🔁 Chore Swap
+              </button>
+
+              <button
                 onClick={() => setActiveTab('profile-settings')}
                 data-testid="profile-settings-tab-button"
                 className={`px-6 py-4 font-medium whitespace-nowrap border-b-4 transition-colors ${
@@ -4640,6 +4653,17 @@ function ChoreChampionsApp() {
                 householdMembers={householdMembers}
                 myTasks={myDailyChores}
                 onRefreshGameState={() => loadGameData(currentUser)}
+              />
+            </div>
+          )}
+          {activeTab === 'chore-swap' && (
+            <div className="max-w-7xl mx-auto" data-testid="chore-swap-tab-panel">
+              <ChoreSwapPanel
+                apiBase={API}
+                currentUser={currentUser}
+                householdMembers={householdMembers}
+                myTasks={myDailyChores}
+                onAfterChange={() => loadGameData && loadGameData(currentUser)}
               />
             </div>
           )}

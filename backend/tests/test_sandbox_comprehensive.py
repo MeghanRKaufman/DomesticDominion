@@ -18,7 +18,7 @@ from datetime import datetime
 import pytest
 import requests
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://verify-quest.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://fairness-swap.preview.emergentagent.com').rstrip('/')
 
 
 def create_admin_household():
