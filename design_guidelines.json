@@ -1,0 +1,102 @@
+{
+  "theme": "Multiple",
+  "archetype": "Contextual (Epic: Luxury/Fantasy, Hype: Electric/Swiss, Chill: Pastel/Soft)",
+  "global_instructions": "Build a single React component EpicInvitePanel.jsx that changes completely based on the 'tone' prop (epic | hype | chill). Do not reuse the same layout containers. Instead, conditionally render completely different UI structures for each tone to ensure they feel like distinct worlds. Add Google Fonts via an injected <style> tag at the top of the component. Include data-testid attributes on all interactive elements.",
+  "fonts": {
+    "imports": "@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=IM+Fell+English:ital@0;1&family=Bricolage+Grotesque:opsz,wght@12..96,400;700;800;900&family=Outfit:wght@400;500;700;900&family=Fraunces:opsz,wght@9..144,400;600;700&family=Caveat:wght@400;600;700&family=Nunito:wght@400;600;700&display=swap');"
+  },
+  "tones": {
+    "EPIC": {
+      "design_philosophy": "A medieval RPG scroll, dark fantasy, ornate and symmetrical. Feels like a decree from a king.",
+      "fonts": {
+        "heading": "font-['Cinzel',_serif]",
+        "body": "font-['IM_Fell_English',_serif]"
+      },
+      "styles": {
+        "container": "relative w-full max-w-2xl mx-auto bg-[#1a1511] border-4 border-[#3a2e24] p-8 md:p-12 text-center rounded-sm text-[#e8d5b5]",
+        "inline_style": {
+          "backgroundImage": "radial-gradient(circle at center, #2a221b 0%, #1a1511 100%)",
+          "boxShadow": "0 20px 50px -12px rgba(0,0,0,0.7), inset 0 0 60px rgba(0,0,0,0.9)"
+        },
+        "inner_border": "absolute inset-2 border border-[#4a3b2c] pointer-events-none opacity-60",
+        "summon_line": "text-[#c2a373] text-sm md:text-base tracking-[0.2em] uppercase mb-4 opacity-80",
+        "hook_headline": "text-[#e8d5b5] text-4xl md:text-5xl font-bold mb-4 leading-tight drop-shadow-md",
+        "hook_body": "text-[#a89070] text-lg md:text-xl mb-6 max-w-lg mx-auto leading-relaxed",
+        "badge": "inline-block px-4 py-1.5 border border-[#c2a373] text-[#c2a373] text-xs uppercase tracking-[0.3em] mb-8 bg-[#2a221b]/80 shadow-[0_0_10px_rgba(194,163,115,0.1)]",
+        "code_wrapper": "my-10 py-8 border-y-2 border-[#4a3b2c] relative bg-[#15110d]/50",
+        "code_text": "text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-b from-[#fce9c0] via-[#c2a373] to-[#8a6b3d] tracking-[0.15em] drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]",
+        "note_wrapper": "mt-8 mb-10 text-[#c2a373] italic text-xl md:text-2xl px-4 md:px-12 opacity-90",
+        "bullets_wrapper": "text-[#a89070] text-base md:text-lg space-y-4 flex flex-col items-center max-w-md mx-auto mb-10",
+        "bullet_item": "flex items-center gap-3",
+        "bullet_icon": "text-[#c2a373] text-sm",
+        "action_bar": "flex flex-col sm:flex-row gap-4 justify-center items-center mt-8",
+        "button_primary": "bg-gradient-to-b from-[#c2a373] to-[#8a6b3d] text-[#1a1511] font-black px-8 py-3.5 uppercase tracking-widest hover:from-[#fce9c0] hover:to-[#c2a373] transition-all duration-300 shadow-[0_0_20px_rgba(194,163,115,0.2)] hover:shadow-[0_0_30px_rgba(194,163,115,0.4)] hover:-translate-y-0.5 border border-[#fce9c0]/50",
+        "button_secondary": "bg-transparent border border-[#c2a373]/50 text-[#c2a373] px-8 py-3.5 uppercase tracking-widest hover:bg-[#2a221b] transition-all duration-300 hover:border-[#c2a373]"
+      }
+    },
+    "HYPE": {
+      "design_philosophy": "Neo-brutalist, high-energy, asymmetric streetwear look. Electric & Neon archetype meets Swiss high contrast.",
+      "fonts": {
+        "heading": "font-['Bricolage_Grotesque',_sans-serif]",
+        "body": "font-['Outfit',_sans-serif]"
+      },
+      "styles": {
+        "container": "relative w-full max-w-2xl mx-auto bg-[#ccff00] border-4 border-black p-8 md:p-10 shadow-[12px_12px_0_0_rgba(0,0,0,1)] rounded-none overflow-hidden text-black",
+        "inline_style": {
+          "backgroundImage": "radial-gradient(#000 2px, transparent 2px)",
+          "backgroundSize": "24px 24px",
+          "backgroundPosition": "0 0"
+        },
+        "summon_line": "text-black text-sm md:text-base font-black uppercase tracking-tight bg-white inline-block px-3 py-1 border-2 border-black -rotate-2 mb-6 shadow-[2px_2px_0_0_rgba(0,0,0,1)]",
+        "hook_headline": "text-black text-5xl md:text-7xl font-black uppercase leading-[0.85] tracking-tighter mb-4 break-words",
+        "hook_body": "text-black text-lg md:text-xl font-bold mb-6 max-w-lg leading-tight bg-white/80 p-2 inline-block",
+        "badge": "inline-block px-4 py-1.5 bg-black text-[#ccff00] text-sm font-black uppercase tracking-widest mb-8 shadow-[4px_4px_0_0_rgba(255,255,255,1)] hover:-translate-y-1 transition-transform",
+        "code_wrapper": "my-8 bg-black p-6 md:p-8 border-4 border-black -mx-4 md:mx-0 transform rotate-1 shadow-[8px_8px_0_0_rgba(255,255,255,1)] group hover:rotate-0 transition-transform",
+        "code_text": "text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#ccff00] to-[#00e5ff] tracking-tighter text-center uppercase break-all font-['Bricolage_Grotesque']",
+        "note_wrapper": "bg-white border-4 border-black p-5 text-black font-bold text-lg md:text-xl shadow-[6px_6px_0_0_rgba(0,0,0,1)] my-10 rotate-1 relative",
+        "bullets_wrapper": "text-black text-base md:text-lg font-black space-y-3 grid grid-cols-1 md:grid-cols-2 gap-4 text-left bg-white p-6 border-4 border-black shadow-[6px_6px_0_0_rgba(0,0,0,1)] mb-8",
+        "bullet_item": "flex items-start gap-3",
+        "bullet_icon": "text-xl",
+        "action_bar": "flex flex-col sm:flex-row gap-4 justify-start items-center mt-8",
+        "button_primary": "w-full sm:w-auto bg-black text-[#ccff00] font-black px-8 py-4 uppercase tracking-widest border-4 border-black shadow-[6px_6px_0_0_rgba(255,255,255,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-[2px_2px_0_0_rgba(255,255,255,1)] transition-all",
+        "button_secondary": "w-full sm:w-auto bg-white text-black font-black px-8 py-4 uppercase tracking-widest border-4 border-black shadow-[6px_6px_0_0_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-[2px_2px_0_0_rgba(0,0,0,1)] transition-all"
+      }
+    },
+    "CHILL": {
+      "design_philosophy": "Pastel & Soft archetype. Warm, friendly, floating organic elements, feels like a handwritten note pinned to a soft board.",
+      "fonts": {
+        "heading": "font-['Fraunces',_serif]",
+        "handwriting": "font-['Caveat',_cursive]",
+        "body": "font-['Nunito',_sans-serif]"
+      },
+      "styles": {
+        "container": "relative w-full max-w-2xl mx-auto bg-[#fffdf7] border border-[#f0e6d2] p-8 md:p-12 shadow-2xl shadow-[#e07a5f]/10 rounded-[2.5rem] text-[#4a3f35] overflow-visible mt-12",
+        "inline_style": {},
+        "summon_line": "text-[#e07a5f] text-sm md:text-base font-bold tracking-widest mb-4 text-center uppercase",
+        "hook_headline": "text-[#4a3f35] text-4xl md:text-5xl font-bold mb-4 text-center leading-tight tracking-tight",
+        "hook_body": "text-[#6d5c4f] text-lg md:text-xl text-center max-w-md mx-auto mb-6 leading-relaxed",
+        "badge": "mx-auto table px-5 py-2 bg-[#f4a261]/15 text-[#d05e3f] rounded-full text-sm font-bold tracking-wide mb-8 border border-[#f4a261]/30",
+        "code_wrapper": "my-10 bg-white border-2 border-[#f4efdf] rounded-3xl p-8 md:p-10 shadow-lg shadow-[#e07a5f]/5 text-center transform hover:scale-[1.02] transition-transform duration-300 relative overflow-hidden",
+        "code_text": "text-5xl md:text-7xl font-bold text-[#e07a5f] tracking-widest drop-shadow-sm",
+        "note_wrapper": "absolute -top-10 -right-4 md:-right-10 bg-[#f9f1b4] p-5 shadow-lg text-[#4a3f35] text-2xl md:text-3xl rotate-6 max-w-[220px] border border-[#ebd888] z-10",
+        "bullets_wrapper": "text-[#6d5c4f] text-base md:text-lg space-y-4 max-w-md mx-auto mb-10 bg-[#fbf8f1] p-6 rounded-2xl border border-[#f0e6d2]",
+        "bullet_item": "flex items-start gap-4",
+        "bullet_icon": "text-xl drop-shadow-sm",
+        "action_bar": "flex flex-col sm:flex-row gap-4 justify-center items-center mt-8",
+        "button_primary": "w-full sm:w-auto bg-[#e07a5f] text-white font-bold px-8 py-4 rounded-full hover:bg-[#d05e3f] hover:-translate-y-1 shadow-xl shadow-[#e07a5f]/30 transition-all duration-300 text-lg",
+        "button_secondary": "w-full sm:w-auto bg-[#f4efdf] text-[#6d5c4f] font-bold px-8 py-4 rounded-full hover:bg-[#e8dec0] hover:-translate-y-0.5 transition-all duration-300 text-lg"
+      }
+    }
+  },
+  "implementation_rules_for_main_agent": [
+    "1. Replace the entire content of `/app/frontend/src/components/EpicInvitePanel.jsx`.",
+    "2. Use standard React with Tailwind utilities. Import the Google fonts exactly as provided in the instructions using an injected <style> block, like: <style>{`@import url(...)`}</style>",
+    "3. Destructure these exact props: { tone = 'epic', inviterName = 'Admin', householdName = 'The Citadel', questHook = { headline: 'A NEW QUEST AWAITS', body: 'Join us to conquer the chores and claim glory.' }, note = 'Hope you can join our realm!', inviteCode = 'BATTLE-READY', valueBullets = ['Gamified chores', 'Epic rewards', 'Fair distribution', 'Secret missions'], onRerollHook, onChangeTone }",
+    "4. Add a `data-testid` attribute to all interactive elements, e.g., data-testid='copy-code-button'.",
+    "5. Conditionally render the entire wrapper and its children based on the `tone` prop. Do not try to merge them into a single convoluted template string. Create three distinct JSX blocks: if (tone === 'epic') return <EpicVariant />; etc, or keep them in the same file as separate components.",
+    "6. Do not use generic Shadcn cards for this specific component—this is the 'Artifact', so it must be built entirely from primitive divs and Tailwind classes exactly as specified in the `styles` mappings above.",
+    "7. Add an interactive 'Copy' feature using navigator.clipboard for the invite code. When clicked, temporarily change the text of the button or show a brief 'Copied!' toast/state.",
+    "8. Add an admin control block at the top right of the component (outside the main poster, or as a floating badge) that allows changing the tone or rerolling the hook if `onChangeTone` and `onRerollHook` are provided.",
+    "9. For the Epic tone, ensure the bullet icon is '◆'. For Hype, use '[×]'. For Chill, use '✨'."
+  ]
+}
