@@ -1,0 +1,60 @@
+{
+  "summary": "Iteration 9 — Epic Invite redesign + ?invite=CODE deep-link end-to-end testing. Backend regression: 12/12 (4 epic-invite + 8 chore-swap) passing. Frontend deep-link: valid code auto-loads the household preview banner (creator, theme, quest, members, household type, code) and hides the code input — only Hero Name remains; primary button reads 'Join Alex Captain's Household'. Invalid code shows invite-preview-error. No-param opens Choose Your Path (regression OK). On successful join, ?invite is stripped from URL and the user lands in member-setup for THAT specific household. EpicInvitePanel: poster renders, Google fonts injected (id='epic-invite-fonts'), and all 3 tones are visually distinct — EPIC (dark scroll, Cinzel serif, gold), HYPE (brutalist polka-dot pattern, Bricolage Grotesque), CHILL (cream pinboard, Fraunces). Reroll variety confirmed at API layer (3+ distinct EPIC headlines rotate). One minor flaky UI quirk: interacting with the reroll button intermittently causes the Tabs widget to switch to the right-most 'Mini Game' tab (likely a focus/roving-tabindex side effect inside shadcn Tabs) — does NOT happen consistently and the panel itself behaves correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "Admin tab / EpicInvitePanel",
+        "issue": "FLAKY: After clicking [data-testid='epic-invite-reroll'] or scrolling the panel into view, the surrounding shadcn Tabs widget sometimes switches the active tab to the right-most 'Mini Game' tab. Reproduced 2 out of 4 attempts (50% rate). Suspected cause: focus restoration / roving tabindex inside Radix Tabs interacting with scroll_into_view or button focus.",
+        "selector": "[data-testid='epic-invite-reroll']",
+        "priority": "LOW"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Kingdom Control Center / EpicInvitePanel",
+        "issues": [
+          "Verified the 3 tones visually look like 3 different worlds (epic dark scroll, hype neo-brutalist dotted, chill cream pinboard). Cinzel + IM Fell English (epic), Bricolage Grotesque (hype), Fraunces + Caveat (chill) all load via <link id='epic-invite-fonts'>. No generic-Tailwind-fallback issue spotted.",
+          "Mobile (390x844): panels overflow gracefully with internal padding; CHILL poster shadow still renders. No layout breakage."
+        ]
+      },
+      {
+        "screen": "Console (pre-existing)",
+        "issues": ["Repeated React warning: 'Missing Description or aria-describedby for {DialogContent}' — pre-existing across multiple modals, not introduced by this change."]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_epic_invite.py",
+    "/app/backend/tests/test_chore_swapping.py",
+    "/app/test_reports/pytest/pytest_iteration9.xml"
+  ],
+  "action_items": [
+    "Investigate the intermittent tab-switch on EpicInvitePanel interactions inside admin Tabs. Likely fix: ensure EpicInvitePanel does not contain elements that capture/relinquish focus to the Tabs roving-tabindex, or wrap in a div with tabIndex=-1 / explicit onFocus stopPropagation. Repro: open admin tab, scroll to EpicInvitePanel, click reroll — observe Mini Game tab become active.",
+    "(Optional) Add aria-describedby to remaining DialogContent components to silence the recurring console warnings (pre-existing, not blocking)."
+  ],
+  "critical_code_review_comments": [
+    "App.js useEffect (~line 1910) correctly reads URLSearchParams('invite'), uppercases/trims it, gates the localStorage auto-login when an inbound code exists, and clears the query string on successful join — clean and idempotent.",
+    "EpicAdventureModal (~line 1437) auto-fetches /preview when initialInviteCode is set, gracefully toggles previewError vs previewData, hides the code Input only when hasPreview is truthy (still shows it when the code is invalid so the user can correct it), and disables the join button until name+code are populated — UX is solid.",
+    "EpicInvitePanel injects the Google Fonts <link> on mount and gates it with document.getElementById guard — won't double-inject across remounts.",
+    "Three tone subcomponents (EpicScroll/HypeDrop/ChillPinboard) carry their OWN data-testid='epic-invite-poster' / 'epic-invite-headline' / 'epic-invite-code-block' so selectors stay stable across tone switches. Good for testability.",
+    "Backend /api/households/{id}/epic-invite supports tone override and rotates from EPIC_INVITE_HOOKS — variety confirmed via 5 sequential API calls (3 distinct headlines for tone=epic).",
+    "previewError message is friendly ('That invite code is invalid or has expired.') and isolated under [data-testid='invite-preview-error'].",
+    "Suggestion: when previewError is set but a code is also typed, consider hiding the manual code input or making it clearer the prior auto-load failed — current behavior is acceptable but could be polished."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100% (12/12 — 4 epic-invite + 8 chore-swap)",
+    "frontend": "~95% (6/7 critical flows verified; reroll click verified once but a flaky tab-switch prevented multi-iteration UI verification — endpoint variety confirmed at API layer instead)"
+  },
+  "test_credentials": "None required. Created fresh admin household via API: householdId=household_bf4e9064, userId=user_3bd6e841, inviteCode=2C5F2C (Alex Captain, Roommates, max 4).",
+  "seed_data_creation": "Created household 'DeepLink Test' via /api/households/create-enhanced. Joined as 'TEST Roomie Bob' via deep link to validate URL strip.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Deep-link join (/?invite=CODE) and the 3-tone EpicInvitePanel both work. To recreate a fresh inviteCode: POST /api/households/create-enhanced (see test_epic_invite.py for payload). The intermittent tab-switch on Mini Game when interacting with EpicInvitePanel inside admin Tabs is a known minor issue — not blocking. Holiday observances + business endorsements remain MOCKED (pre-existing). The /quests 403 console noise for non-admin users is pre-existing (flagged in iteration_8).",
+  "rca of the issue": "Tab-switch flake: shadcn/ui Tabs (Radix) use a roving tabindex on TabsTrigger elements. When focus moves to a button inside a TabsContent panel and then back out, or when scroll_into_view_if_needed shifts focus, Radix can re-activate the last-focused TabsTrigger. The EpicInvitePanel root has no focus trap, so the reroll button's blur after click + the next focusable element being the rightmost tab trigger explains why 'Mini Game' (rightmost tab) becomes active. Suggested mitigation in EpicInvitePanel: wrap the panel in <div tabIndex={-1}> or explicitly call event.stopPropagation on button onFocus, or use Tabs activationMode='manual'."
+}

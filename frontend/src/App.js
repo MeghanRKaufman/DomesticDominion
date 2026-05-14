@@ -1423,13 +1423,37 @@ function ChoreQuest({ task, currentUser, teammate, onComplete }) {
 }
 
 // Epic Adventure Modal Component
-function EpicAdventureModal({ isOpen, onClose, onSuccess, onEnhancedOnboarding }) {
-  const [mode, setMode] = useState('choose'); // 'choose', 'create', 'join', 'preview'
+function EpicAdventureModal({ isOpen, onClose, onSuccess, onEnhancedOnboarding, initialInviteCode = '' }) {
+  const [mode, setMode] = useState(initialInviteCode ? 'join' : 'choose');
   const [name, setName] = useState('');
-  const [inviteCode, setInviteCode] = useState('');
+  const [inviteCode, setInviteCode] = useState(initialInviteCode || '');
   const [loading, setLoading] = useState(false);
   const [invitation, setInvitation] = useState(null);
   const [previewData, setPreviewData] = useState(null);
+  const [previewError, setPreviewError] = useState('');
+
+  // When an invite code arrives via URL, auto-load the household preview so the
+  // join screen shows the SPECIFIC household, not a generic form.
+  useEffect(() => {
+    if (!initialInviteCode) return;
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setPreviewError('');
+      try {
+        const response = await axios.get(`${API}/households/${initialInviteCode}/preview`);
+        if (!cancelled) {
+          setPreviewData(response.data);
+          setMode('join');
+        }
+      } catch (e) {
+        if (!cancelled) setPreviewError('That invite code is invalid or has expired.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [initialInviteCode]);
 
   const handleCreateAdventure = async (e) => {
     e.preventDefault();
@@ -1567,62 +1591,99 @@ function EpicAdventureModal({ isOpen, onClose, onSuccess, onEnhancedOnboarding }
   // OLD INVITATION-CREATED MODE REMOVED - Enhanced onboarding handles this now
 
   if (mode === 'join') {
+    const hasPreview = !!previewData;
     return (
       <Dialog open={isOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-center text-2xl">🤝 Join the Adventure</DialogTitle>
+            <DialogTitle className="text-center text-2xl">
+              {hasPreview ? '🏰 You\'ve Been Invited' : '🤝 Join the Adventure'}
+            </DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-4">
-            <div className="text-center py-4">
-              <div className="text-4xl mb-3">🗡️</div>
-              <p className="text-gray-600">Enter your details to join your teammate's epic quest!</p>
-            </div>
-            
+            {hasPreview ? (
+              <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-4 space-y-2" data-testid="invite-preview-banner">
+                <div className="text-xs uppercase tracking-widest text-indigo-500 font-bold">Invitation accepted from</div>
+                <div className="text-xl font-bold text-indigo-900">{previewData.creatorName}</div>
+                <div className="text-sm text-gray-700">
+                  <span className="font-semibold">{previewData.adventureTheme}</span>
+                </div>
+                <div className="text-sm italic text-gray-600">"{previewData.questPhrase}"</div>
+                <div className="flex flex-wrap gap-2 pt-2">
+                  <span className="text-xs px-2 py-1 bg-white border border-indigo-200 rounded text-indigo-700 font-medium">
+                    {previewData.currentMembers}/{previewData.maxMembers} members
+                  </span>
+                  <span className="text-xs px-2 py-1 bg-white border border-indigo-200 rounded text-indigo-700 font-medium uppercase">
+                    {previewData.householdType}
+                  </span>
+                  <span className="text-xs px-2 py-1 bg-emerald-50 border border-emerald-200 rounded text-emerald-700 font-medium font-mono">
+                    code · {inviteCode}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-4">
+                <div className="text-4xl mb-3">🗡️</div>
+                <p className="text-gray-600">Enter your details to join your teammate's epic quest!</p>
+              </div>
+            )}
+
+            {previewError && (
+              <div className="bg-rose-50 border border-rose-200 text-rose-700 rounded-lg p-3 text-sm" data-testid="invite-preview-error">
+                {previewError}
+              </div>
+            )}
+
             <div>
               <Label htmlFor="joinName">🏷️ Your Hero Name</Label>
-              <Input 
+              <Input
                 id="joinName"
+                data-testid="join-name-input"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter your legendary name"
+                autoFocus={hasPreview}
                 required
               />
             </div>
-            
-            <div>
-              <Label htmlFor="code">🔮 Adventure Code</Label>
-              <div className="flex space-x-2">
-                <Input 
-                  id="code"
-                  value={inviteCode}
-                  onChange={(e) => setInviteCode(e.target.value)}
-                  placeholder="Enter invitation code"
-                  required
-                />
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={handlePreviewInvite}
-                  disabled={!inviteCode || loading}
-                >
-                  👁️ Preview
-                </Button>
+
+            {!hasPreview && (
+              <div>
+                <Label htmlFor="code">🔮 Adventure Code</Label>
+                <div className="flex space-x-2">
+                  <Input
+                    id="code"
+                    data-testid="join-code-input"
+                    value={inviteCode}
+                    onChange={(e) => setInviteCode(e.target.value)}
+                    placeholder="Enter invitation code"
+                    required
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handlePreviewInvite}
+                    disabled={!inviteCode || loading}
+                  >
+                    👁️ Preview
+                  </Button>
+                </div>
               </div>
-            </div>
-            
-            <Button 
-              onClick={handleJoinAdventure} 
-              className="w-full text-lg py-3 bg-gradient-to-r from-green-500 to-teal-600" 
+            )}
+
+            <Button
+              onClick={handleJoinAdventure}
+              data-testid="join-accept-button"
+              className="w-full text-lg py-3 bg-gradient-to-r from-green-500 to-teal-600"
               disabled={loading || !name || !inviteCode}
             >
-              {loading ? '🔮 Joining...' : '🚀 Accept the Challenge!'}
+              {loading ? '🔮 Joining...' : hasPreview ? `🚀 Join ${previewData.creatorName}'s Household` : '🚀 Accept the Challenge!'}
             </Button>
-            
-            <Button 
-              type="button" 
-              variant="ghost" 
+
+            <Button
+              type="button"
+              variant="ghost"
               className="w-full"
               onClick={() => setMode('choose')}
             >
@@ -1716,6 +1777,8 @@ function ChoreChampionsApp() {
   const [loading, setLoading] = useState(false);
   const [invitation, setInvitation] = useState(null);
   const [householdInviteCode, setHouseholdInviteCode] = useState('');
+  // Inbound invite from URL ?invite=CODE — autoload join flow on this household
+  const [inboundInviteCode, setInboundInviteCode] = useState('');
   
   // Member onboarding state (for users joining via invite code)
   const [showMemberOnboarding, setShowMemberOnboarding] = useState(false);
@@ -1845,10 +1908,20 @@ function ChoreChampionsApp() {
 
   // Initialize app and populate chores
   useEffect(() => {
+    // Capture ?invite=CODE so we can auto-route to the join flow for THIS household
+    let inboundCode = '';
+    try {
+      const params = new URLSearchParams(window.location.search);
+      inboundCode = (params.get('invite') || '').trim().toUpperCase();
+      if (inboundCode) setInboundInviteCode(inboundCode);
+    } catch (_) {
+      inboundCode = '';
+    }
+
     const savedUser = localStorage.getItem('currentUser');
     const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
-    
-    if (savedUser) {
+
+    if (savedUser && !inboundCode) {
       try {
         const user = JSON.parse(savedUser);
         if (user.userId) {
@@ -1856,7 +1929,7 @@ function ChoreChampionsApp() {
           setShowAuth(false);
           // Removed old onboarding popup - using EnhancedOnboarding only
           loadGameData(user);
-          
+
           // Generate daily quests for existing users who don't have them
           setTimeout(() => {
             if (myDailyChores.length === 0) {
@@ -1871,6 +1944,7 @@ function ChoreChampionsApp() {
         setShowAuth(true);
       }
     } else {
+      // No saved user, OR an inbound invite link — force auth modal (will open in join mode)
       setShowAuth(true);
     }
     
@@ -2950,8 +3024,15 @@ function ChoreChampionsApp() {
           <EpicAdventureModal 
             isOpen={showAuth}
             onClose={() => setShowAuth(false)}
+            initialInviteCode={inboundInviteCode}
             onSuccess={(user, needsMemberOnboarding) => {
               setShowAuth(false);
+              // Clean the ?invite param so refreshes don't keep forcing the join screen
+              try {
+                if (inboundInviteCode && window.history?.replaceState) {
+                  window.history.replaceState({}, '', window.location.pathname);
+                }
+              } catch (_) {}
               if (needsMemberOnboarding) {
                 // DON'T set currentUser yet - wait for member onboarding
                 setPendingMemberData(user);
