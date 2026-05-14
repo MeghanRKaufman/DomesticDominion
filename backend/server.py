@@ -3749,15 +3749,154 @@ async def join_household_adventure(request: JoinHouseholdRequest):
         "needsOnboarding": True
     }
 
+# =====================================================
+# Epic Invite — themed shareable invitation
+# =====================================================
+EPIC_INVITE_HOOKS = {
+    "epic": [
+        {
+            "headline": "A Quest Awaits, Brave Soul",
+            "body": "Take up the broom of valor. Stand beside thy housemates. The realm of dust and dishes shall not conquer us.",
+            "cta": "⚔️ Accept the Quest",
+        },
+        {
+            "headline": "Hark! Your Household Calls",
+            "body": "Beyond these walls, chaos creeps. Within, a guild rises. Pledge your name to the ledger of legends.",
+            "cta": "🏰 Enter the Keep",
+        },
+        {
+            "headline": "The Sacred Ledger Has Room for One More",
+            "body": "Glory, gold (in XP form), and grand laundry days await. The fates have whispered your name.",
+            "cta": "📜 Sign the Scroll",
+        },
+        {
+            "headline": "Rise, Champion of the Realm",
+            "body": "A worthy housemate has summoned you to the Dwelling. Your skills shall be tested. Your snacks shall be earned.",
+            "cta": "🛡️ Answer the Call",
+        },
+    ],
+    "hype": [
+        {
+            "headline": "You've Been Recruited.",
+            "body": "Domestic Dominion is the household game your friends keep talking about. Real chores, real XP, real consequences. Drop in.",
+            "cta": "🔥 Drop In",
+        },
+        {
+            "headline": "Welcome to the Squad.",
+            "body": "Skip the boring chore chart. Earn XP, unlock talents, and duel for the worst chores in mini-games. This is how households win.",
+            "cta": "🎮 Tap In",
+        },
+        {
+            "headline": "Your House. Your Rules. Your Rep.",
+            "body": "Compete, collab, and clean — gamified. Every chore is a quest. Every quest builds your legend.",
+            "cta": "⚡ Activate Account",
+        },
+        {
+            "headline": "Run It Back. This Time, For Glory.",
+            "body": "Real housemates. Real chores. Real fairness model. Real bragging rights. Get in before someone else claims your seat.",
+            "cta": "🚀 Claim My Seat",
+        },
+    ],
+    "chill": [
+        {
+            "headline": "Hey — wanna join our chore game?",
+            "body": "We turned our chore list into a little RPG. It's actually kinda fun. Come hang and help out.",
+            "cta": "✨ Join the Crew",
+        },
+        {
+            "headline": "Pull up. Our household's playing.",
+            "body": "Cute little game. Fair chore distribution, XP, talent tree, mini-games when we disagree. You'd vibe with it.",
+            "cta": "🌿 Hop In",
+        },
+    ],
+}
+
+
+def _pick_invite_tone(household: Dict[str, Any]) -> str:
+    """Auto-pick a tone based on the household's theme/type."""
+    theme = (household.get("adventureTheme") or "").lower()
+    htype = (household.get("householdType") or "").lower()
+    epic_keywords = ["legend", "kingdom", "realm", "manor", "estate", "guardian", "mystical", "enchanted", "sacred"]
+    if any(k in theme for k in epic_keywords):
+        return "epic"
+    if htype in {"couple", "family"}:
+        return "chill"
+    if htype in {"roommates", "shared housing / dorm", "shared"}:
+        return "hype"
+    return random.choice(["epic", "hype"])
+
+
+@api_router.get("/households/{household_id}/epic-invite")
+async def get_epic_invite(household_id: str, inviter_id: Optional[str] = None, tone: Optional[str] = None):
+    """Return a themed, shareable invite payload for the household.
+
+    Auto-picks a tone (epic / hype / chill) from the household's adventure theme unless overridden.
+    """
+    household = await db.households.find_one({"householdId": household_id})
+    if not household:
+        raise HTTPException(status_code=404, detail="Household not found")
+
+    inviter_name = None
+    if inviter_id:
+        inviter = await db.users.find_one({"userId": inviter_id})
+        if inviter:
+            inviter_name = inviter.get("displayName")
+    if not inviter_name:
+        inviter_name = household.get("creatorName", "A Housemate")
+
+    chosen_tone = tone if tone in EPIC_INVITE_HOOKS else _pick_invite_tone(household)
+    hook = random.choice(EPIC_INVITE_HOOKS[chosen_tone])
+
+    household_name = (
+        household.get("householdSetup", {}).get("householdName")
+        or household.get("name")
+        or household.get("adventureTheme")
+        or "Your Household"
+    )
+
+    summon_line_by_tone = {
+        "epic": f"{inviter_name} has summoned you to {household_name}.",
+        "hype": f"{inviter_name} just dropped you an invite to {household_name}.",
+        "chill": f"{inviter_name} added you to {household_name}.",
+    }
+
+    current_members = len(household.get("memberIds", []))
+    max_members = household.get("memberLimit", 12)
+    seats_open = max(max_members - current_members, 0)
+
+    return {
+        "householdId": household_id,
+        "householdName": household_name,
+        "adventureTheme": household.get("adventureTheme"),
+        "questPhrase": household.get("questPhrase"),
+        "householdType": household.get("householdType"),
+        "inviteCode": household.get("inviteCode"),
+        "inviterName": inviter_name,
+        "summonLine": summon_line_by_tone[chosen_tone],
+        "tone": chosen_tone,
+        "hook": hook,
+        "appName": "Domestic Dominion",
+        "appTagline": "The household-management RPG that turns chores into quests.",
+        "valueBullets": [
+            "Fair, weighted chore distribution that respects your schedule",
+            "XP, levels, and a WoW-style talent tree",
+            "Mini-game duels when housemates disagree on who does what",
+            "Trade, gift, or marketplace-post chores you can't get to",
+        ],
+        "seatsOpen": seats_open,
+        "currentMembers": current_members,
+        "maxMembers": max_members,
+    }
+
 @api_router.get("/households/{invite_code}/preview")
 async def preview_household_invitation(invite_code: str):
     """Preview household invitation details"""
     household = await db.households.find_one({"inviteCode": invite_code})
     if not household:
         raise HTTPException(status_code=404, detail="Invalid invitation code")
-    
+
     current_members = len(household.get("memberIds", []))
-    
+
     return {
         "creatorName": household["creatorName"],
         "adventureTheme": household["adventureTheme"],
@@ -3767,6 +3906,7 @@ async def preview_household_invitation(invite_code: str):
         "maxMembers": household.get("memberLimit", 12),
         "isAvailable": current_members < household.get("memberLimit", 12)
     }
+
 
 # Update member preferences after onboarding
 class MemberPreferencesRequest(BaseModel):

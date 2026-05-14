@@ -188,6 +188,7 @@ Domestic Dominion is a full-stack React + FastAPI + MongoDB application for runn
 - Investigate pre-existing `/quests` 403 console error for non-admin users (surfaced in iteration_8)
 
 ## Latest Change Log
+- 2026-05-14: Built **Epic Invite** scroll feature — themed shareable poster (epic/hype/chill tones auto-picked from household theme), personal-message field, Web Share API + copy actions, curated quest-hook bank. New endpoint `GET /api/households/{household_id}/epic-invite`. Replaces the basic invite-code card in the admin Kingdom Control Center.
 - 2026-05-14: Built full Chore Swap Exchange — Trade / Give / Open Marketplace types, target-accept + admin-approval flow, max 3 pending per user, 12h per-task cooldown, fairness-model tracking via `swapsInitiatedThisWeek`. Verified in `/app/test_reports/iteration_8.json` (27/27 tests, full E2E browser flow).
 - 2026-05-12: Expanded duel roster with Memory Flip (cleaning-supply theme), Dots-and-Boxes, and War; verified in `/app/test_reports/iteration_7.json`
 - 2026-05-05: Added Mini-Game Duel Arena with duel challenge flow, 4 original game types, 1-or-3 round support, flat accepted XP, +25% winner bonus, and winner task choice (`me` / `them`)

@@ -15,6 +15,7 @@ import { RandomEventBubble } from './components/RandomEventBubble';
 import { AdminSandboxSimulator } from './components/AdminSandboxSimulator';
 import { MiniGameArena } from './components/MiniGameArena';
 import { ChoreSwapPanel } from './components/ChoreSwapPanel';
+import { EpicInvitePanel } from './components/EpicInvitePanel';
 import TalentTree from './components/TalentTree';
 
 // Import UI components
@@ -3404,42 +3405,9 @@ function ChoreChampionsApp() {
                 <p className="text-gray-600 mt-2">Manage your household, assign quests, and view member progress</p>
               </div>
 
-              {/* Invite Code Card */}
-              <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl p-6 mb-6 shadow-lg">
-                <h3 className="text-2xl font-bold mb-3">📨 Invite Your Household</h3>
-                <p className="mb-4">Share this code with your household members to join the adventure!</p>
-                <div className="bg-white/20 backdrop-blur rounded-lg p-4 flex items-center justify-between">
-                  <div>
-                    <div className="text-sm opacity-90 mb-1">Invite Code</div>
-                    <div className="text-3xl font-bold tracking-wider font-mono select-all" id="invite-code-display">
-                      {householdInviteCode || localStorage.getItem('inviteCode') || 'LOADING...'}
-                    </div>
-                  </div>
-                  <Button
-                    onClick={() => {
-                      const code = householdInviteCode || localStorage.getItem('inviteCode') || '';
-                      // Fallback copy method that works without Clipboard API
-                      const textArea = document.createElement('textarea');
-                      textArea.value = code;
-                      textArea.style.position = 'fixed';
-                      textArea.style.left = '-9999px';
-                      document.body.appendChild(textArea);
-                      textArea.select();
-                      try {
-                        document.execCommand('copy');
-                        setCelebrationMessage('📋 Invite code copied!');
-                      } catch (err) {
-                        // If execCommand fails too, just show the code
-                        setCelebrationMessage(`📋 Code: ${code} (select and copy manually)`);
-                      }
-                      document.body.removeChild(textArea);
-                      setTimeout(() => setCelebrationMessage(''), 3000);
-                    }}
-                    className="bg-white text-purple-600 hover:bg-purple-50"
-                  >
-                    📋 Copy Code
-                  </Button>
-                </div>
+              {/* Epic Invite — themed shareable scroll */}
+              <div className="mb-6">
+                <EpicInvitePanel apiBase={API} currentUser={currentUser} />
               </div>
 
               {/* Assign Chores Button */}
