@@ -161,29 +161,34 @@ Domestic Dominion is a full-stack React + FastAPI + MongoDB application for runn
 - Sandbox simulation state is intentionally separate from live households
 - Mock endorsement rewards are **MOCKED** placeholders for future real-world partnerships
 - Mini-game duel creation scopes active-duel checks by `householdId` because `taskId` is not globally unique across households
+- Chore swap endpoints likewise scope all task lookups by `householdId`
+- Chore Swap rules: max 3 pending swap requests per user, 12h cooldown on a chore after an accepted swap, `swapsInitiatedThisWeek` increments at finalization and lightly biases the fairness distributor toward giving that user more chores next cycle
 
 ## Current Priorities
 
 ### P0
-- User validation of the expanded Mini-Game Duel Arena, Admin Sandbox Simulator, Random Events, Availability Calendar, and verification flows in real usage
+- User validation of the new Chore Swap Exchange (trade/give/marketplace) end-to-end in real usage
 
 ### P1
-- Chore swapping (still next requested priority after mini-game roster expansion)
 - Household stats view showing top contributors and completion breakdown
 - Streak bonuses for consecutive task completions
 - Broader mini-game roster beyond current wave if desired
 
 ### P2
+- Duel History + Rivalries Panel
 - More tailored sandbox scenarios and player archetypes
 - In-app mini-game tournaments / rivalry systems
 - Simulation mode expansion / scripted scenarios
+- Household-specific card skins for Memory Flip and War
 
 ### Refactor / Technical Debt
 - Break `/app/backend/server.py` into routes, services, and models
 - Break `/app/frontend/src/App.js` into smaller tab/page components
 - Address pre-existing dialog accessibility warning (`DialogContent` missing description/aria-describedby) in older dialogs
+- Investigate pre-existing `/quests` 403 console error for non-admin users (surfaced in iteration_8)
 
 ## Latest Change Log
+- 2026-05-14: Built full Chore Swap Exchange — Trade / Give / Open Marketplace types, target-accept + admin-approval flow, max 3 pending per user, 12h per-task cooldown, fairness-model tracking via `swapsInitiatedThisWeek`. Verified in `/app/test_reports/iteration_8.json` (27/27 tests, full E2E browser flow).
 - 2026-05-12: Expanded duel roster with Memory Flip (cleaning-supply theme), Dots-and-Boxes, and War; verified in `/app/test_reports/iteration_7.json`
 - 2026-05-05: Added Mini-Game Duel Arena with duel challenge flow, 4 original game types, 1-or-3 round support, flat accepted XP, +25% winner bonus, and winner task choice (`me` / `them`)
 - 2026-05-05: Added duelPending task lock so chores in an active duel cannot be completed normally
