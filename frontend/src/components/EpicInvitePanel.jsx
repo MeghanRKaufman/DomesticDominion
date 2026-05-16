@@ -109,7 +109,13 @@ export function EpicInvitePanel({ apiBase, currentUser }) {
   const bullets = invite?.valueBullets || [];
 
   return (
-    <div className="space-y-6" data-testid="epic-invite-panel">
+    <div
+      className="space-y-6"
+      data-testid="epic-invite-panel"
+      tabIndex={-1}
+      onFocus={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
+    >
       {/* Header / admin controls */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
