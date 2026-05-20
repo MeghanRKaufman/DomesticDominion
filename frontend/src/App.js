@@ -1995,10 +1995,12 @@ function ChoreChampionsApp() {
       setMyDailyChores(flatTasks);
 
       // Load household members for the concern form
+      let othersFromRoster = [];
       try {
         const statsResponse = await axios.get(`${API}/households/${householdId}/stats`);
         if (statsResponse.data?.members) {
           setHouseholdMembers(statsResponse.data.members.map(m => ({ name: m.displayName, displayName: m.displayName, userId: m.userId, odId: m.userId })));
+          othersFromRoster = statsResponse.data.members.filter(m => m.userId && m.userId !== hydratedUser.userId);
         }
         // Save invite code for display
         if (statsResponse.data?.inviteCode) {
@@ -2009,8 +2011,15 @@ function ChoreChampionsApp() {
         console.warn('Could not load household members:', err);
       }
 
-      // Load teammate info if exists
-      if (hydratedUser.partnerId) {
+      // Load teammate info — prefer real household members; fall back to legacy partnerId/Name
+      if (othersFromRoster.length > 0) {
+        const first = othersFromRoster[0];
+        setPartner({
+          displayName: first.displayName,
+          userId: first.userId,
+          isPlaceholder: false,
+        });
+      } else if (hydratedUser.partnerId) {
         const partnerResponse = await axios.get(`${API}/users/${hydratedUser.partnerId}`);
         setPartner(partnerResponse.data);
       } else if (hydratedUser.partnerName) {
@@ -2020,6 +2029,8 @@ function ChoreChampionsApp() {
           userId: null,
           isPlaceholder: true
         });
+      } else {
+        setPartner(null);
       }
     } catch (error) {
       console.error('Error loading game data:', error);
@@ -2052,6 +2063,32 @@ function ChoreChampionsApp() {
       loadMessages();
       checkDailyMessageStatus();
     }
+  }, [currentUser]);
+
+  // Auto-refresh household roster every 15s so newly joined members appear without manual reload
+  useEffect(() => {
+    if (!currentUser?.userId) return;
+    const householdId = currentUser.householdId || currentUser.coupleId;
+    if (!householdId) return;
+    const id = setInterval(async () => {
+      try {
+        const statsResponse = await axios.get(`${API}/households/${householdId}/stats`);
+        if (statsResponse.data?.members) {
+          const fresh = statsResponse.data.members.map(m => ({
+            name: m.displayName, displayName: m.displayName, userId: m.userId, odId: m.userId,
+          }));
+          setHouseholdMembers(fresh);
+          const others = fresh.filter(m => m.userId && m.userId !== currentUser.userId);
+          setPartner((prev) => {
+            if (others.length === 0) return prev;
+            const first = others[0];
+            if (prev?.userId === first.userId) return prev;
+            return { displayName: first.displayName, userId: first.userId, isPlaceholder: false };
+          });
+        }
+      } catch (_) { /* silent */ }
+    }, 15000);
+    return () => clearInterval(id);
   }, [currentUser]);
 
   const loadMessages = async () => {
@@ -3301,8 +3338,14 @@ function ChoreChampionsApp() {
             <div>
               <h1 className="text-2xl md:text-4xl font-bold drop-shadow-lg">🏰 Domestic Dominion</h1>
               <p className="text-purple-100 text-sm md:text-lg">Hero: {currentUser.displayName}</p>
-              <p className="text-purple-200 text-sm md:text-base">
-                Teammate: {teammate?.displayName || currentUser.partnerName || 'Awaiting Teammate'}
+              <p className="text-purple-200 text-sm md:text-base" data-testid="header-teammate-line">
+                {(() => {
+                  const others = (householdMembers || []).filter(m => m.userId && m.userId !== currentUser.userId);
+                  if (others.length === 0) return 'Teammate: Awaiting housemate';
+                  if (others.length === 1) return `Teammate: ${others[0].displayName || others[0].name}`;
+                  if (others.length <= 3) return `Party: ${others.map(m => m.displayName || m.name).join(', ')}`;
+                  return `Party: ${others[0].displayName || others[0].name} +${others.length - 1} more`;
+                })()}
               </p>
             </div>
             
@@ -3327,8 +3370,13 @@ function ChoreChampionsApp() {
                 <div className="text-xs md:text-sm">Talent Points</div>
               </div>
               
-              <Badge className="bg-white/20 text-white text-sm md:text-lg px-2 md:px-3 py-1">
-                Party: {teammate?.displayName || currentUser.partnerName || 'Solo'}
+              <Badge className="bg-white/20 text-white text-sm md:text-lg px-2 md:px-3 py-1" data-testid="header-party-badge">
+                {(() => {
+                  const others = (householdMembers || []).filter(m => m.userId && m.userId !== currentUser.userId);
+                  if (others.length === 0) return 'Party: Solo';
+                  if (others.length === 1) return `Party: ${others[0].displayName || others[0].name}`;
+                  return `Party: ${others.length + 1} heroes`;
+                })()}
               </Badge>
               
               <Button 
