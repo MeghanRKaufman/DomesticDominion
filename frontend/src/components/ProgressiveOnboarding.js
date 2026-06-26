@@ -14,7 +14,12 @@ const ProgressiveOnboarding = ({ isOpen, onComplete, onClose }) => {
     adminName: '',
     householdSize: 2,
     hasPrivateBedrooms: false,
-    
+    // NEW: Role + governance (Phase 1 refactor)
+    creatorRole: 'resident_manager', // resident_member | resident_manager | external_supervisor
+    creatorLivesInHousehold: true,
+    supervisorPermissions: 'full_overseer', // read_only | can_assign | full_overseer
+    governance: 'round_table', // round_table | stewardship_council | external_oversight
+
     // Step 2: Home Layout
     rooms: {
       kitchen: true,
@@ -25,20 +30,26 @@ const ProgressiveOnboarding = ({ isOpen, onComplete, onClose }) => {
       attic: false,
       office: false,
       garage: false,
+      // NEW: Outdoor spaces
+      patio: false,
+      deck: false,
+      balcony: false,
+      yard: false,
+      garden: false,
     },
     floors: 'single', // single, multi-level
-    
+
     // Step 3: Utilities & Constraints
     laundryType: 'in_unit', // in_unit, shared, laundromat
     dryingMethod: [], // dryer, line_dry
     laundromat_runs_per_week: 0,
     trashDays: [],
     hasCleaningSupplies: true,
-    
+
     // Step 4: Pets & Vehicles
     pets: [], // {type: 'dog', count: 2}
     vehicles: [], // {type: 'car', shared: true}
-    
+
     // Step 5: Time Reality (for admin only during onboarding)
     availability: {
       mondayToFriday: { start: '18:00', end: '22:00' },
@@ -46,12 +57,12 @@ const ProgressiveOnboarding = ({ isOpen, onComplete, onClose }) => {
       workDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
       lowEnergyDays: [],
     },
-    
+
     // Step 6: Personal Limits
     choreAversions: [], // 'grossness', 'physical', 'outdoor', 'pets'
     preferredTasks: [],
-    maxDailyChoreLoad: 3,
-    
+    // NOTE: maxDailyChoreLoad removed in Phase 1 — Dynamic Capacity Engine (Phase 2) will derive capacity from schedule, not user-declared limits.
+
     // Step 7: Talent Spec
     initialTalentSpec: '', // self_care, teamwork, housework
   });
@@ -202,6 +213,82 @@ const ProgressiveOnboarding = ({ isOpen, onComplete, onClose }) => {
       </div>
 
       <div>
+        <Label className="text-lg font-semibold mb-3 block">Your Role in this Household</Label>
+        <p className="text-sm text-gray-600 mb-3">Pick the relationship that fits — this is not a hierarchy.</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {[
+            { key: 'resident_member', label: 'Resident Member', icon: '🏠', sub: 'I live here and pull my weight' },
+            { key: 'resident_manager', label: 'Resident Manager', icon: '🗝️', sub: 'I live here AND coordinate the household' },
+            { key: 'external_supervisor', label: 'External Supervisor', icon: '🛡️', sub: "I oversee but don't live here" },
+          ].map((r) => (
+            <Button
+              key={r.key}
+              variant={onboardingData.creatorRole === r.key ? 'default' : 'outline'}
+              onClick={() => handleInputChange('creatorRole', r.key)}
+              className="h-auto py-3 px-3 flex flex-col items-start text-left"
+              data-testid={`onboarding-role-${r.key}`}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-2xl">{r.icon}</span>
+                <span className="font-semibold">{r.label}</span>
+              </div>
+              <span className="text-xs opacity-80 whitespace-normal">{r.sub}</span>
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {onboardingData.creatorRole === 'external_supervisor' && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-3">
+          <Label className="text-base font-semibold block">Supervisor Permissions</Label>
+          <p className="text-xs text-gray-600">What can you do in this household?</p>
+          <div className="grid grid-cols-1 gap-2">
+            {[
+              { key: 'read_only', label: 'Read-only — see progress, no assigning' },
+              { key: 'can_assign', label: 'Can assign chores + see progress' },
+              { key: 'full_overseer', label: 'Full overseer — approve swaps, manage members' },
+            ].map((p) => (
+              <Button
+                key={p.key}
+                variant={onboardingData.supervisorPermissions === p.key ? 'default' : 'outline'}
+                onClick={() => handleInputChange('supervisorPermissions', p.key)}
+                className="justify-start text-left h-auto py-2"
+                data-testid={`onboarding-supervisor-${p.key}`}
+              >
+                {p.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div>
+        <Label className="text-lg font-semibold mb-3 block">Household Governance</Label>
+        <p className="text-sm text-gray-600 mb-3">How big household decisions get made. (Round Table is recommended.)</p>
+        <div className="grid grid-cols-1 gap-2">
+          {[
+            { key: 'round_table', label: '⚖️ Round Table', sub: 'The app arbitrates day-to-day. Major decisions need the residents’ approval. Default.' },
+            { key: 'stewardship_council', label: '🛡️ Stewardship Council', sub: 'Designated stewards make decisions on behalf of the household.' },
+            { key: 'external_oversight', label: '🦉 External Oversight', sub: 'A non-resident supervisor signs off on major decisions.' },
+          ].map((g) => (
+            <Button
+              key={g.key}
+              variant={onboardingData.governance === g.key ? 'default' : 'outline'}
+              onClick={() => handleInputChange('governance', g.key)}
+              className="h-auto py-3 px-4 justify-start text-left whitespace-normal"
+              data-testid={`onboarding-governance-${g.key}`}
+            >
+              <div className="flex flex-col items-start">
+                <span className="font-semibold">{g.label}</span>
+                <span className="text-xs opacity-80">{g.sub}</span>
+              </div>
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {onboardingData.creatorRole !== 'external_supervisor' && (
+      <div>
         <Label className="text-lg font-semibold mb-3 block">Household Size</Label>
         <p className="text-sm text-gray-600 mb-3">How many people live here (including you)?</p>
         <div className="grid grid-cols-6 gap-2">
@@ -217,7 +304,9 @@ const ProgressiveOnboarding = ({ isOpen, onComplete, onClose }) => {
           ))}
         </div>
       </div>
+      )}
 
+      {onboardingData.creatorRole !== 'external_supervisor' && (
       <div>
         <Label className="text-lg font-semibold mb-3 block">Bedroom Setup</Label>
         <div className="grid grid-cols-2 gap-3">
@@ -239,6 +328,7 @@ const ProgressiveOnboarding = ({ isOpen, onComplete, onClose }) => {
           </Button>
         </div>
       </div>
+      )}
     </div>
   );
 
@@ -297,6 +387,32 @@ const ProgressiveOnboarding = ({ isOpen, onComplete, onClose }) => {
                 variant={onboardingData.rooms[space.key] ? 'default' : 'outline'}
                 onClick={() => handleNestedChange('rooms', space.key, !onboardingData.rooms[space.key])}
                 className="h-16 justify-start px-4"
+              >
+                <span className="text-2xl mr-3">{space.icon}</span>
+                <span>{space.label}</span>
+                {onboardingData.rooms[space.key] && <span className="ml-auto text-2xl">✓</span>}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <Label className="text-lg font-semibold mb-2 block">Outdoor Areas</Label>
+          <p className="text-sm text-gray-600 mb-2">So we can assign chores to the right places.</p>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { key: 'patio', label: 'Patio', icon: '🪴' },
+              { key: 'deck', label: 'Deck', icon: '🪑' },
+              { key: 'balcony', label: 'Balcony', icon: '🌇' },
+              { key: 'yard', label: 'Yard', icon: '🌳' },
+              { key: 'garden', label: 'Garden', icon: '🌷' },
+            ].map(space => (
+              <Button
+                key={space.key}
+                variant={onboardingData.rooms[space.key] ? 'default' : 'outline'}
+                onClick={() => handleNestedChange('rooms', space.key, !onboardingData.rooms[space.key])}
+                className="h-16 justify-start px-4"
+                data-testid={`onboarding-outdoor-${space.key}`}
               >
                 <span className="text-2xl mr-3">{space.icon}</span>
                 <span>{space.label}</span>
@@ -694,26 +810,9 @@ const ProgressiveOnboarding = ({ isOpen, onComplete, onClose }) => {
         </div>
       </div>
 
-      <div>
-        <Label className="text-lg font-semibold mb-3 block">Max Daily Chore Load</Label>
-        <p className="text-sm text-gray-600 mb-2">Maximum tasks you can handle per day</p>
-        <div className="grid grid-cols-5 gap-2">
-          {[1, 2, 3, 4, 5].map(num => (
-            <Button
-              key={num}
-              variant={onboardingData.maxDailyChoreLoad === num ? 'default' : 'outline'}
-              onClick={() => handleInputChange('maxDailyChoreLoad', num)}
-              className="h-12 text-lg font-bold"
-            >
-              {num}
-            </Button>
-          ))}
-        </div>
-      </div>
-
       <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
         <p className="text-sm text-purple-800">
-          💜 <strong>Your honesty matters:</strong> Setting realistic limits prevents burnout and keeps the household running smoothly.
+          🧠 <strong>Smart scheduling:</strong> We calculate your realistic daily capacity from your schedule and the chores at hand — no manual limits needed.
         </p>
       </div>
     </div>

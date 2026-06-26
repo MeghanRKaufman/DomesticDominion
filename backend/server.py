@@ -721,9 +721,43 @@ class QuestType(str, Enum):
     SPECIAL = "SPECIAL"
 
 class UserRole(str, Enum):
-    ADMIN = "admin"  # Household creator, can assign chores, manage members
-    MEMBER = "member"  # Regular player
-    GUEST = "guest"  # Limited access
+    # New canonical roles (relationship-based, not hierarchy-based)
+    RESIDENT_MEMBER = "resident_member"
+    RESIDENT_MANAGER = "resident_manager"
+    EXTERNAL_SUPERVISOR = "external_supervisor"
+    # Legacy values kept for backward-compatibility / migration
+    ADMIN = "admin"
+    MEMBER = "member"
+    GUEST = "guest"
+
+
+# Helpers for role logic across endpoints
+ADMIN_LIKE_ROLES = {"admin", "resident_manager", "external_supervisor"}
+RESIDENT_ROLES = {"member", "resident_member", "admin", "resident_manager"}
+NON_PARTICIPATING_ROLES = {"external_supervisor", "guest"}
+
+
+def is_household_steward(user: Dict[str, Any], household: Optional[Dict[str, Any]] = None) -> bool:
+    """A 'steward' can perform admin actions: resident_manager, external_supervisor (w/ full_overseer perms),
+    legacy 'admin' role, and the household creator."""
+    if not user:
+        return False
+    role = user.get("role")
+    if role in {"admin", "resident_manager"}:
+        return True
+    if role == "external_supervisor":
+        perms = user.get("supervisorPermissions", "full_overseer")
+        return perms in {"can_assign", "full_overseer"}
+    if household and user.get("userId") == household.get("creatorId"):
+        return True
+    return False
+
+
+def is_chore_participant(user: Dict[str, Any]) -> bool:
+    """True if this user should be included in chore distribution."""
+    if not user:
+        return False
+    return user.get("role") not in NON_PARTICIPATING_ROLES
 
 class HouseholdType(str, Enum):
     APARTMENT = "Apartment"
@@ -733,6 +767,18 @@ class HouseholdType(str, Enum):
     ROOMMATES = "roommates"
     COUPLE = "couple"
     OTHER = "other"
+
+
+class Governance(str, Enum):
+    ROUND_TABLE = "round_table"
+    STEWARDSHIP_COUNCIL = "stewardship_council"
+    EXTERNAL_OVERSIGHT = "external_oversight"
+
+
+class SupervisorPermissions(str, Enum):
+    READ_ONLY = "read_only"
+    CAN_ASSIGN = "can_assign"
+    FULL_OVERSEER = "full_overseer"
 
 # Comprehensive 10-Tier Talent Tree System (Domestic Dominion)
 # Based on new world map specification with 3 kingdoms/branches
@@ -1416,6 +1462,12 @@ def generate_household_chores(onboarding_data: dict) -> List[dict]:
     
     if rooms.get('garage'):
         add_chore("Garage sweep", "Garage", "MEDIUM", time_estimate=20, grossness_level=1)
+
+    if rooms.get('patioDeck') or rooms.get('patio') or rooms.get('deck'):
+        add_chore("Sweep patio / deck", "Patio", "EASY", time_estimate=10, grossness_level=1)
+        add_chore("Wipe outdoor furniture", "Patio", "EASY", time_estimate=10, grossness_level=1)
+        add_chore("Patio / deck deep clean", "Patio", "HARD", time_estimate=45, grossness_level=2)
+        add_chore("Outdoor planter / pot care", "Patio", "EASY", time_estimate=10, grossness_level=0)
     
     # ========== TRASH SCHEDULE CHORES ==========
     if trash_days:
@@ -1430,7 +1482,9 @@ class User(BaseModel):
     userId: str = Field(default_factory=lambda: f"user_{uuid.uuid4().hex[:8]}")
     displayName: str
     householdId: str  # Changed from coupleId
-    role: UserRole = UserRole.MEMBER
+    role: UserRole = UserRole.RESIDENT_MEMBER
+    supervisorPermissions: Optional[str] = None  # When role=external_supervisor: read_only | can_assign | full_overseer
+    livesInHousehold: bool = True  # False for external supervisors
     points: int = 0
     level: int = 1
     talentPoints: int = 0
@@ -1504,6 +1558,7 @@ class Household(BaseModel):
     creatorId: str
     creatorName: str
     householdType: HouseholdType = HouseholdType.ROOMMATES
+    governance: Governance = Governance.ROUND_TABLE  # Default: shared authority arbitrated by the system
     memberIds: List[str] = Field(default_factory=list)  # All member userIds
     memberLimit: int = 12  # Max 12 players
     isActive: bool = False
@@ -1617,6 +1672,11 @@ class EnhancedHouseholdRequest(BaseModel):  # Changed from EnhancedCoupleRequest
     householdType: HouseholdType = HouseholdType.ROOMMATES
     memberLimit: int = 12
     householdSetup: Dict[str, Any] = Field(default_factory=dict)
+    # NEW: Governance + creator role
+    governance: Governance = Governance.ROUND_TABLE
+    creatorRole: UserRole = UserRole.RESIDENT_MANAGER  # resident_manager | resident_member | external_supervisor
+    creatorLivesInHousehold: bool = True
+    supervisorPermissions: Optional[SupervisorPermissions] = None
     # Legacy fields (optional for backward compatibility)
     playerName: Optional[str] = None
     hasWasherDryer: bool = False
@@ -3579,6 +3639,7 @@ async def create_enhanced_household(request: EnhancedHouseholdRequest):
         creatorName=player_name,
         creatorId=f"user_{uuid.uuid4().hex[:8]}",
         householdType=request.householdType,
+        governance=request.governance,
         memberLimit=request.memberLimit,
         householdSetup=request.householdSetup,
         hasWasherDryer=request.householdSetup.get('laundryType') == 'in_unit',
@@ -3589,21 +3650,31 @@ async def create_enhanced_household(request: EnhancedHouseholdRequest):
         choresAssigned=False,  # Admin must manually assign
         memberIds=[]
     )
-    
+
     admin_preferences = normalize_user_preferences({
         **request.preferences,
         "availability": request.householdSetup.get("availability", {}),
         "choreAversions": request.householdSetup.get("choreAversions", []),
         "preferredTasks": request.householdSetup.get("preferredTasks", []),
-        "maxDailyChoreLoad": request.householdSetup.get("maxDailyChoreLoad", 3)
     })
 
-    # Create user for the creator (as admin)
+    # Determine creator role + chore participation
+    creator_role = request.creatorRole or UserRole.RESIDENT_MANAGER
+    lives_in_household = request.creatorLivesInHousehold
+    if creator_role == UserRole.EXTERNAL_SUPERVISOR:
+        lives_in_household = False  # Supervisors are external by definition
+    supervisor_perms = None
+    if creator_role == UserRole.EXTERNAL_SUPERVISOR:
+        supervisor_perms = (request.supervisorPermissions or SupervisorPermissions.FULL_OVERSEER).value
+
+    # Create user for the creator
     creator_user = User(
         displayName=player_name,
         householdId=household.householdId,
         userId=household.creatorId,
-        role=UserRole.ADMIN
+        role=creator_role,
+        livesInHousehold=lives_in_household,
+        supervisorPermissions=supervisor_perms,
     )
     creator_doc = creator_user.model_dump()
     creator_doc["preferences"] = admin_preferences
@@ -3957,8 +4028,8 @@ async def auto_assign_chores(household_id: str, admin_user_id: str, reset: bool 
         raise HTTPException(status_code=403, detail="User not found in household")
     
     # Allow non-admins to trigger redistribution only if reset=True (internal call)
-    if admin.get("role") != "admin" and not reset:
-        raise HTTPException(status_code=403, detail="Only household admin can assign chores")
+    if not is_household_steward(admin) and not reset:
+        raise HTTPException(status_code=403, detail="Only a household steward can assign chores")
     
     household = await db.households.find_one({"householdId": household_id})
     if not household:
@@ -3972,9 +4043,11 @@ async def auto_assign_chores(household_id: str, admin_user_id: str, reset: bool 
     members = []
     for member_id in member_ids:
         member = await db.users.find_one({"userId": member_id}, {"_id": 0})
-        if member:
+        if member and is_chore_participant(member):
             members.append(member)
-    
+    if not members:
+        raise HTTPException(status_code=400, detail="Need at least 1 chore-participating member to assign chores")
+
     # Generate fair distribution of tasks
     today = datetime.utcnow().strftime('%Y-%m-%d')
     last_assigned = household.get("lastAssignedDate")
@@ -4124,7 +4197,7 @@ async def _get_household_admin(household_id: str) -> Optional[Dict[str, Any]]:
     admin = await db.users.find_one({"userId": household.get("creatorId")})
     if admin:
         return admin
-    return await db.users.find_one({"householdId": household_id, "role": "admin"})
+    return await db.users.find_one({"householdId": household_id, "role": {"$in": ["admin", "resident_manager"]}})
 
 
 async def _enforce_pending_swap_limit(requester_id: str) -> None:
@@ -4369,12 +4442,9 @@ async def admin_approve_swap(request: AdminApproveSwapRequest):
     household = await db.households.find_one({"householdId": swap["householdId"]})
     if not household:
         raise HTTPException(status_code=404, detail="Household not found")
-    is_admin = (
-        admin.get("role") == "admin"
-        or admin.get("userId") == household.get("creatorId")
-    )
+    is_admin = is_household_steward(admin, household)
     if not is_admin:
-        raise HTTPException(status_code=403, detail="Only the household admin can approve swaps")
+        raise HTTPException(status_code=403, detail="Only a household steward can approve swaps")
 
     now = datetime.utcnow()
     if request.approve:
@@ -4420,9 +4490,9 @@ async def cancel_chore_swap(request: CancelChoreSwapRequest):
     if not actor:
         raise HTTPException(status_code=404, detail="User not found")
     household = await db.households.find_one({"householdId": swap["householdId"]})
-    is_admin = actor.get("role") == "admin" or (household and actor.get("userId") == household.get("creatorId"))
+    is_admin = is_household_steward(actor, household)
     if actor["userId"] != swap.get("requesterId") and not is_admin:
-        raise HTTPException(status_code=403, detail="Only the requester or admin can cancel this swap")
+        raise HTTPException(status_code=403, detail="Only the requester or a household steward can cancel this swap")
 
     now = datetime.utcnow()
     await db.chore_swaps.update_one(
@@ -4445,7 +4515,7 @@ async def get_user_swaps(user_id: str):
         raise HTTPException(status_code=404, detail="User not found")
     household_id = user["householdId"]
     household = await db.households.find_one({"householdId": household_id})
-    is_admin = user.get("role") == "admin" or (household and user["userId"] == household.get("creatorId"))
+    is_admin = is_household_steward(user, household)
 
     outgoing = await db.chore_swaps.find({
         "householdId": household_id,

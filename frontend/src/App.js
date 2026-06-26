@@ -12,7 +12,7 @@ import ProgressiveOnboarding from './components/ProgressiveOnboarding';
 import MemberOnboarding from './components/MemberOnboarding';
 import { AvailabilitySettingsPanel } from './components/AvailabilitySettingsPanel';
 import { RandomEventBubble } from './components/RandomEventBubble';
-import { AdminSandboxSimulator } from './components/AdminSandboxSimulator';
+// AdminSandboxSimulator removed in Phase 1 — Sandbox feature deleted per user request
 import { MiniGameArena } from './components/MiniGameArena';
 import { ChoreSwapPanel } from './components/ChoreSwapPanel';
 import { EpicInvitePanel } from './components/EpicInvitePanel';
@@ -2520,44 +2520,52 @@ function ChoreChampionsApp() {
         adminName: onboardingData.adminName,
         householdType: 'roommates', // Use valid enum value (lowercase)
         memberLimit: onboardingData.householdSize,
+        // NEW Phase 1 fields
+        governance: onboardingData.governance || 'round_table',
+        creatorRole: onboardingData.creatorRole || 'resident_manager',
+        creatorLivesInHousehold: onboardingData.creatorRole === 'external_supervisor'
+          ? false
+          : (onboardingData.creatorLivesInHousehold !== false),
+        supervisorPermissions: onboardingData.creatorRole === 'external_supervisor'
+          ? (onboardingData.supervisorPermissions || 'full_overseer')
+          : null,
         householdSetup: {
           // Step 1: Basics
           householdSize: onboardingData.householdSize,
           hasPrivateBedrooms: onboardingData.hasPrivateBedrooms,
-          
+
           // Step 2: Layout
           rooms: onboardingData.rooms,
           floors: onboardingData.floors,
-          
+
           // Step 3: Utilities
           laundryType: onboardingData.laundryType,
           dryingMethod: onboardingData.dryingMethod,
           laundromat_runs_per_week: onboardingData.laundromat_runs_per_week,
           trashDays: onboardingData.trashDays,
           hasCleaningSupplies: onboardingData.hasCleaningSupplies,
-          
+
           // Step 4: Pets & Vehicles
           pets: onboardingData.pets,
           vehicles: onboardingData.vehicles,
-          
+
           // Step 5: Time Reality
           availability: onboardingData.availability,
-          
-          // Step 6: Personal Limits
+
+          // Step 6: Preferences (maxDailyChoreLoad removed in Phase 1 — Dynamic Capacity Engine in Phase 2)
           choreAversions: onboardingData.choreAversions,
           preferredTasks: onboardingData.preferredTasks,
-          maxDailyChoreLoad: onboardingData.maxDailyChoreLoad,
         }
       });
-      
+
       const householdData = response.data;
-      
+
       // Use the userId and householdId from backend response
       const currentUserData = {
         userId: householdData.userId,  // From backend
         displayName: onboardingData.adminName,
         householdId: householdData.householdId,  // From backend
-        role: 'admin',
+        role: onboardingData.creatorRole || 'resident_manager',
         points: 0,
         level: 1,
         talentPoints: 0,
@@ -3410,19 +3418,7 @@ function ChoreChampionsApp() {
                 </button>
               )}
 
-              {currentUser?.role === 'admin' && (
-                <button
-                  onClick={() => setActiveTab('sandbox-sim')}
-                  data-testid="sandbox-sim-tab-button"
-                  className={`px-6 py-4 font-medium whitespace-nowrap border-b-4 transition-colors ${
-                    activeTab === 'sandbox-sim'
-                      ? 'border-sky-600 text-sky-600 bg-sky-50'
-                      : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-                  }`}
-                >
-                  🛰️ Sandbox Sim
-                </button>
-              )}
+              {/* Sandbox Sim removed in Phase 1 */}
               
               <button
                 onClick={() => setActiveTab('home')}
@@ -3710,16 +3706,7 @@ function ChoreChampionsApp() {
             </div>
           )}
 
-          {activeTab === 'sandbox-sim' && currentUser?.role === 'admin' && (
-            <div className="max-w-7xl mx-auto" data-testid="sandbox-sim-tab-panel">
-              <div className="mb-6">
-                <h2 className="text-4xl font-bold flex items-center gap-3">🛰️ Admin Sandbox Simulator</h2>
-                <p className="text-gray-600 mt-2">Create a mock household, inspect the whole house, and then click into each player perspective to test choices and reward drops.</p>
-              </div>
-
-              <AdminSandboxSimulator apiBase={API} currentUser={currentUser} />
-            </div>
-          )}
+          {/* Sandbox Sim removed in Phase 1 */}
 
           {/* HOME DASHBOARD - New Default Landing Page */}
           {activeTab === 'home' && (

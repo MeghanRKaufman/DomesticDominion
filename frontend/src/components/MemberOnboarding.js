@@ -257,20 +257,10 @@ const MemberOnboarding = ({ isOpen, onComplete, onClose, householdName, memberNa
         </div>
       </div>
 
-      <div>
-        <Label className="text-lg font-semibold mb-3 block">Max Daily Chore Load</Label>
-        <p className="text-sm text-gray-600 mb-3">How many chores can you handle per day?</p>
-        <div className="flex items-center gap-4">
-          <input
-            type="range"
-            min="1"
-            max="10"
-            value={onboardingData.maxDailyChoreLoad}
-            onChange={(e) => handleInputChange('maxDailyChoreLoad', parseInt(e.target.value))}
-            className="flex-1"
-          />
-          <span className="text-2xl font-bold w-12 text-center">{onboardingData.maxDailyChoreLoad}</span>
-        </div>
+      <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+        <p className="text-xs text-purple-800">
+          🧠 We figure out your daily chore capacity automatically from your availability — no manual limit needed.
+        </p>
       </div>
     </div>
   );
