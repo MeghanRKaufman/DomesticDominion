@@ -7,7 +7,7 @@ import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any, Union
+from typing import List, Optional, Dict, Any, Union, Tuple
 import uuid
 from datetime import datetime, timedelta, timezone
 from enum import Enum
@@ -1485,6 +1485,7 @@ class User(BaseModel):
     role: UserRole = UserRole.RESIDENT_MEMBER
     supervisorPermissions: Optional[str] = None  # When role=external_supervisor: read_only | can_assign | full_overseer
     livesInHousehold: bool = True  # False for external supervisors
+    schedulingPrecision: str = "flexible"  # flexible | time_window | suggested_time | scheduled_block | precision
     points: int = 0
     level: int = 1
     talentPoints: int = 0
@@ -1687,6 +1688,7 @@ class EnhancedHouseholdRequest(BaseModel):  # Changed from EnhancedCoupleRequest
 class JoinHouseholdRequest(BaseModel):  # Changed from JoinCoupleRequest
     memberName: str  # Changed from partnerName
     inviteCode: str
+    memberPreferences: Optional[Dict[str, Any]] = None  # Availability, aversions, preferences
 
 # NEW: Chore Swap Requests
 class RequestChoreSwapRequest(BaseModel):
@@ -3100,91 +3102,252 @@ def apply_talent_effects_to_points(user: Dict, task: Dict, base_points: int) -> 
     }
 
 def distribute_chores_fairly(chores: List[Dict], members: List[Dict], assignment_date: Optional[str] = None) -> Dict[str, List[Dict]]:
-    """Distribute chores fairly based on weight, considering member preferences and availability"""
+    """Legacy quota-based distributor. Kept for backward compatibility; new code should use
+    `dynamic_capacity_distribute` which schedules from real available time, not declared limits."""
+    return dynamic_capacity_distribute(chores, members, assignment_date)
+
+
+# =====================================================
+# Dynamic Capacity Engine (Phase 2)
+# =====================================================
+# Replaces "Max Daily Chore Load" with calculated capacity derived from each member's
+# availability window, existing committed minutes, and per-task effort.
+
+SCHEDULING_PRECISIONS = {"flexible", "time_window", "suggested_time", "scheduled_block", "precision"}
+
+CATEGORY_EFFORT = {
+    # category prefix -> (physical_effort 1-5, mental_effort 1-5)
+    "kitchen":      (3, 1),
+    "bathroom":     (4, 1),
+    "bedroom":      (2, 1),
+    "living":       (2, 1),
+    "outdoor":      (4, 1),
+    "patio":        (3, 1),
+    "garage":       (4, 1),
+    "laundry":      (2, 2),
+    "trash":        (2, 1),
+    "organizing":   (1, 3),
+    "office":       (1, 3),
+    "cooking":      (2, 3),
+    "general":      (2, 2),
+}
+
+CAPACITY_BUFFER_PCT = 0.15  # Reserve 15% of available time for recovery/breaks
+MIN_BREAK_BETWEEN_HIGH_EFFORT_MIN = 10
+
+
+def estimate_task_effort(task: Dict[str, Any]) -> Tuple[int, int]:
+    """Return (physical_effort, mental_effort) ints 1-5 for a chore task."""
+    cat = (task.get("category") or task.get("room") or "").lower()
+    for prefix, effort in CATEGORY_EFFORT.items():
+        if prefix in cat:
+            return effort
+    # Fall back: derive from time_estimate (longer = more physical)
+    minutes = int(task.get("time_estimate", 15) or 15)
+    if minutes >= 40:
+        return (4, 1)
+    if minutes >= 20:
+        return (3, 1)
+    return (2, 1)
+
+
+def task_minutes(task: Dict[str, Any]) -> int:
+    return max(int(task.get("time_estimate", 15) or 15), 5)
+
+
+def compute_member_capacity_minutes(member: Dict[str, Any], assignment_date: str) -> int:
+    """Compute available minutes for chores today: availability window length minus a recovery buffer.
+    External supervisors return 0 (they don't get chores). Members without availability return 0."""
+    if not is_chore_participant(member):
+        return 0
+    avail = resolve_member_availability(member, assignment_date)
+    if not avail:
+        return 0
+    start = parse_time_string(avail["start"])
+    end = parse_time_string(avail["end"])
+    window = max(end - start, 0)
+    capacity = int(window * (1 - CAPACITY_BUFFER_PCT))
+    return max(capacity, 0)
+
+
+def _apply_scheduling_precision(task: Dict[str, Any], member: Dict[str, Any], cursor_minutes: int) -> Dict[str, Any]:
+    """Stamp the task with a suggested time based on the member's schedulingPrecision setting.
+    cursor_minutes = minutes from midnight where this task is planned to start."""
+    precision = (member.get("schedulingPrecision") or "flexible").lower()
+    if precision == "flexible":
+        return task
+
+    def fmt(minutes_from_midnight: int) -> str:
+        h = (minutes_from_midnight // 60) % 24
+        m = minutes_from_midnight % 60
+        if precision == "precision":
+            m = (m // 15) * 15  # 15-min granularity
+        elif precision == "suggested_time":
+            m = 0  # hourly granularity
+        return f"{h:02d}:{m:02d}"
+
+    duration = task_minutes(task)
+    task["scheduledStart"] = fmt(cursor_minutes)
+    if precision in {"scheduled_block", "precision"}:
+        task["scheduledEnd"] = fmt(cursor_minutes + duration)
+    if precision == "time_window":
+        # 4-hour window
+        task["scheduledWindow"] = f"{fmt(cursor_minutes)}–{fmt(cursor_minutes + 240)}"
+    task["schedulingPrecision"] = precision
+    return task
+
+
+def dynamic_capacity_distribute(
+    chores: List[Dict[str, Any]],
+    members: List[Dict[str, Any]],
+    assignment_date: Optional[str] = None,
+) -> Dict[str, List[Dict[str, Any]]]:
+    """Schedule chores into each member's available time, fatigue-aware and effort-balanced.
+
+    Algorithm:
+      1. Compute each member's capacity_minutes for the day.
+      2. Sort chores by priority (urgent first → high → medium → low) then by weight (heaviest first).
+      3. Greedy fit: for each chore, pick the member with the highest remaining capacity,
+         lowest current effort_load, who isn't burnt-out on a same-physical-effort streak.
+      4. Reorder each member's queue: group by room (location grouping), then alternate
+         high-physical with low-physical/high-mental for fatigue management.
+      5. Stamp scheduling precision (flexible/time_window/suggested_time/scheduled_block/precision).
+    """
     if not members:
         return {}
 
-    # Initialize distribution
-    distribution = {m["userId"]: {"chores": [], "total_weight": 0} for m in members}
-    member_ids = [m["userId"] for m in members]
+    participants = [m for m in members if is_chore_participant(m)]
+    if not participants:
+        return {m["userId"]: [] for m in members}
 
-    available_member_ids = member_ids
     if assignment_date:
-        available_member_ids = [
-            m["userId"]
-            for m in members
-            if resolve_member_availability(m, assignment_date)
-        ]
-        if not available_member_ids:
+        participants = [m for m in participants if resolve_member_availability(m, assignment_date)]
+        if not participants:
             raise ValueError("No household members are available during their configured windows for this assignment date")
 
-    # Create member preference maps
-    member_prefs = {}
-    for m in members:
+    # Per-member runtime state
+    state: Dict[str, Dict[str, Any]] = {}
+    for m in participants:
+        capacity = compute_member_capacity_minutes(m, assignment_date) if assignment_date else 9999
         prefs = normalize_user_preferences(m.get("preferences", {}))
-        member_prefs[m["userId"]] = {
+        state[m["userId"]] = {
+            "remaining_minutes": capacity,
+            "total_weight": 0,
+            "chores": [],
+            "last_physical": 0,
+            "consecutive_physical": 0,
             "aversions": set(prefs.get("choreAversions", [])),
             "preferred": set(prefs.get("preferredTasks", [])),
-            "max_daily": prefs.get("maxDailyChoreLoad", 10),
             "swap_penalty": min(int(m.get("swapsInitiatedThisWeek", 0) or 0), 10),
+            "member": m,
         }
 
-    # Calculate weight for each chore and sort by weight (heaviest first for better distribution)
-    weighted_chores = []
-    for chore in chores:
-        weight = calculate_chore_weight(chore)
-        weighted_chores.append({"chore": chore, "weight": weight})
+    priority_weight = {"urgent": 0, "high": 1, "medium": 2, "low": 3}
 
-    weighted_chores.sort(key=lambda x: x["weight"], reverse=True)
+    def chore_sort_key(c: Dict[str, Any]):
+        prio = priority_weight.get((c.get("priority") or "medium").lower(), 2)
+        return (prio, -calculate_chore_weight(c))
 
-    # Distribute chores using a greedy algorithm
-    for wc in weighted_chores:
-        chore = wc["chore"]
-        weight = wc["weight"]
-        chore_category = chore.get("category", "").lower()
+    sorted_chores = sorted(chores, key=chore_sort_key)
 
-        # Find the best member for this chore
-        best_member = None
-        best_score = float('inf')
+    for chore in sorted_chores:
+        chore_phys, _ = estimate_task_effort(chore)
+        chore_min = task_minutes(chore)
+        chore_weight = calculate_chore_weight(chore)
+        chore_cat = (chore.get("category") or "").lower()
 
-        for member_id in available_member_ids:
-            prefs = member_prefs[member_id]
-            current_weight = distribution[member_id]["total_weight"]
-            current_count = len(distribution[member_id]["chores"])
-
-            # Skip if member is at max capacity
-            if current_count >= prefs["max_daily"]:
+        # Score each participant (lower = better candidate)
+        best_id, best_score = None, float("inf")
+        for uid, s in state.items():
+            if s["remaining_minutes"] < chore_min:
                 continue
-
-            # Calculate assignment score (lower is better)
-            score = current_weight
-
-            # Penalize if this is an aversion
-            if chore_category in prefs["aversions"]:
-                score += weight * 2  # Double the effective weight for aversions
-
-            # Bonus if this is preferred
-            if chore_category in prefs["preferred"]:
-                score -= weight * 0.5  # Reduce effective weight for preferences
-
-            # Fairness penalty: members who initiated many swaps this week get LIGHTER load
-            # The score is "current load" — lower means they get the next chore.
-            # We invert this for swap-heavy members so they receive MORE chores (small bump per swap).
-            score -= prefs["swap_penalty"] * 0.4  # makes them more likely to be picked
-
+            score = s["total_weight"]
+            # Aversion penalty
+            if chore_cat in s["aversions"]:
+                score += chore_weight * 2
+            # Preference bonus
+            if chore_cat in s["preferred"]:
+                score -= chore_weight * 0.5
+            # Fairness: heavy swappers get more chores
+            score -= s["swap_penalty"] * 0.4
+            # Fatigue: penalize if their last task was also high-physical
+            if chore_phys >= 4 and s["last_physical"] >= 4:
+                score += chore_weight * 1.5
+            # Penalize stacking 3+ high-physical in a row
+            if chore_phys >= 4 and s["consecutive_physical"] >= 2:
+                score += chore_weight * 2
             if score < best_score:
                 best_score = score
-                best_member = member_id
+                best_id = uid
 
-        # Assign to best member (or first available if all available members are already at capacity)
-        if best_member is None:
-            best_member = min(available_member_ids, key=lambda m: distribution[m]["total_weight"])
+        if best_id is None:
+            # Nobody has enough remaining minutes — pick whoever has the most room
+            candidates = [(uid, s) for uid, s in state.items()]
+            candidates.sort(key=lambda x: -x[1]["remaining_minutes"])
+            if not candidates:
+                continue
+            best_id = candidates[0][0]
 
-        distribution[best_member]["chores"].append(chore)
-        distribution[best_member]["total_weight"] += weight
+        s = state[best_id]
+        s["chores"].append({**chore, "_phys_effort": chore_phys})
+        s["total_weight"] += chore_weight
+        s["remaining_minutes"] = max(s["remaining_minutes"] - chore_min, 0)
+        if chore_phys >= 4 and s["last_physical"] >= 4:
+            s["consecutive_physical"] += 1
+        else:
+            s["consecutive_physical"] = 1 if chore_phys >= 4 else 0
+        s["last_physical"] = chore_phys
 
-    # Return just the chore lists
-    return {m_id: data["chores"] for m_id, data in distribution.items()}
+    # Phase 2: Reorder each member's queue and stamp scheduling precision
+    result: Dict[str, List[Dict[str, Any]]] = {m["userId"]: [] for m in members}
+    for uid, s in state.items():
+        ordered = _fatigue_aware_order(s["chores"])
+        member = s["member"]
+        avail = resolve_member_availability(member, assignment_date) if assignment_date else None
+        cursor = parse_time_string(avail["start"]) if avail else None
+        for task in ordered:
+            duration = task_minutes(task)
+            if cursor is not None:
+                task = _apply_scheduling_precision(task, member, cursor)
+                cursor += duration
+                if task.get("_phys_effort", 0) >= 4:
+                    cursor += MIN_BREAK_BETWEEN_HIGH_EFFORT_MIN
+            task.pop("_phys_effort", None)
+            result[uid].append(task)
+
+    return result
+
+
+def _fatigue_aware_order(chores: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Reorder a member's chore list to:
+      1. Group by room (location proximity).
+      2. Alternate high-physical with low-physical (or mental) inside each room.
+    """
+    if not chores:
+        return chores
+
+    # 1. Group by room
+    by_room: Dict[str, List[Dict[str, Any]]] = {}
+    for c in chores:
+        by_room.setdefault(c.get("room", "General"), []).append(c)
+
+    ordered: List[Dict[str, Any]] = []
+    for room in sorted(by_room.keys()):
+        room_chores = by_room[room]
+        # 2. Alternate inside the room — interleave high-effort and low-effort
+        high = sorted([c for c in room_chores if c.get("_phys_effort", 0) >= 3], key=lambda c: -task_minutes(c))
+        low = sorted([c for c in room_chores if c.get("_phys_effort", 0) < 3], key=lambda c: task_minutes(c))
+        i = j = 0
+        # Start with a low-effort warmup if both exist
+        while i < len(low) or j < len(high):
+            if i < len(low):
+                ordered.append(low[i]); i += 1
+            if j < len(high):
+                ordered.append(high[j]); j += 1
+    return ordered
+
+
+
 
 def calculate_enhanced_task_points(task: Dict, user_talents: Dict, completion_time: datetime, is_first_task: bool = False, consecutive_tasks: int = 0) -> Dict:
     """
@@ -3782,7 +3945,7 @@ async def join_household_adventure(request: JoinHouseholdRequest):
     new_member = User(
         displayName=request.memberName,
         householdId=household["householdId"],
-        role=UserRole.MEMBER
+        role=UserRole.RESIDENT_MEMBER
     )
     
     # Add member preferences to user document
@@ -5703,6 +5866,63 @@ async def get_user(user_id: str):
     user["talentPointsTotal"] = talent_points_earned
     
     return user
+
+
+class SchedulingPrecisionRequest(BaseModel):
+    precision: str
+
+
+@api_router.patch("/users/{user_id}/scheduling-precision")
+async def update_scheduling_precision(user_id: str, body: SchedulingPrecisionRequest):
+    """Set the user's scheduling precision (Phase 2 Dynamic Capacity Engine)."""
+    if body.precision not in SCHEDULING_PRECISIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"precision must be one of: {sorted(SCHEDULING_PRECISIONS)}",
+        )
+    user = await db.users.find_one({"userId": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    await db.users.update_one(
+        {"userId": user_id},
+        {"$set": {"schedulingPrecision": body.precision}},
+    )
+    return {"userId": user_id, "schedulingPrecision": body.precision}
+
+
+@api_router.get("/users/{user_id}/capacity")
+async def get_user_capacity(user_id: str, date: Optional[str] = None):
+    """Return the user's estimated daily capacity (Dynamic Capacity Engine).
+
+    Replaces the legacy maxDailyChoreLoad — capacity is derived from their availability
+    window minus a 15% recovery buffer, then minus minutes already committed to incomplete tasks.
+    """
+    user = await db.users.find_one({"userId": user_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    target_date = date or datetime.utcnow().strftime("%Y-%m-%d")
+    capacity_minutes = compute_member_capacity_minutes(user, target_date)
+    avail = resolve_member_availability(user, target_date)
+
+    existing_tasks = await db.tasks.find({
+        "householdId": user.get("householdId"),
+        "assignedTo": user_id,
+        "date": target_date,
+        "completed": {"$ne": True},
+    }).to_list(200)
+    committed_minutes = sum(task_minutes(t) for t in existing_tasks)
+    remaining = max(capacity_minutes - committed_minutes, 0)
+
+    return {
+        "userId": user_id,
+        "date": target_date,
+        "availabilityWindow": avail,
+        "capacityMinutes": capacity_minutes,
+        "committedMinutes": committed_minutes,
+        "remainingMinutes": remaining,
+        "schedulingPrecision": user.get("schedulingPrecision", "flexible"),
+        "isChoreParticipant": is_chore_participant(user),
+    }
 
 
 @api_router.get("/random-events/user/{user_id}")

@@ -16,6 +16,7 @@ import { RandomEventBubble } from './components/RandomEventBubble';
 import { MiniGameArena } from './components/MiniGameArena';
 import { ChoreSwapPanel } from './components/ChoreSwapPanel';
 import { EpicInvitePanel } from './components/EpicInvitePanel';
+import { SchedulingPrecisionPanel } from './components/SchedulingPrecisionPanel';
 import TalentTree from './components/TalentTree';
 
 // Import UI components
